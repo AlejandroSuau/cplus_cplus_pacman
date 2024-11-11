@@ -34,12 +34,12 @@ Game::Game()
     , background_texture_(nullptr)
     , map_(kGameWidth, kGameHeight, kCellSize)
     , pathfinder_(map_)
-    , player_(texture_manager_, map_, pathfinder_, score_manager_, {10*kCellSize, 25*kCellSize})
+    , player_(texture_manager_, map_, pathfinder_, score_manager_, {20 * kCellSizeInt, 15 * kCellSizeInt})
     , ghosts_{{
-        {texture_manager_, map_, pathfinder_, Vec2{5*kCellSize, 5*kCellSize}, SDL_Color{255, 0, 0, 255}},
-        {texture_manager_, map_, pathfinder_, Vec2{5*kCellSize, 45*kCellSize}, SDL_Color{0, 255, 0, 255}},
-        {texture_manager_, map_, pathfinder_, Vec2{40*kCellSize, 5*kCellSize}, SDL_Color{0, 0, 255, 255}},
-        {texture_manager_, map_, pathfinder_, Vec2{40*kCellSize, 45*kCellSize}, SDL_Color{100, 100, 90, 255}}
+        {texture_manager_, map_, pathfinder_, Vec2{0, 0}, SDL_Color{255, 0, 0, 255}},
+        {texture_manager_, map_, pathfinder_, Vec2{kCellSize*(map_.GetColumnsCount()-1), 0}, SDL_Color{0, 255, 0, 255}},
+        {texture_manager_, map_, pathfinder_, Vec2{0, kCellSizeInt*(map_.GetRowsCount()-1)}, SDL_Color{0, 0, 255, 255}},
+        {texture_manager_, map_, pathfinder_, Vec2{(kCellSize*(map_.GetColumnsCount()-1)), kCellSizeInt*(map_.GetRowsCount()-1)}, SDL_Color{100, 100, 90, 255}}
     }} {
 
     if (!window_ || !renderer_) {

@@ -1,10 +1,12 @@
 #pragma once
 
 #include <SDL2/SDL.h>
+#include <SDL2/SDL_image.h>
 
 #include "utils/CountdownTimer.hpp"
 #include "utils/Vec2.hpp"
 #include "utils/TextureManager.hpp"
+#include "utils/SpritesheetAnimation.hpp"
 
 #include "GameMap.hpp"
 #include "pathfinder/Pathfinder.hpp"
@@ -24,6 +26,20 @@ public:
     void Render(SDL_Renderer& renderer);
 
 private:
+    enum class EMovingDirection {
+        UP = 0,
+        DOWN = 1,
+        LEFT = 2,
+        RIGHT = 3
+    };
+
+    enum class EType {
+        RED = 0,
+        PINKY = 1,
+        BLUE = 2,
+        YELLOW = 3
+    };
+
     TextureManager& texture_manager_;
     GameMap& game_map_;
     Pathfinder& pathfinder_;
@@ -32,4 +48,14 @@ private:
     Pathfinder::Path path_;
     std::size_t path_index_;
     CountdownTimer path_step_timer_;
+    EMovingDirection direction_;
+    EType type_;
+    
+    CountdownTimer animation_timer_;
+    int sprite_index_;
+    int sprites_count_;
+    SDL_Texture* sprite_sheet_;
+
+    void RenderPath(SDL_Renderer& renderer);
+    SDL_Rect GetSourceRect() const;
 };
