@@ -1,6 +1,9 @@
 #include "Ghost.hpp"
 #include "Constants.hpp"
 
+// Inky Azul
+// Target 2 casillas en direcc
+
 Ghost::Ghost(
     TextureManager& texture_manager,
     GameMap& game_map,
@@ -18,7 +21,8 @@ Ghost::Ghost(
     , sprite_index_(0)
     , sprites_count_(2)
     , direction_(EMovingDirection::UP)
-    , type_(EType::YELLOW) {
+    , type_(EType::YELLOW)
+    , is_vulnerable_(false) {
 
     sprite_sheet_ = texture_manager_.LoadTexture(kAssetsFolderImages + "spritesheet.png");
     // red
@@ -123,6 +127,16 @@ void Ghost::Update(float dt) {
     }
 }
 
+void Ghost::ActivateVulnerability() {
+    is_vulnerable_ = true;
+    // render el otro
+    // comenzar el tempor
+    // Si han pasado X segundos, cambiamos la imagen durante 1s. luego vuelve y luego vuelve a hacerlo
+    // despues termina vulnerability
+
+    // igual pero 163
+}
+
 void Ghost::Render(SDL_Renderer& renderer) {
     RenderPath(renderer);
     
@@ -140,8 +154,8 @@ void Ghost::RenderPath(SDL_Renderer& renderer) {
     for (std::size_t i = path_index_; i < path_.size(); ++i) {
         const auto& cell = path_[i];
         SDL_Rect cell_rect {
-            cell.second * kCellSizeInt, //x
-            cell.first * kCellSizeInt, //y
+            cell.second * kCellSizeInt,
+            cell.first * kCellSizeInt,
             kCellSizeInt,
             kCellSizeInt};
         
@@ -151,11 +165,11 @@ void Ghost::RenderPath(SDL_Renderer& renderer) {
 }
 
 SDL_Rect Ghost::GetSourceRect() const {
-    using namespace SpriteSheet::GhostSprite;
+    using namespace SpriteSheet;
     const auto dir = static_cast<int>(direction_);
     const int x = kStartingX +
-        ((kPadding + kWidth) * kAnimationCount) * dir +
+        ((kPadding + kWidth) * GhostSprite::kAnimationCount) * dir +
         ((kPadding + kWidth) * sprite_index_);
-    const int y = kStartingY + (kPadding + kHeight) * static_cast<int>(type_);
+    const int y = GhostSprite::kStartingY + (kPadding + kHeight) * static_cast<int>(type_);
     return SDL_Rect {x, y, kWidth, kHeight};
 }

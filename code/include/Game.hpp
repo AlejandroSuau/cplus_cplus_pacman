@@ -14,6 +14,7 @@
 #include "GameMap.hpp"
 #include "Ghost.hpp"
 #include "Player.hpp"
+#include "CollectableList.hpp"
 
 #include "pathfinder/Pathfinder.hpp"
 
@@ -38,6 +39,8 @@ public:
     bool IsFinishing() const;
     bool IsFinished() const;
 
+    const Player& GetPlayer() const;
+
 private:
     // SDL Initializers
     std::unique_ptr<SDLInitializer> sdl_;
@@ -52,6 +55,7 @@ private:
 
     SoundsManager sounds_manager_;
     TextureManager texture_manager_;
+    TextManager text_manager_;
     ScoreManager score_manager_;
     UIManager ui_manager_;
     EGameState state_;
@@ -60,14 +64,12 @@ private:
     // Game Objects
     GameMap map_;
     Pathfinder pathfinder_;
-    Pathfinder::Path path_;
     Player player_;
     std::array<Ghost, 4> ghosts_;
     CountdownTimer search_countdown_{1000};
-    // 4 Ghosts
+    CollectableList collectables_;
     // Collectables
     // Big collectables
-    // Player
 
     void Init();
 

@@ -16,6 +16,7 @@ public:
     void Render(SDL_Renderer& renderer);
 
     void IncreaseScore(int val);
+    int GetScore() const;
 
 private:
     TextureManager& texture_manager_;

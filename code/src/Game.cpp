@@ -19,8 +19,8 @@ Game::Game()
             "Pac-Man",
             SDL_WINDOWPOS_UNDEFINED,
             SDL_WINDOWPOS_UNDEFINED,
-            kGameWidth,
-            kGameHeight,
+            kGameWidth + (kGamePaddingX * 2),
+            kGameHeight + (kGamePaddingY * 2),
             0),
         SDL_DestroyWindow)
     , renderer_(
@@ -29,18 +29,19 @@ Game::Game()
     , is_running_(false)
     , texture_manager_(*renderer_.get())
     , score_manager_(texture_manager_)
-    , ui_manager_(texture_manager_, score_manager_)
+    , ui_manager_(text_manager_, texture_manager_, score_manager_)
     , state_(EGameState::READY_TO_PLAY)
     , background_texture_(nullptr)
-    , map_(kGameWidth, kGameHeight, kCellSize)
+    , map_(kGameWidth, kGameHeight, kGamePaddingX, kGamePaddingY, kCellSize)
     , pathfinder_(map_)
-    , player_(texture_manager_, map_, pathfinder_, score_manager_, {20 * kCellSizeInt, 15 * kCellSizeInt})
+    , player_(texture_manager_, map_, pathfinder_, score_manager_)
     , ghosts_{{
-        {texture_manager_, map_, pathfinder_, Vec2{0, 0}, SDL_Color{255, 0, 0, 255}},
-        {texture_manager_, map_, pathfinder_, Vec2{kCellSize*(map_.GetColumnsCount()-1), 0}, SDL_Color{0, 255, 0, 255}},
-        {texture_manager_, map_, pathfinder_, Vec2{0, kCellSizeInt*(map_.GetRowsCount()-1)}, SDL_Color{0, 0, 255, 255}},
-        {texture_manager_, map_, pathfinder_, Vec2{(kCellSize*(map_.GetColumnsCount()-1)), kCellSizeInt*(map_.GetRowsCount()-1)}, SDL_Color{100, 100, 90, 255}}
-    }} {
+        {texture_manager_, map_, pathfinder_, Vec2{8 * kCellSize, 6 * kCellSize}, SDL_Color{255, 0, 0, 255}},
+        {texture_manager_, map_, pathfinder_, Vec2{7 * kCellSize, 8 * kCellSize}, SDL_Color{0, 255, 0, 255}},
+        {texture_manager_, map_, pathfinder_, Vec2{8 * kCellSizeInt, 8 * kCellSize}, SDL_Color{0, 0, 255, 255}},
+        {texture_manager_, map_, pathfinder_, Vec2{9 * kCellSize, 8 * kCellSize}, SDL_Color{100, 100, 90, 255}}
+    }}
+    , collectables_(texture_manager_, score_manager_, map_) {
 
     if (!window_ || !renderer_) {
         throw std::runtime_error(
@@ -83,34 +84,36 @@ void Game::Run() {
 }
 
 void Game::Init() {
-    // background_texture_ = texture_manager_.LoadTexture(kAssetsFolderImages + "background.png");
-    path_ = pathfinder_.FindPath(0, 0, 4, 4);
+    background_texture_ = texture_manager_.LoadTexture(kAssetsFolderImages + "maze.png");
 }
 
 void Game::Update(float dt) {
     if (search_countdown_.HasElapsed()) {
-        const auto player_pos = player_.GetPosition();
+        /*const auto player_pos = player_.GetPosition();
         const auto [row, col] = map_.FromCoordsToRowCol(
             static_cast<int>(player_pos.x),
             static_cast<int>(player_pos.y));
         ghosts_[0].FindPath(row, col);
         for (auto& ghost : ghosts_) {
-
             ghost.FindPath(row, col);
-        }
+        }*/
     }
 
     player_.Update(dt);
     for (auto& ghost : ghosts_) {
         ghost.Update(dt);
     }
+
+    collectables_.ProcessCollisions(*this);
+
+    collectables_.RemoveCollectablesMarkedForDestroy();
 }
 
 void Game::Render() {
     auto* renderer = renderer_.get();
     SDL_RenderClear(renderer);
     
-    SDL_RenderCopyF(renderer, background_texture_, nullptr, &kTextureRectBackground);
+    //SDL_RenderCopy(renderer, background_texture_, nullptr, &kTextureRectBackground);
 
     map_.Render(*renderer);
     player_.Render(*renderer);
@@ -118,7 +121,8 @@ void Game::Render() {
         g.Render(*renderer);
     }
 
-    // ui_manager_.Render(*renderer, *this);
+    collectables_.Render(*renderer);
+    ui_manager_.Render(*renderer, *this);
 
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
     SDL_RenderPresent(renderer);
@@ -170,4 +174,8 @@ void Game::HandlePressedKeySpace() {
 void Game::Reset() {
     state_ = EGameState::READY_TO_PLAY;
     score_manager_.Reset();
+}
+
+const Player& Game::GetPlayer() const { 
+    return player_;
 }

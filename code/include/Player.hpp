@@ -17,13 +17,10 @@ public:
         TextureManager& texture_manager,
         GameMap& game_map,
         Pathfinder& pathfinder,
-        ScoreManager& score_manager,
-        Vec2 position);
+        ScoreManager& score_manager);
 
     void Update(float dt);
     void Render(SDL_Renderer& renderer);
-
-    const Vec2& GetPosition() const;
 
     void ProcessGhostCollision();
     void ProcessBigCoinCollision();
@@ -31,19 +28,47 @@ public:
 
     void HandleKeyPressed(SDL_Scancode scancode);
 
+    void DecreaseOneLife();
+    unsigned int GetLifes() const;
+    const SDL_Rect& GetHitbox() const;
+
 private:
     enum class EMovingDirection {
-        UP, DOWN, RIGHT, LEFT
+        LEFT = 0,
+        UP = 1,
+        RIGHT = 2,
+        DOWN = 3
+    };
+
+    enum class EStatus {
+        READY,
+        MOVING,
+        DYING,
+        DEAD
     };
 
     TextureManager& texture_manager_;
     GameMap& game_map_;
     Pathfinder& pathfinder_;
     ScoreManager& score_manager_;
-    Vec2 position_;
-    CountdownTimer moving_timer_;
-    EMovingDirection moving_direction_;
-    const SDL_Color color_;
+    SDL_Rect hitbox_;
+    CountdownTimer moving_timer_{300};
+    EMovingDirection direction_;
+    EMovingDirection next_direction_;
+    EStatus status_;
+    unsigned int lifes_;
 
-    void Move();
+    SDL_Texture* sprite_sheet_;
+    CountdownTimer moving_animation_timer_{100};
+    int moving_animation_sprite_index_{0};
+
+    CountdownTimer dying_animation_timer_{250};
+    int dying_animation_sprite_index_{0};
+
+    void Move(float dt);
+    bool TryToMove(EMovingDirection direction, int dx, int dy);
+    bool IsMovementAllowed(SDL_Rect moved_rect) const;
+
+    SDL_Rect GetSourceRectMoving() const;
+    SDL_Rect GetSourceRectDying() const;
 };

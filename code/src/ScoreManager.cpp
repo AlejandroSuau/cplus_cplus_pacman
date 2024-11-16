@@ -45,3 +45,7 @@ void ScoreManager::Render(SDL_Renderer& renderer) {
 void ScoreManager::Reset() {
     UpdateScoreValue(0);
 }
+
+int ScoreManager::GetScore() const {
+    return score_;
+}

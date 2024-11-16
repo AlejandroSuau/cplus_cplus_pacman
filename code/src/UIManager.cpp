@@ -3,12 +3,21 @@
 #include "Constants.hpp"
 #include "Game.hpp"
 
-UIManager::UIManager(TextureManager& texture_manager, ScoreManager& score_manager)
-    : texture_manager_(texture_manager)
+namespace {
+static const SDL_Color kWhiteColor {255, 255, 255, 255};
+}
+
+UIManager::UIManager(
+    TextManager& text_manager,
+    TextureManager& texture_manager,
+    ScoreManager& score_manager)
+    : text_manager_(text_manager)
+    , texture_manager_(texture_manager)
     , score_manager_(score_manager)
+    , font_(nullptr)
     , tutorial_texture_(nullptr)
     , gameover_texture_(nullptr) {
-    LoadTextures();
+    font_ = text_manager.LoadFont(kAssetsFolderFonts + "atari-full.ttf", 18);
 }
 
 void UIManager::LoadTextures() {
@@ -17,6 +26,10 @@ void UIManager::LoadTextures() {
 }
 
 void UIManager::Render(SDL_Renderer& renderer, const Game& game) {
+    text_manager_.RenderText(renderer, *font_, "Score", kWhiteColor, 110, 45);
+    
+    const auto score_string = std::to_string(score_manager_.GetScore());
+    text_manager_.RenderText(renderer, *font_, score_string, kWhiteColor, 145, 75);
     /*if (game.IsReadyToPlay()) {
         SDL_RenderCopyF(&renderer, tutorial_texture_, nullptr, &kTextureRectTutorial);
     } else {

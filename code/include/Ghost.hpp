@@ -20,12 +20,15 @@ public:
         Vec2 position,
         SDL_Color color);
     
-    void FindPath(int target_row, int target_col);
+    virtual ~Ghost() = default;
 
+    virtual void FindPath(int target_row, int target_col);
     void Update(float dt);
     void Render(SDL_Renderer& renderer);
 
-private:
+    void ActivateVulnerability();
+
+protected:
     enum class EMovingDirection {
         UP = 0,
         DOWN = 1,
@@ -50,6 +53,7 @@ private:
     CountdownTimer path_step_timer_;
     EMovingDirection direction_;
     EType type_;
+    bool is_vulnerable_;
     
     CountdownTimer animation_timer_;
     int sprite_index_;

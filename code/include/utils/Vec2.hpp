@@ -18,6 +18,9 @@ public:
     Vec2& operator*=(float scalar);
     Vec2& operator/=(float scalar);
 
+    bool operator!=(const Vec2& other) const;
+    bool operator==(const Vec2& other) const;
+
     float Length() const;
     float LengthSquared() const;
     Vec2 Normalized() const;

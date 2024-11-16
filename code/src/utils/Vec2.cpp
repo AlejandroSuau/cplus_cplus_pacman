@@ -50,6 +50,14 @@ float Vec2::LengthSquared() const {
     return x * x + y * y;
 }
 
+bool Vec2::operator!=(const Vec2& other) const {
+    return (x != other.x || y != other.y);
+}
+
+bool Vec2::operator==(const Vec2& other) const {
+    return (x == other.x && y == other.y);
+}
+
 Vec2 Vec2::Normalized() const {
     float length = Length();
     if (length != 0) {
