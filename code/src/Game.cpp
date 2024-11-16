@@ -88,7 +88,8 @@ void Game::Init() {
 }
 
 void Game::Update(float dt) {
-    if (search_countdown_.HasElapsed()) {
+    search_countdown_.Update(dt);
+    if (search_countdown_.DidFinish()) {
         /*const auto player_pos = player_.GetPosition();
         const auto [row, col] = map_.FromCoordsToRowCol(
             static_cast<int>(player_pos.x),

@@ -16,8 +16,8 @@ Ghost::Ghost(
     , position_(position)
     , color_(color)
     , path_index_(0)
-    , path_step_timer_(500)
-    , animation_timer_(100)
+    , path_step_timer_(0.5f)
+    , animation_timer_(0.1f)
     , sprite_index_(0)
     , sprites_count_(2)
     , direction_(EMovingDirection::UP)
@@ -102,11 +102,13 @@ void Ghost::FindPath(int target_row, int target_col) {
 }
 
 void Ghost::Update(float dt) {
-    if (animation_timer_.HasElapsed()) {
+    animation_timer_.Update(dt);
+    if (animation_timer_.DidFinish()) {
         sprite_index_ = (sprite_index_ + 1) % sprites_count_;
     }
 
-    if (!path_.empty() && path_step_timer_.HasElapsed()) {
+    path_step_timer_.Update(dt);
+    if (!path_.empty() && path_step_timer_.DidFinish()) {
         ++path_index_;
         if (path_index_ >= path_.size()) return;
 

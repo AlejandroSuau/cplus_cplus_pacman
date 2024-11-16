@@ -52,17 +52,17 @@ private:
     Pathfinder& pathfinder_;
     ScoreManager& score_manager_;
     SDL_Rect hitbox_;
-    CountdownTimer moving_timer_{300};
+    CountdownTimer moving_timer_{0.3f};
     EMovingDirection direction_;
     EMovingDirection next_direction_;
     EStatus status_;
     unsigned int lifes_;
 
     SDL_Texture* sprite_sheet_;
-    CountdownTimer moving_animation_timer_{100};
+    CountdownTimer moving_animation_timer_{0.1f};
     int moving_animation_sprite_index_{0};
 
-    CountdownTimer dying_animation_timer_{250};
+    CountdownTimer dying_animation_timer_{0.25};
     int dying_animation_sprite_index_{0};
 
     void Move(float dt);

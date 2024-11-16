@@ -66,7 +66,7 @@ private:
     Pathfinder pathfinder_;
     Player player_;
     std::array<Ghost, 4> ghosts_;
-    CountdownTimer search_countdown_{1000};
+    CountdownTimer search_countdown_{1000.f};
     CollectableList collectables_;
     // Collectables
     // Big collectables

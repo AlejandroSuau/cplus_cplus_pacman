@@ -36,7 +36,8 @@ SpriteSheetAnimation::~SpriteSheetAnimation() {
 }
 
 void SpriteSheetAnimation::Update(float dt) {
-    if (sprite_swap_timer_.HasElapsed()) {
+    sprite_swap_timer_.Update(dt);
+    if (sprite_swap_timer_.DidFinish()) {
         sprite_index_ = (sprite_index_ + 1) % sprites_count_;
     }
 }

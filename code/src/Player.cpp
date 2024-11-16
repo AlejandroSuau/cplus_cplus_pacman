@@ -47,27 +47,24 @@ void Player::HandleKeyPressed(SDL_Scancode scancode) {
 }
 
 void Player::Update(float dt) {
-    if (moving_animation_timer_.HasElapsed()) {
-        moving_animation_sprite_index_ = (moving_animation_sprite_index_ + 1) % PlayerParameters::kMovingAnimationCount;
-    }
-
-    if (status_ == EStatus::DYING && dying_animation_timer_.HasElapsed()) {
-        ++dying_animation_sprite_index_;
-        if (dying_animation_sprite_index_ == PlayerParameters::kDyingAnimationCount) {
-            status_ = EStatus::DEAD;
+    if (status_ == EStatus::DYING) {
+        dying_animation_timer_.Update(dt);
+        if (dying_animation_timer_.DidFinish()) {
+            ++dying_animation_sprite_index_;
+            if (dying_animation_sprite_index_ == PlayerParameters::kDyingAnimationCount) {
+                status_ = EStatus::DEAD;
+            }
         }
     }
 
     if (status_ == EStatus::MOVING) {
+        moving_animation_timer_.Update(dt);
+        if (moving_animation_timer_.DidFinish()) {
+            moving_animation_sprite_index_ = (moving_animation_sprite_index_ + 1) % PlayerParameters::kMovingAnimationCount;
+        }
         Move(dt);
     }
-
-    /*if (status_ == EStatus::MOVING && moving_timer_.HasElapsed()) {
-        Move();
-    }*/
 }
-
-// TryToMove(direction, dx, dy)
 
 void Player::Move(float dt) {
     const auto dx = static_cast<int>(PlayerParameters::kVelocity * dt);
