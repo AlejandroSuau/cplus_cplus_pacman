@@ -15,7 +15,7 @@ class Player {
 public:
     Player(
         TextureManager& texture_manager,
-        GameMap& game_map,
+        const GameMap& game_map,
         Pathfinder& pathfinder,
         ScoreManager& score_manager);
 
@@ -31,6 +31,8 @@ public:
     void DecreaseOneLife();
     unsigned int GetLifes() const;
     const SDL_Rect& GetHitbox() const;
+
+    Vec2 GetPosition() const;
 
 private:
     enum class EMovingDirection {
@@ -48,7 +50,7 @@ private:
     };
 
     TextureManager& texture_manager_;
-    GameMap& game_map_;
+    const GameMap& game_map_;
     Pathfinder& pathfinder_;
     ScoreManager& score_manager_;
     SDL_Rect hitbox_;
@@ -62,7 +64,7 @@ private:
     CountdownTimer moving_animation_timer_{0.1f};
     int moving_animation_sprite_index_{0};
 
-    CountdownTimer dying_animation_timer_{0.25};
+    CountdownTimer dying_animation_timer_{0.15f};
     int dying_animation_sprite_index_{0};
 
     void Move(float dt);

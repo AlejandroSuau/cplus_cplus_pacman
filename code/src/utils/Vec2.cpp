@@ -10,11 +10,11 @@ Vec2 Vec2::operator-(const Vec2& other) const {
     return Vec2(x - other.x, y - other.y);
 }
 
-Vec2 Vec2::operator*(float scalar) const {
+Vec2 Vec2::operator*(int scalar) const {
     return Vec2(x * scalar, y * scalar);
 }
 
-Vec2 Vec2::operator/(float scalar) const {
+Vec2 Vec2::operator/(int scalar) const {
     return Vec2(x / scalar, y / scalar);
 }
 
@@ -30,23 +30,23 @@ Vec2& Vec2::operator-=(const Vec2& other) {
     return *this;
 }
 
-Vec2& Vec2::operator*=(float scalar) {
+Vec2& Vec2::operator*=(int scalar) {
     x *= scalar;
     y *= scalar;
     return *this;
 }
 
-Vec2& Vec2::operator/=(float scalar) {
+Vec2& Vec2::operator/=(int scalar) {
     x /= scalar;
     y /= scalar;
     return *this;
 }
 
-float Vec2::Length() const {
+int Vec2::Length() const {
     return std::sqrt(x * x + y * y);
 }
 
-float Vec2::LengthSquared() const {
+int Vec2::LengthSquared() const {
     return x * x + y * y;
 }
 
@@ -59,13 +59,13 @@ bool Vec2::operator==(const Vec2& other) const {
 }
 
 Vec2 Vec2::Normalized() const {
-    float length = Length();
+    int length = Length();
     if (length != 0) {
         return Vec2(x / length, y / length);
     }
     return Vec2(0, 0);
 }
 
-float Vec2::Dot(const Vec2& other) const {
+int Vec2::Dot(const Vec2& other) const {
     return x * other.x + y * other.y;
 }

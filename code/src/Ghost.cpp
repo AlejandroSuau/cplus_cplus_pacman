@@ -1,30 +1,57 @@
 #include "Ghost.hpp"
+
 #include "Constants.hpp"
+#include "Game.hpp"
 
 // Inky Azul
-// Target 2 casillas en direcc
+// Target: 
+//          1- 2 casillas en direcc del player (punto imaginario)
+//              Coge a blinky y trza una línea entre el y ese punto.
+//              Distancia entre blinky y el punto. Y se la suma al punto.
+
+// Blinky (rojo)
+// Target:
+//       Persigue todo el tiempo.
+
+// Pinky (Rosa)
+//      4 tiles delante de la dirección de Pacman y 4 a la izquierda (debido a un error en la lógica original).
+    // ghost
+    // player
+    // mapa
+
+// Clyde (naranja)
+// Target:
+//       Si player > 8 casillas de el entonces persigue.
+//      Si menos de 8 casillas se dirige a la parte inferior izquierda
+    // ghost.
+    // player.
+    // mapa.
 
 Ghost::Ghost(
     TextureManager& texture_manager,
-    GameMap& game_map,
-    Pathfinder& pathfinder,
-    Vec2 position,
-    SDL_Color color)
+    const GameMap& game_map,
+    std::string name,
+    EType type,
+    int x,
+    int y,
+    EMovingDirection direction,
+    PathfindingPattern pathfinding_pattern)
     : texture_manager_(texture_manager)
     , game_map_(game_map)
-    , pathfinder_(pathfinder)
-    , position_(position)
-    , color_(color)
+    , name_(name)
+    , type_(type)
+    , position_(x, y)
+    , direction_(direction)
+    , patfinder_pattern_(pathfinding_pattern)
+    , is_vulnerable_(false)
     , path_index_(0)
     , path_step_timer_(0.5f)
     , animation_timer_(0.1f)
     , sprite_index_(0)
-    , sprites_count_(2)
-    , direction_(EMovingDirection::UP)
-    , type_(EType::YELLOW)
-    , is_vulnerable_(false) {
-
+    , sprites_count_(2) {
+    
     sprite_sheet_ = texture_manager_.LoadTexture(kAssetsFolderImages + "spritesheet.png");
+}
     // red
     /*.sprite {
 	background: url('imgs/spritesheet.png') no-repeat -3px -83px;
@@ -87,18 +114,12 @@ Ghost::Ghost(
 	width: 79px;
 	height: 7px;
     }*/
-}
 
-void Ghost::FindPath(int target_row, int target_col) {
+void Ghost::FindPath(Game& game) {
+    const auto [row, col] = game_map_.FromCoordsToRowCol(position_.x, position_.y);
+    path_step_timer_.Restart();
     path_index_ = 0;
-    const auto [row, col] = game_map_.FromCoordsToRowCol(
-        static_cast<int>(position_.x),
-        static_cast<int>(position_.y));
-    path_ = pathfinder_.FindPath(
-        row,
-        col,
-        target_row,
-        target_col);
+    path_ = patfinder_pattern_({col, row}, game);
 }
 
 void Ghost::Update(float dt) {
@@ -140,9 +161,8 @@ void Ghost::ActivateVulnerability() {
 }
 
 void Ghost::Render(SDL_Renderer& renderer) {
-    RenderPath(renderer);
-    
-    // Render animation
+    // RenderPath(renderer);
+
     auto src_r = GetSourceRect();
     SDL_Rect dst_r {
         static_cast<int>(position_.x),
@@ -153,16 +173,12 @@ void Ghost::Render(SDL_Renderer& renderer) {
 }
 
 void Ghost::RenderPath(SDL_Renderer& renderer) {
-    for (std::size_t i = path_index_; i < path_.size(); ++i) {
-        const auto& cell = path_[i];
-        SDL_Rect cell_rect {
-            cell.second * kCellSizeInt,
-            cell.first * kCellSizeInt,
-            kCellSizeInt,
-            kCellSizeInt};
-        
-        SDL_SetRenderDrawColor(&renderer, color_.r, color_.g, color_.b, 50);
-        SDL_RenderFillRect(&renderer, &cell_rect);
+    SDL_SetRenderDrawColor(&renderer, 200, 200, 200, 50);
+    const auto cell_size = game_map_.GetCellSizeInt();
+    for (const auto& [row, col] : path_) {
+        const auto& cell = game_map_.GetCell(row, col);
+        SDL_Rect r {cell.x, cell.y, cell_size, cell_size};
+        SDL_RenderFillRect(&renderer, &r);
     }
 }
 

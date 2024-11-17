@@ -125,6 +125,11 @@ std::size_t GameMap::GetCellsCount() const {
     return cells_count_;
 }
 
+const GameMap::Cell& GameMap::GetCell(int row, int col) const {
+    const auto index = FromRowColToIndex(row, col);
+    return cells_[index];
+}
+
 const std::vector<GameMap::Cell>& GameMap::GetCells() const {
     return cells_;
 }

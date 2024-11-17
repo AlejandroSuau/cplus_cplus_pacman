@@ -13,13 +13,13 @@
 #include "ScoreManager.hpp"
 #include "GameMap.hpp"
 #include "Ghost.hpp"
+#include "GhostFactory.hpp"
 #include "Player.hpp"
 #include "CollectableList.hpp"
 
 #include "pathfinder/Pathfinder.hpp"
 
 #include <memory>
-#include <vector>
 #include <array>
 
 class Game {
@@ -39,6 +39,8 @@ public:
     bool IsFinishing() const;
     bool IsFinished() const;
 
+    Pathfinder& GetPathfinder();
+    const GameMap& GetMap() const;
     const Player& GetPlayer() const;
 
 private:
@@ -65,8 +67,9 @@ private:
     GameMap map_;
     Pathfinder pathfinder_;
     Player player_;
-    std::array<Ghost, 4> ghosts_;
-    CountdownTimer search_countdown_{1000.f};
+    GhostFactory ghost_factory_;
+    std::array<std::unique_ptr<Ghost>, 4> ghosts_;
+    CountdownTimer search_countdown_{1.f};
     CollectableList collectables_;
     // Collectables
     // Big collectables

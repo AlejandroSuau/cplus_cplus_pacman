@@ -35,11 +35,12 @@ Game::Game()
     , map_(kGameWidth, kGameHeight, kGamePaddingX, kGamePaddingY, kCellSize)
     , pathfinder_(map_)
     , player_(texture_manager_, map_, pathfinder_, score_manager_)
+    , ghost_factory_(texture_manager_, map_)
     , ghosts_{{
-        {texture_manager_, map_, pathfinder_, Vec2{8 * kCellSize, 6 * kCellSize}, SDL_Color{255, 0, 0, 255}},
-        {texture_manager_, map_, pathfinder_, Vec2{7 * kCellSize, 8 * kCellSize}, SDL_Color{0, 255, 0, 255}},
-        {texture_manager_, map_, pathfinder_, Vec2{8 * kCellSizeInt, 8 * kCellSize}, SDL_Color{0, 0, 255, 255}},
-        {texture_manager_, map_, pathfinder_, Vec2{9 * kCellSize, 8 * kCellSize}, SDL_Color{100, 100, 90, 255}}
+        ghost_factory_.CreateGhostBlinky(),
+        ghost_factory_.CreateGhostInky(),
+        ghost_factory_.CreateGhostPinky(),
+        ghost_factory_.CreateGhostClyde()
     }}
     , collectables_(texture_manager_, score_manager_, map_) {
 
@@ -90,19 +91,22 @@ void Game::Init() {
 void Game::Update(float dt) {
     search_countdown_.Update(dt);
     if (search_countdown_.DidFinish()) {
+        // player_.ProcessGhostCollision();
         /*const auto player_pos = player_.GetPosition();
         const auto [row, col] = map_.FromCoordsToRowCol(
             static_cast<int>(player_pos.x),
             static_cast<int>(player_pos.y));
-        ghosts_[0].FindPath(row, col);
+        ghosts_[0].FindPath(row, col);*/
         for (auto& ghost : ghosts_) {
-            ghost.FindPath(row, col);
-        }*/
+            if (!ghost) continue;
+            ghost->FindPath(*this);
+        }
     }
 
     player_.Update(dt);
     for (auto& ghost : ghosts_) {
-        ghost.Update(dt);
+        if (!ghost) continue;
+        ghost->Update(dt);
     }
 
     collectables_.ProcessCollisions(*this);
@@ -119,7 +123,8 @@ void Game::Render() {
     map_.Render(*renderer);
     player_.Render(*renderer);
     for (auto& g : ghosts_) {
-        g.Render(*renderer);
+        if (!g) continue;
+        g->Render(*renderer);
     }
 
     collectables_.Render(*renderer);
@@ -175,6 +180,14 @@ void Game::HandlePressedKeySpace() {
 void Game::Reset() {
     state_ = EGameState::READY_TO_PLAY;
     score_manager_.Reset();
+}
+
+Pathfinder& Game::GetPathfinder() {
+    return pathfinder_;
+}
+
+const GameMap& Game::GetMap() const {
+    return map_;
 }
 
 const Player& Game::GetPlayer() const { 

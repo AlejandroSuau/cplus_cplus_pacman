@@ -9,51 +9,56 @@
 #include "utils/SpritesheetAnimation.hpp"
 
 #include "GameMap.hpp"
-#include "pathfinder/Pathfinder.hpp"
+#include "GhostMovementPatterns.hpp"
+
+class Game;
 
 class Ghost {
 public:
-    Ghost(
-        TextureManager& texture_manager,
-        GameMap& game_map,
-        Pathfinder& pathfinder,
-        Vec2 position,
-        SDL_Color color);
-    
-    virtual ~Ghost() = default;
+    enum class EType {
+        RED = 0,
+        PINK = 1,
+        BLUE = 2,
+        YELLOW = 3
+    };
 
-    virtual void FindPath(int target_row, int target_col);
-    void Update(float dt);
-    void Render(SDL_Renderer& renderer);
-
-    void ActivateVulnerability();
-
-protected:
     enum class EMovingDirection {
         UP = 0,
         DOWN = 1,
         LEFT = 2,
         RIGHT = 3
     };
+    
+    Ghost(
+        TextureManager& texture_manager,
+        const GameMap& game_map,
+        std::string name,
+        EType type,
+        int x,
+        int y,
+        EMovingDirection direction,
+        PathfindingPattern pathfinding_pattern);
 
-    enum class EType {
-        RED = 0,
-        PINKY = 1,
-        BLUE = 2,
-        YELLOW = 3
-    };
+    void FindPath(Game& game);
 
+    void Update(float dt);
+    void Render(SDL_Renderer& renderer);
+
+    void ActivateVulnerability();
+
+private:
     TextureManager& texture_manager_;
-    GameMap& game_map_;
-    Pathfinder& pathfinder_;
+    const GameMap& game_map_;
+    const std::string name_;
+    EType type_;
     Vec2 position_;
-    SDL_Color color_;
+    EMovingDirection direction_;
+    PathfindingPattern patfinder_pattern_;
+    bool is_vulnerable_;
+
     Pathfinder::Path path_;
     std::size_t path_index_;
     CountdownTimer path_step_timer_;
-    EMovingDirection direction_;
-    EType type_;
-    bool is_vulnerable_;
     
     CountdownTimer animation_timer_;
     int sprite_index_;

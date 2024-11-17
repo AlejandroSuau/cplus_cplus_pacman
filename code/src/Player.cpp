@@ -7,7 +7,7 @@
 
 Player::Player(
     TextureManager& texture_manager,
-    GameMap& game_map,
+    const GameMap& game_map,
     Pathfinder& pathfinder,
     ScoreManager& score_manager)
     : texture_manager_(texture_manager)
@@ -15,7 +15,7 @@ Player::Player(
     , pathfinder_(pathfinder)
     , score_manager_(score_manager)
     , hitbox_{0, 0, PlayerParameters::kWidth, PlayerParameters::kHeight}
-    , direction_(EMovingDirection::RIGHT)
+    , direction_(Player::EMovingDirection::RIGHT)
     , next_direction_(direction_)
     , status_(EStatus::READY)
     , lifes_(PlayerParameters::kLifes) {
@@ -47,6 +47,8 @@ void Player::HandleKeyPressed(SDL_Scancode scancode) {
 }
 
 void Player::Update(float dt) {
+    if (status_ == EStatus::DEAD) return;
+
     if (status_ == EStatus::DYING) {
         dying_animation_timer_.Update(dt);
         if (dying_animation_timer_.DidFinish()) {
@@ -57,12 +59,15 @@ void Player::Update(float dt) {
         }
     }
 
-    if (status_ == EStatus::MOVING) {
+    if (status_ == EStatus::READY || status_ == EStatus::MOVING) {
         moving_animation_timer_.Update(dt);
         if (moving_animation_timer_.DidFinish()) {
             moving_animation_sprite_index_ = (moving_animation_sprite_index_ + 1) % PlayerParameters::kMovingAnimationCount;
         }
-        Move(dt);
+
+        if (status_ == EStatus::MOVING) {
+            Move(dt);
+        }
     }
 }
 
@@ -107,6 +112,8 @@ bool Player::IsMovementAllowed(SDL_Rect moved_rect) const {
 }
 
 void Player::ProcessGhostCollision() {
+    if (status_ == EStatus::DEAD) return;
+    
     status_ = EStatus::DYING;
     // Depends on player status
         // Die?
@@ -129,9 +136,15 @@ void Player::ProcessCoinCollision() {
 }
 
 void Player::Render(SDL_Renderer& renderer) {
-    auto src_r = GetSourceRectMoving();
-    const double angle = 90.0 * static_cast<double>(direction_);
-    SDL_RenderCopyEx(&renderer, sprite_sheet_, &src_r, &hitbox_, angle, nullptr, SDL_RendererFlip::SDL_FLIP_NONE);
+    if (status_ == EStatus::MOVING || status_ == EStatus::READY) {
+        auto src_r = GetSourceRectMoving();
+        const double angle = 90.0 * static_cast<double>(direction_);
+        SDL_RenderCopyEx(&renderer, sprite_sheet_, &src_r, &hitbox_, angle, nullptr, SDL_RendererFlip::SDL_FLIP_NONE);
+    } else if (status_ == EStatus::DYING) {
+        auto src_r = GetSourceRectDying();
+        const double angle = 90.0 * static_cast<double>(direction_);
+        SDL_RenderCopyEx(&renderer, sprite_sheet_, &src_r, &hitbox_, angle, nullptr, SDL_RendererFlip::SDL_FLIP_NONE);
+    }
     
     /*auto src_r = GetSourceRectDying();
     // const double angle = 90.0 * static_cast<double>(direction_);
@@ -148,6 +161,10 @@ SDL_Rect Player::GetSourceRectDying() const {
     using namespace SpriteSheet;
     const int x = kStartingX + (kPadding + kWidth) * dying_animation_sprite_index_;
     return {x, 245, kWidth, kHeight};
+}
+
+Vec2 Player::GetPosition() const {
+    return {hitbox_.x, hitbox_.y};
 }
 
 const SDL_Rect& Player::GetHitbox() const {

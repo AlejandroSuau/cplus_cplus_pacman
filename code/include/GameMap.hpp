@@ -49,6 +49,7 @@ public:
     bool AreRowColInsideBoundaries(int row, int col) const;
     bool AreCoordsInsideBoundaries(int x, int y) const;
 
+    const Cell& GetCell(int row, int col) const;
     const std::vector<Cell>& GetCells() const;
 
 private:

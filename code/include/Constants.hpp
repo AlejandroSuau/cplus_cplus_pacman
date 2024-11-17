@@ -53,8 +53,8 @@ static const SDL_Rect kTextureRectBackground {-16, -16, kGameWidth + kCellSizeIn
 
 // Score
 namespace ScoreParamenters {
-static const Vec2 kTextureDimensions {24.f, 36.f};
-static const Vec2 kPosition {0.f, 25.f};
+static const Vec2 kTextureDimensions {24, 36};
+static const Vec2 kPosition {0, 25};
 }
 
 // Sprite Sheet
