@@ -11,6 +11,9 @@
 #include "GameMap.hpp"
 #include "GhostMovementPatterns.hpp"
 
+#include <string>
+#include <string_view>
+
 class Game;
 
 class Ghost {
@@ -45,6 +48,9 @@ public:
     void Render(SDL_Renderer& renderer);
 
     void ActivateVulnerability();
+    const Vec2& GetPosition() const;
+    const std::string_view GetName() const;
+    Vec2 GetDirectionVector() const;
 
 private:
     TextureManager& texture_manager_;

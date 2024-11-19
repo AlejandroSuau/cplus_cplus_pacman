@@ -7,7 +7,7 @@
 #include <ranges>
 #include <stdexcept>
 #include <string>
-#include <iostream>
+#include <algorithm>
 
 Game::Game()
     : sdl_(std::make_unique<SDLInitializer>())
@@ -175,6 +175,14 @@ void Game::HandlePressedKeySpace() {
 
         break;
     }*/
+}
+
+Game::OptionalGhostReference Game::GetGhost(std::string_view name) const {
+    auto it = std::ranges::find_if(ghosts_, [&name](const auto& ghost) {
+        return (ghost && ghost->GetName() == name);
+    });
+
+    return (it == ghosts_.end()) ? std::nullopt : Game::OptionalGhostReference(**it);
 }
 
 void Game::Reset() {

@@ -109,6 +109,17 @@ GameMap::RowColPair GameMap::FromCoordsToRowCol(int coord_x, int coord_y) const 
                           (coord_x  - padding_y_) / cell_size_int_) ;
 }
 
+GameMap::RowColPair GameMap::GetCloserWalkableRowCol(Vec2 row_col, int cells_distance, Vec2 direction) const {
+    Vec2 closer_row_col {row_col.x, row_col.y};
+    closer_row_col.x += direction.x * cells_distance;
+    closer_row_col.y += direction.y * cells_distance;
+    while (!AreRowColWalkable(closer_row_col.y, closer_row_col.x)) {
+        closer_row_col.x -= direction.x;
+        closer_row_col.y -= direction.y;
+    }
+    return {closer_row_col.y, closer_row_col.x};
+}
+
 bool GameMap::IsInsideBoundaries(std::size_t index) const {
     return (index < cells_count_);
 }

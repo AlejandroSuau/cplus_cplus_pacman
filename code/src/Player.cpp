@@ -145,10 +145,6 @@ void Player::Render(SDL_Renderer& renderer) {
         const double angle = 90.0 * static_cast<double>(direction_);
         SDL_RenderCopyEx(&renderer, sprite_sheet_, &src_r, &hitbox_, angle, nullptr, SDL_RendererFlip::SDL_FLIP_NONE);
     }
-    
-    /*auto src_r = GetSourceRectDying();
-    // const double angle = 90.0 * static_cast<double>(direction_);
-    SDL_RenderCopyEx(&renderer, sprite_sheet_, &src_r, &dst_r, 0, nullptr, SDL_RendererFlip::SDL_FLIP_NONE);*/
 }
 
 SDL_Rect Player::GetSourceRectMoving() const {
@@ -181,4 +177,17 @@ void Player::DecreaseOneLife() {
 
 unsigned int Player::GetLifes() const {
     return lifes_;
+}
+
+Player::EMovingDirection Player::GetDirection() const {
+    return direction_;
+}
+
+Vec2 Player::GetDirectionVector() const {
+    switch(direction_) {
+        case EMovingDirection::DOWN:  return { 0,  1};
+        case EMovingDirection::UP:    return { 0, -1};
+        case EMovingDirection::LEFT:  return {-1,  0};
+        case EMovingDirection::RIGHT: return { 1,  0};
+    }
 }

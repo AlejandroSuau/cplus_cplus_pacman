@@ -19,8 +19,10 @@
 
 #include "pathfinder/Pathfinder.hpp"
 
+#include <optional>
 #include <memory>
 #include <array>
+#include <string_view>
 
 class Game {
 public:
@@ -42,6 +44,9 @@ public:
     Pathfinder& GetPathfinder();
     const GameMap& GetMap() const;
     const Player& GetPlayer() const;
+ 
+    using OptionalGhostReference = std::optional<std::reference_wrapper<const Ghost>>;
+    OptionalGhostReference GetGhost(std::string_view name) const;
 
 private:
     // SDL Initializers
@@ -71,9 +76,7 @@ private:
     std::array<std::unique_ptr<Ghost>, 4> ghosts_;
     CountdownTimer search_countdown_{1.f};
     CollectableList collectables_;
-    // Collectables
-    // Big collectables
-
+ 
     void Init();
 
     void Update(float dt);

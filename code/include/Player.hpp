@@ -13,6 +13,13 @@
 
 class Player {
 public:
+    enum class EMovingDirection {
+        LEFT = 0,
+        UP = 1,
+        RIGHT = 2,
+        DOWN = 3
+    };
+
     Player(
         TextureManager& texture_manager,
         const GameMap& game_map,
@@ -33,15 +40,10 @@ public:
     const SDL_Rect& GetHitbox() const;
 
     Vec2 GetPosition() const;
-
+    EMovingDirection GetDirection() const;
+    Vec2 GetDirectionVector() const;
+    
 private:
-    enum class EMovingDirection {
-        LEFT = 0,
-        UP = 1,
-        RIGHT = 2,
-        DOWN = 3
-    };
-
     enum class EStatus {
         READY,
         MOVING,

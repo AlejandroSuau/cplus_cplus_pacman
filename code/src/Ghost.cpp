@@ -9,23 +9,11 @@
 //              Coge a blinky y trza una línea entre el y ese punto.
 //              Distancia entre blinky y el punto. Y se la suma al punto.
 
-// Blinky (rojo)
-// Target:
-//       Persigue todo el tiempo.
-
 // Pinky (Rosa)
 //      4 tiles delante de la dirección de Pacman y 4 a la izquierda (debido a un error en la lógica original).
     // ghost
     // player
     // mapa
-
-// Clyde (naranja)
-// Target:
-//       Si player > 8 casillas de el entonces persigue.
-//      Si menos de 8 casillas se dirige a la parte inferior izquierda
-    // ghost.
-    // player.
-    // mapa.
 
 Ghost::Ghost(
     TextureManager& texture_manager,
@@ -161,7 +149,7 @@ void Ghost::ActivateVulnerability() {
 }
 
 void Ghost::Render(SDL_Renderer& renderer) {
-    // RenderPath(renderer);
+    RenderPath(renderer);
 
     auto src_r = GetSourceRect();
     SDL_Rect dst_r {
@@ -190,4 +178,21 @@ SDL_Rect Ghost::GetSourceRect() const {
         ((kPadding + kWidth) * sprite_index_);
     const int y = GhostSprite::kStartingY + (kPadding + kHeight) * static_cast<int>(type_);
     return SDL_Rect {x, y, kWidth, kHeight};
+}
+
+const std::string_view Ghost::GetName() const {
+    return name_;
+}
+
+Vec2 Ghost::GetDirectionVector() const {
+    switch(direction_) {
+        case EMovingDirection::DOWN:  return { 0,  1};
+        case EMovingDirection::UP:    return { 0, -1};
+        case EMovingDirection::LEFT:  return {-1,  0};
+        case EMovingDirection::RIGHT: return { 1,  0};
+    }
+}
+
+const Vec2& Ghost::GetPosition() const {
+    return position_;
 }

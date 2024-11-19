@@ -1,9 +1,11 @@
 #pragma once
 
+#include <SDL2/SDL.h>
+
+#include "utils/Vec2.hpp"
+
 #include <vector>
 #include <utility>
-
-#include <SDL2/SDL.h>
 
 class GameMap {
 public:
@@ -39,6 +41,7 @@ public:
     using RowColPair = std::pair<int, int>;
     RowColPair FromIndexToRowCol(std::size_t index) const;
     RowColPair FromCoordsToRowCol(int coord_x, int coord_y) const;
+    RowColPair GetCloserWalkableRowCol(Vec2 row_col, int cells_distance, Vec2 direction) const;
 
     std::size_t GetRowsCount() const;
     std::size_t GetColumnsCount() const;
