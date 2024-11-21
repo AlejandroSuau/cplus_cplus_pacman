@@ -91,13 +91,9 @@ void CollectableList::RemoveCollectablesMarkedForDestroy() {
 }
 
 void CollectableList::Render(SDL_Renderer& renderer) {
-    SDL_Rect src_r {2, 182, 8, 8};
-
-    // NOS AHORRAMOS EL CASE AQUI SI EL TAMAÑO ESTA CONTENIDO (A CAMBIO LO REPETIMOS MUCHO)
+    const SDL_Rect src_r {2, 182, 8, 8};
     for (const auto& c : collectables_) {
         SDL_Rect dst_r{c->x, c->y, c->w, c->h};
         SDL_RenderCopyEx(&renderer, texture_, &src_r, &dst_r, 0, nullptr, SDL_RendererFlip::SDL_FLIP_NONE);
     }
-
-        //2 y 182
 }
