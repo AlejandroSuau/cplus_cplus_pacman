@@ -1,0 +1,179 @@
+{
+  "homebrew_version": "4.3.21-16-g9b8d481",
+  "used_options": [
+
+  ],
+  "unused_options": [
+
+  ],
+  "built_as_bottle": true,
+  "poured_from_bottle": true,
+  "loaded_from_api": true,
+  "installed_as_dependency": false,
+  "installed_on_request": true,
+  "changed_files": [
+    "lib/cmake/SDL2_image/sdl2_image-config.cmake",
+    "lib/pkgconfig/SDL2_image.pc"
+  ],
+  "time": 1732191336,
+  "source_modified_time": 1704144927,
+  "compiler": "clang",
+  "aliases": [
+
+  ],
+  "runtime_dependencies": [
+    {
+      "full_name": "jpeg-turbo",
+      "version": "3.0.4",
+      "revision": 0,
+      "pkg_version": "3.0.4",
+      "declared_directly": true
+    },
+    {
+      "full_name": "brotli",
+      "version": "1.1.0",
+      "revision": 0,
+      "pkg_version": "1.1.0",
+      "declared_directly": false
+    },
+    {
+      "full_name": "giflib",
+      "version": "5.2.2",
+      "revision": 0,
+      "pkg_version": "5.2.2",
+      "declared_directly": false
+    },
+    {
+      "full_name": "highway",
+      "version": "1.2.0",
+      "revision": 0,
+      "pkg_version": "1.2.0",
+      "declared_directly": false
+    },
+    {
+      "full_name": "imath",
+      "version": "3.1.12",
+      "revision": 0,
+      "pkg_version": "3.1.12",
+      "declared_directly": false
+    },
+    {
+      "full_name": "libpng",
+      "version": "1.6.44",
+      "revision": 0,
+      "pkg_version": "1.6.44",
+      "declared_directly": true
+    },
+    {
+      "full_name": "xz",
+      "version": "5.6.3",
+      "revision": 0,
+      "pkg_version": "5.6.3",
+      "declared_directly": false
+    },
+    {
+      "full_name": "lz4",
+      "version": "1.10.0",
+      "revision": 0,
+      "pkg_version": "1.10.0",
+      "declared_directly": false
+    },
+    {
+      "full_name": "zstd",
+      "version": "1.5.6",
+      "revision": 0,
+      "pkg_version": "1.5.6",
+      "declared_directly": false
+    },
+    {
+      "full_name": "libtiff",
+      "version": "4.7.0",
+      "revision": 0,
+      "pkg_version": "4.7.0",
+      "declared_directly": true
+    },
+    {
+      "full_name": "little-cms2",
+      "version": "2.16",
+      "revision": 0,
+      "pkg_version": "2.16",
+      "declared_directly": false
+    },
+    {
+      "full_name": "libdeflate",
+      "version": "1.22",
+      "revision": 0,
+      "pkg_version": "1.22",
+      "declared_directly": false
+    },
+    {
+      "full_name": "openexr",
+      "version": "3.3.2",
+      "revision": 0,
+      "pkg_version": "3.3.2",
+      "declared_directly": false
+    },
+    {
+      "full_name": "webp",
+      "version": "1.4.0",
+      "revision": 0,
+      "pkg_version": "1.4.0",
+      "declared_directly": true
+    },
+    {
+      "full_name": "jpeg-xl",
+      "version": "0.11.0",
+      "revision": 1,
+      "pkg_version": "0.11.0_1",
+      "declared_directly": true
+    },
+    {
+      "full_name": "libvmaf",
+      "version": "3.0.0",
+      "revision": 0,
+      "pkg_version": "3.0.0",
+      "declared_directly": false
+    },
+    {
+      "full_name": "aom",
+      "version": "3.11.0",
+      "revision": 0,
+      "pkg_version": "3.11.0",
+      "declared_directly": false
+    },
+    {
+      "full_name": "libavif",
+      "version": "1.1.1",
+      "revision": 0,
+      "pkg_version": "1.1.1",
+      "declared_directly": true
+    },
+    {
+      "full_name": "sdl2",
+      "version": "2.30.9",
+      "revision": 0,
+      "pkg_version": "2.30.9",
+      "declared_directly": true
+    }
+  ],
+  "source": {
+    "spec": "stable",
+    "versions": {
+      "stable": "2.8.2",
+      "head": null,
+      "version_scheme": 0
+    },
+    "path": "/Users/alejandrosuauruiz/Library/Caches/Homebrew/api/formula.jws.json",
+    "tap_git_head": null,
+    "tap": "homebrew/core"
+  },
+  "arch": "arm64",
+  "built_on": {
+    "os": "Macintosh",
+    "os_version": "macOS 14.4",
+    "cpu_family": "dunno",
+    "xcode": "15.3",
+    "clt": "15.3.0.0.1.1708646388",
+    "preferred_perl": "5.34"
+  }
+}

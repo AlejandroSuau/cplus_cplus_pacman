@@ -4,22 +4,25 @@ PROJECT(Pacman)
 
 SET(CMAKE_CXX_STANDARD 20)
 SET(CMAKE_CXX_REQUIRED ON)
-
-# Compiler GCC
-SET(CMAKE_CXX_COMPILER "C:/msys64/mingw64/bin/g++")
-SET(CMAKE_C_COMPILER "C:/msys64/mingw64/bin/gcc")
-SET(CMAKE_BUILD_TYPE Debug)
-if (CMAKE_BUILD_TYPE STREQUAL "Debug")
-   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g")  # Flag -g para depuración
-endif()
-# End compiler settings
-
+SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++20")
 
 IF (${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Darwin")
     SET(SDL2_LIB_DIR ${CMAKE_SOURCE_DIR}/lib/SDL2/macos_arm64)
-    SET(SDL2_LIBRARY ${SDL2_LIB_DIR}/libSDL2.a)
-    SET(SDL2_IMAGE_LIBRARY ${SDL2_LIB_DIR}/libSDL2_image.a)
+    SET(CMAKE_PREFIX_PATH "${CMAKE_PREFIX_PATH};${SDL2_LIB_DIR}/sdl2/2.30.9/lib/cmake/SDL2")
+    SET(CMAKE_PREFIX_PATH "${CMAKE_PREFIX_PATH};${SDL2_LIB_DIR}/sdl2_image/2.8.2_2/lib/cmake/SDL2_image")
+    SET(CMAKE_PREFIX_PATH "${CMAKE_PREFIX_PATH};${SDL2_LIB_DIR}/sdl2_mixer/2.8.0/lib/cmake/SDL2_mixer")
+    SET(CMAKE_PREFIX_PATH "${CMAKE_PREFIX_PATH};${SDL2_LIB_DIR}/sdl2_ttf/2.22.0/lib/cmake/SDL2_ttf")
+
+    find_package(SDL2 REQUIRED)
+    find_package(SDL2_image REQUIRED)
+    find_package(SDL2_mixer REQUIRED)
+    find_package(SDL2_ttf REQUIRED)
+
 ELSEIF(${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Windows")
+    # Compiler GCC
+    SET(CMAKE_CXX_COMPILER "C:/msys64/mingw64/bin/g++")
+    SET(CMAKE_C_COMPILER "C:/msys64/mingw64/bin/gcc")
+
     SET(SDL2_LIB_DIR ${CMAKE_SOURCE_DIR}/lib/SDL2/windows)
     SET(SDL2_LIBRARY ${SDL2_LIB_DIR}/SDL2.lib)
     SET(SDL2_IMAGE_LIBRARY ${SDL2_LIB_DIR}/SDL2_image.lib)
@@ -29,6 +32,10 @@ ELSEIF(${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Windows")
 ELSE()
     MESSAGE(FATAL_ERROR "Unsupported platform: ${CMAKE_HOST_SYSTEM_NAME}")
 ENDIF()
+
+if (CMAKE_BUILD_TYPE STREQUAL "Debug")
+   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g")  # Flag -g para depuración
+endif()
 
 # Modules, Source and Executable
 SET(SOURCE_DIR "${CMAKE_SOURCE_DIR}/code/src")
@@ -62,12 +69,7 @@ IF(${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Windows")
 ENDIF()
 
 IF (${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Darwin")
-    TARGET_LINK_LIBRARIES(
-        ${PROJECT_NAME}
-        PRIVATE
-        ${SDL2_LIBRARY}
-        ${SDL2_IMAGE_LIBRARY}
-        ${SDL2_TTF_LIBRARY}
+    SET(MACOS_FRAMEWORKS 
         "-framework Cocoa" 
         "-framework IOKit" 
         "-framework CoreFoundation" 
@@ -80,8 +82,16 @@ IF (${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Darwin")
         "-framework Foundation"
         "-framework ForceFeedback"
         "-framework CoreHaptics"
-        "-framework Carbon"
-        ${CURRENT_GAME})
+        "-framework Carbon")
+
+    TARGET_LINK_LIBRARIES(
+        ${PROJECT_NAME}
+        PRIVATE
+        SDL2::SDL2
+        SDL2_image::SDL2_image
+        SDL2_mixer::SDL2_mixer
+        SDL2_ttf::SDL2_ttf
+        ${MACOS_FRAMEWORKS})
 ELSEIF(${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Windows")
     TARGET_LINK_LIBRARIES(
         ${PROJECT_NAME}
@@ -92,3 +102,5 @@ ELSEIF(${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Windows")
         ${SDL2_TTF_LIBRARY}
         ${SDL2_MIXER_LIBRARY})
 ENDIF()
+
+MESSAGE(STATUS "C++ standard set to: ${CMAKE_CXX_STANDARD}")

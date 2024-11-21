@@ -51,8 +51,7 @@ void CollectableList::Init() {
                 cell.x + (cell_size / 2) - (kSizeBig / 2),
                 cell.y + (cell_size / 2) - (kSizeBig / 2),
                 kSizeBig,
-                kSizeBig,
-                false));
+                kSizeBig));
         } else {
             collectables_.emplace_back(std::make_unique<Collectable>(
                 ECollectableType::SMALL,
@@ -60,8 +59,7 @@ void CollectableList::Init() {
                 cell.x + (cell_size / 2) - (kSizeSmall / 2),
                 cell.y + (cell_size / 2) - (kSizeSmall / 2),
                 kSizeSmall,
-                kSizeSmall,
-                false));
+                kSizeSmall));
         }
     }
 }

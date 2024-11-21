@@ -16,6 +16,8 @@ public:
         std::size_t row;
         std::size_t col;
         bool is_walkable;
+        Cell(std::size_t cell_index_, int x_, int y_, std::size_t row_, std::size_t col_, bool is_walkable_)
+            : cell_index(cell_index_), x(x_), y(y_), row(row_), col(col_), is_walkable(is_walkable_) {}
     };
 
     GameMap(

@@ -39,6 +39,8 @@ private:
         int w;
         int h;
         bool is_marked_for_destroy;
+        Collectable(ECollectableType type_, unsigned int score_, int x_, int y_, int w_, int h_)
+            : type(type_), score(score_), x(x_), y(y_), w(w_), h(h_), is_marked_for_destroy(false) {}
     };
 
     TextureManager& texture_manager_;

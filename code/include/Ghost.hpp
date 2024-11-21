@@ -6,7 +6,6 @@
 #include "utils/CountdownTimer.hpp"
 #include "utils/Vec2.hpp"
 #include "utils/TextureManager.hpp"
-#include "utils/SpritesheetAnimation.hpp"
 
 #include "GameMap.hpp"
 #include "GhostMovementPatterns.hpp"
