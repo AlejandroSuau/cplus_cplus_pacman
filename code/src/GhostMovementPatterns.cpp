@@ -2,6 +2,7 @@
 
 #include "Game.hpp"
 
+#include <iostream>
 #include <cmath>
 
 // Rules:
@@ -18,7 +19,6 @@ Pathfinder::Path FindPathPatternBlinky(const Vec2& ghost_row_col, Game& game) {
 }
 
 Pathfinder::Path FindPathPatternInky(const Vec2& ghost_row_col, Game& game) {
-    return {};
     auto& pathfinder = game.GetPathfinder();
     const auto& game_map = game.GetMap();
     const auto player_position = game.GetPlayer().GetPosition();
@@ -30,15 +30,42 @@ Pathfinder::Path FindPathPatternInky(const Vec2& ghost_row_col, Game& game) {
     const auto [imaginary_row, imaginary_col] = game_map.GetCloserWalkableRowCol(
         {col_player, row_player}, kCellsDistance, player_direction);
     
-    
     auto ghost_blinky = game.GetGhost("Blinky");
     const auto blinky_position = ghost_blinky->get().GetPosition();
     const auto [blinky_row, blinky_col] = game_map.FromCoordsToRowCol(
         blinky_position.x, blinky_position.y);
-    const Vec2 target_position {
+    Vec2 target_row_col {
         2 * imaginary_col - blinky_col,
         2 * imaginary_row - blinky_row};
+    
+    const Vec2 ghost_target_diff = (target_row_col - ghost_row_col);
+    Vec2 ghost_target_direction;
+    if (ghost_target_diff.x > 0) {
+        ghost_target_direction.x = 1;
+    } else if (ghost_target_diff.x < 0) {
+        ghost_target_direction.x = -1;
+    }
 
+    if (ghost_target_diff.y > 0) {
+        ghost_target_direction.y = 1;
+    } else if (ghost_target_diff.y < 0) {
+        ghost_target_direction.y = -1;
+    }
+
+    // 1. Bajamos / Subimos hasta que lo metemos en el rango 0 < num_cols
+    // 2. Bajamos 1 cada vez hasta que es walkable.
+
+    // A veces se va a -infinito (podria pasar con el otro.) Dar otra vuelta
+    /*bool flag = false;
+    while (!game_map.AreRowColWalkable(target_row_col.y, target_row_col.x)) {
+        if (flag) {
+            target_row_col.x -= ghost_target_direction.x;            
+        } else {
+            target_row_col.y -= ghost_target_direction.y;
+        }
+        flag = !flag;
+    }*/
+    
     // Y 
 
     // 2 casillas en dirección Player (el más cercano posible)
@@ -59,7 +86,7 @@ Pathfinder::Path FindPathPatternInky(const Vec2& ghost_row_col, Game& game) {
 //              Coge a blinky y trza una línea entre el y ese punto.
 //              Distancia entre blinky y el punto. Y se la suma al punto.
 
-    return {};
+    return pathfinder.FindPath(ghost_row_col.y, ghost_row_col.x, target_row_col.y, target_row_col.x);
 }
 
 // Rules:
