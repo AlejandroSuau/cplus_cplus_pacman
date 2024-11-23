@@ -14,7 +14,7 @@ Pathfinder::Pathfinder(GameMap& map)
     , target_row_(0)
     , target_node_(nullptr)
     , did_finish_(false)
-    , solution_nodes_count_(0) {
+    , target_nodes_count_(0) {
 
     Reset(0, 0, 0, 0);
 }
@@ -48,6 +48,7 @@ void Pathfinder::Reset(int start_row, int start_col, int target_row, int target_
     // Map Nodes
     open_nodes_.clear();
     map_nodes_.clear();
+    target_nodes_count_ = 0;
     const auto map_cells_count = map_.GetCellsCount();
     map_nodes_.reserve(map_cells_count);
     for (std::size_t i = 0; i < map_cells_count; ++i) {
@@ -68,7 +69,6 @@ void Pathfinder::Reset(int start_row, int start_col, int target_row, int target_
 
 void Pathfinder::Step() {
     if (did_finish_ || open_nodes_.empty()) {
-        target_node_ = nullptr;
         did_finish_ = true;
         return;
     }
@@ -82,6 +82,10 @@ void Pathfinder::Step() {
         return;
     }
 
+    if (!target_node_ || node->h < target_node_->h) {
+        target_node_ = node;
+    }
+
     node->is_closed = true;
     auto neighbours = GetNeighbours(node->map_index);
     auto [row, col] = map_.FromIndexToRowCol(node->map_index);
@@ -91,17 +95,17 @@ void Pathfinder::Step() {
 
         const int g_cost = node->g + 1; // (weight * heuristic) 1 in our case
         if (!neighbour->is_open || g_cost < neighbour->g) {
+            if (neighbour->is_open) {
+                open_nodes_.erase(neighbour);
+            }
+            
             neighbour->g = g_cost;
             const auto [nrow, ncol] = map_.FromIndexToRowCol(neighbour->map_index);
             neighbour->h = Heuristic(nrow, ncol, target_row_, target_col_);
             neighbour->parent = node;
-            if (neighbour->is_open) {
-                SDL_Log("ALERT! TRYING TO UPDATE POS\n");
-                // Update neighbour values (remove and insert?)
-            } else {
-                neighbour->is_open = true;
-                open_nodes_.emplace(neighbour);
-            }
+
+            neighbour->is_open = true;
+            open_nodes_.emplace(neighbour);
         }
     }
 }
