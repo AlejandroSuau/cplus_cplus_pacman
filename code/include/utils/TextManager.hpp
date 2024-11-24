@@ -12,7 +12,7 @@ public:
     TTF_Font* LoadFont(const std::string& file_path, int font_size);
     
     void RemoveFont(const std::string& file_path);
-    void RenderText(SDL_Renderer& renderer, TTF_Font& font, const std::string& text, SDL_Color color, int x, int y);
+    void RenderText(SDL_Renderer& renderer, TTF_Font& font, const std::string& text, SDL_Color color, int x, int y, bool centered = true);
 
 private:
     std::map<std::string, TTF_Font*> fonts_;

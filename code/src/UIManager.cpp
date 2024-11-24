@@ -26,10 +26,10 @@ void UIManager::LoadTextures() {
 }
 
 void UIManager::Render(SDL_Renderer& renderer, const Game& game) {
-    text_manager_.RenderText(renderer, *font_, "Score", kWhiteColor, 110, 45);
+    text_manager_.RenderText(renderer, *font_, "Score", kWhiteColor, 155, 35);
     
     const auto score_string = std::to_string(score_manager_.GetScore());
-    text_manager_.RenderText(renderer, *font_, score_string, kWhiteColor, 145, 75);
+    text_manager_.RenderText(renderer, *font_, score_string, kWhiteColor, 155, 65);
     /*if (game.IsReadyToPlay()) {
         SDL_RenderCopyF(&renderer, tutorial_texture_, nullptr, &kTextureRectTutorial);
     } else {
