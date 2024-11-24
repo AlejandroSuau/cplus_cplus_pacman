@@ -17,6 +17,13 @@ class Game;
 
 class Ghost {
 public:
+    enum class EMode {
+        HOUSE,
+        CHASING,
+        FRIGHTENED,
+        DEAD
+    };
+
     enum class EType {
         RED = 0,
         PINK = 1,
@@ -46,10 +53,12 @@ public:
     void Update(float dt);
     void Render(SDL_Renderer& renderer);
 
-    void ActivateVulnerability();
+    void ActivateFrightenedMode();
+
     const Vec2& GetPosition() const;
     const std::string_view GetName() const;
     Vec2 GetDirectionVector() const;
+    bool IsOnChasingMode() const;
 
 private:
     TextureManager& texture_manager_;
@@ -59,7 +68,11 @@ private:
     Vec2 position_;
     EMovingDirection direction_;
     PathfindingPattern patfinder_pattern_;
-    bool is_vulnerable_;
+    EMode mode_;
+
+    CountdownTimer timer_mode_house_ {2.f};
+    CountdownTimer timer_mode_house_swap_direction_{.25f};
+    CountdownTimer timer_mode_frightened_ {8.f};
 
     Pathfinder::Path path_;
     std::size_t path_index_;
@@ -72,4 +85,6 @@ private:
 
     void RenderPath(SDL_Renderer& renderer);
     SDL_Rect GetSourceRect() const;
+
+    void SwapToOpositeDirection();
 };

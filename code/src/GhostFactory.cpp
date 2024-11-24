@@ -29,19 +29,19 @@ std::unique_ptr<Ghost> GhostFactory::CreateGhostInky() {
         "Inky",
         Ghost::EType::BLUE,
         x, y,
-        Ghost::EMovingDirection::RIGHT,
+        Ghost::EMovingDirection::DOWN,
         FindPathPatternInky);
 }
 
 std::unique_ptr<Ghost> GhostFactory::CreateGhostPinky() {
-    const auto [x, y] = game_map_.FromRowColToCoords(8, 8);
+    const auto [x, y] = game_map_.FromRowColToCoords(9, 8);
     return std::make_unique<Ghost>(
         texture_manager_,
         game_map_,
         "Pinky",
         Ghost::EType::PINK,
         x, y,
-        Ghost::EMovingDirection::RIGHT,
+        Ghost::EMovingDirection::UP,
         FindPathPatternPinky);
 }
 
@@ -53,6 +53,6 @@ std::unique_ptr<Ghost> GhostFactory::CreateGhostClyde() {
         "Clyde",
         Ghost::EType::YELLOW,
         x, y,
-        Ghost::EMovingDirection::RIGHT,
+        Ghost::EMovingDirection::DOWN,
         FindPathPatternClyde);
 }

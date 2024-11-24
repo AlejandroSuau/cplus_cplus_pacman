@@ -98,7 +98,7 @@ void Game::Update(float dt) {
             static_cast<int>(player_pos.y));
         ghosts_[0].FindPath(row, col);*/
         for (auto& ghost : ghosts_) {
-            if (!ghost) continue;
+            if (!ghost || !ghost->IsOnChasingMode()) continue;
             ghost->FindPath(*this);
         }
     }
@@ -121,13 +121,13 @@ void Game::Render() {
     //SDL_RenderCopy(renderer, background_texture_, nullptr, &kTextureRectBackground);
 
     map_.Render(*renderer);
+    collectables_.Render(*renderer);
     player_.Render(*renderer);
     for (auto& g : ghosts_) {
         if (!g) continue;
         g->Render(*renderer);
     }
 
-    collectables_.Render(*renderer);
     ui_manager_.Render(*renderer, *this);
 
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);

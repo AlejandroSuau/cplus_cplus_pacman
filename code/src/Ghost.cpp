@@ -31,7 +31,7 @@ Ghost::Ghost(
     , position_(x, y)
     , direction_(direction)
     , patfinder_pattern_(pathfinding_pattern)
-    , is_vulnerable_(false)
+    , mode_(EMode::HOUSE)
     , path_index_(0)
     , path_step_timer_(0.5f)
     , animation_timer_(0.1f)
@@ -40,68 +40,6 @@ Ghost::Ghost(
     
     sprite_sheet_ = texture_manager_.LoadTexture(kAssetsFolderImages + "spritesheet.png");
 }
-    // red
-    /*.sprite {
-	background: url('imgs/spritesheet.png') no-repeat -3px -83px;
-	width: 154px;
-	height: 14px;
-    }*/
-
-   // pink
-   /*.sprite {
-	background: url('imgs/spritesheet.png') no-repeat -3px -103px;
-	width: 154px;
-	height: 14px;
-    }*/
-
-   // blue
-   /*.sprite {
-	background: url('imgs/spritesheet.png') no-repeat -3px -123px;
-	width: 154px;
-	height: 14px;
-    }*/
-
-   // orange
-   /*.sprite {
-	background: url('imgs/spritesheet.png') no-repeat -3px -143px;
-	width: 154px;
-	height: 14px;
-    }*/
-
-   // vulnerable
-   /*.sprite {
-	background: url('imgs/spritesheet.png') no-repeat -3px -163px;
-	width: 74px;
-	height: 14px;
-    }*/
-
-   // dying player
-   /*.sprite {
-	background: url('imgs/spritesheet.png') no-repeat -3px -245px;
-	width: 212px;
-	height: 13px;
-    }*/
-
-   // player moving
-   /*.sprite {
-	background: url('imgs/spritesheet.png') no-repeat -4px -3px;
-	width: 52px;
-	height: 13px;
-    }*/
-
-   // COIN
-   /*.sprite {
-	background: url('imgs/spritesheet.png') no-repeat -2px -182px;
-	width: 8px;
-	height: 8px;
-    }*/
-
-   // GAMEOVER
-   /*.sprite {
-	background: url('imgs/spritesheet.png') no-repeat -13px -192px;
-	width: 79px;
-	height: 7px;
-    }*/
 
 void Ghost::FindPath(Game& game) {
     const auto [row, col] = game_map_.FromCoordsToRowCol(position_.x, position_.y);
@@ -116,30 +54,48 @@ void Ghost::Update(float dt) {
         sprite_index_ = (sprite_index_ + 1) % sprites_count_;
     }
 
-    path_step_timer_.Update(dt);
-    if (!path_.empty() && path_step_timer_.DidFinish()) {
-        ++path_index_;
-        if (path_index_ >= path_.size()) return;
+    if (mode_ == EMode::HOUSE) {
+        timer_mode_house_.Update(dt);
+        timer_mode_house_swap_direction_.Update(dt);
+        const auto direction_vector = GetDirectionVector();
+        const auto dx = static_cast<int>(GhostParameters::kHouseModeVelocity * dt) * direction_vector.x;
+        const auto dy = static_cast<int>(GhostParameters::kHouseModeVelocity * dt) * direction_vector.y;
+        position_.x += dx;
+        position_.y += dy;
+        if (timer_mode_house_swap_direction_.DidFinish()) {
+            SwapToOpositeDirection();
+        }
+        if (timer_mode_house_.DidFinish()) {
+            mode_ = EMode::CHASING;
+        }
+    }
 
-        const auto prev_pos = position_;
-        const auto row_col = path_[path_index_];
-        const auto new_coords = game_map_.FromRowColToCoords(row_col.first, row_col.second);
-        position_.x = new_coords.first;
-        position_.y = new_coords.second;
-        if (position_.y < prev_pos.y) {
-            direction_ = EMovingDirection::UP;
-        } else if (position_.y > prev_pos.y){
-            direction_ = EMovingDirection::DOWN;
-        } else if (position_.x > prev_pos.x) {
-            direction_ = EMovingDirection::RIGHT;
-        } else if (position_.x < prev_pos.x) {
-            direction_ = EMovingDirection::LEFT;
+    if (mode_ == EMode::CHASING) {
+        path_step_timer_.Update(dt);
+        if (!path_.empty() && path_step_timer_.DidFinish()) {
+            ++path_index_;
+            if (path_index_ >= path_.size()) return;
+
+            const auto prev_pos = position_;
+            const auto row_col = path_[path_index_];
+            const auto new_coords = game_map_.FromRowColToCoords(row_col.first, row_col.second);
+            position_.x = new_coords.first;
+            position_.y = new_coords.second;
+            if (position_.y < prev_pos.y) {
+                direction_ = EMovingDirection::UP;
+            } else if (position_.y > prev_pos.y){
+                direction_ = EMovingDirection::DOWN;
+            } else if (position_.x > prev_pos.x) {
+                direction_ = EMovingDirection::RIGHT;
+            } else if (position_.x < prev_pos.x) {
+                direction_ = EMovingDirection::LEFT;
+            }
         }
     }
 }
 
-void Ghost::ActivateVulnerability() {
-    is_vulnerable_ = true;
+void Ghost::ActivateFrightenedMode() {
+    mode_ = EMode::FRIGHTENED;
     // render el otro
     // comenzar el tempor
     // Si han pasado X segundos, cambiamos la imagen durante 1s. luego vuelve y luego vuelve a hacerlo
@@ -186,6 +142,7 @@ const std::string_view Ghost::GetName() const {
 
 Vec2 Ghost::GetDirectionVector() const {
     switch(direction_) {
+        default:
         case EMovingDirection::DOWN:  return { 0,  1};
         case EMovingDirection::UP:    return { 0, -1};
         case EMovingDirection::LEFT:  return {-1,  0};
@@ -193,6 +150,19 @@ Vec2 Ghost::GetDirectionVector() const {
     }
 }
 
+bool Ghost::IsOnChasingMode() const {
+    return (mode_ == EMode::CHASING);
+}
+
 const Vec2& Ghost::GetPosition() const {
     return position_;
+}
+
+void Ghost::SwapToOpositeDirection() {
+    switch(direction_) {
+        case EMovingDirection::UP:    direction_ = EMovingDirection::DOWN; break;
+        case EMovingDirection::DOWN:  direction_ = EMovingDirection::UP; break;
+        case EMovingDirection::RIGHT: direction_ = EMovingDirection::LEFT; break;
+        case EMovingDirection::LEFT:  direction_ = EMovingDirection::RIGHT; break;
+    }
 }

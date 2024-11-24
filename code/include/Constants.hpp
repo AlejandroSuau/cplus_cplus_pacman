@@ -72,6 +72,11 @@ static const int kAnimationCount = 2;
 
 }
 
+// Ghost
+namespace GhostParameters {
+static const float kHouseModeVelocity {150.f};
+}
+
 // Player
 namespace PlayerParameters {
 static const unsigned int kLifes = 3;
