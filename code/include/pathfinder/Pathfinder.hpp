@@ -23,6 +23,10 @@ private:
 
             int FCost() const { return g + h; }
 
+            void Print() {
+                SDL_Log("MapNode {map_index: %zu, g: %d, h: %d}", map_index, g, h);
+            }
+
             struct Comparator {
                 int operator()(const MapNode* n1, const MapNode* n2) const {
                     if (n1->FCost() == n2->FCost()) {
@@ -52,7 +56,7 @@ private:
     GameMap& map_;
     std::vector<MapNode> map_nodes_;
     std::set<MapNode*, MapNode::Comparator> open_nodes_;
-    std::size_t solution_nodes_count_;
+    std::size_t target_nodes_count_;
 
     std::size_t target_index_;
     Pathfinder::MapNode* target_node_;
@@ -60,7 +64,6 @@ private:
     using Neighbours = std::array<MapNode*, 4>;
     Neighbours GetNeighbours(std::size_t node_index);
 
-    /////////
     int start_row_, start_col_;
     int target_row_, target_col_;
     bool did_finish_;

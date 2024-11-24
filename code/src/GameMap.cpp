@@ -2,6 +2,8 @@
 
 #include "Constants.hpp"
 
+#include <algorithm>
+
 GameMap::GameMap(int width, int height, int padding_x, int padding_y, std::size_t cell_size) 
     : width_(width)
     , height_(height)
@@ -84,6 +86,11 @@ bool GameMap::IsWalkable(std::size_t index) const {
 
 bool GameMap::AreRowColInsideBoundaries(int row, int col) const {
     return (row >= 0 && row < rows_count_ && col >= 0 && col < cols_count_);
+}
+
+void GameMap::ClampRowColIntoMapDimensions(Vec2& row_col) const {
+    row_col.x = std::clamp(row_col.x, 0, static_cast<int>(GetColumnsCount()) - 1);
+    row_col.y = std::clamp(row_col.y, 0, static_cast<int>(GetRowsCount()) - 1);
 }
 
 GameMap::CoordsPair GameMap::FromRowColToCoords(int row, int col) const {

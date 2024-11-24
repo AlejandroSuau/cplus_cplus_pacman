@@ -35,6 +35,7 @@ public:
     bool AreRowColWalkable(int row, int col) const;
     bool IsWalkable(std::size_t index) const;
     bool AreCoordsWalkable(int x, int y) const;
+    void ClampRowColIntoMapDimensions(Vec2& row_col) const;
 
     std::size_t FromRowColToIndex(int row, int col) const;
     using CoordsPair = std::pair<int, int>;
