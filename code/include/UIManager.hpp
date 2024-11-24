@@ -26,8 +26,7 @@ private:
     ScoreManager& score_manager_;
     
     TTF_Font* font_;
-    SDL_Texture* tutorial_texture_;
-    SDL_Texture* gameover_texture_;
+    SDL_Texture* sprite_sheet_;
 
     void LoadTextures();
 };
