@@ -17,8 +17,8 @@ class Game;
 
 class Ghost {
 public:
-    enum class EMode {
-        HOUSE,
+    enum class EState {
+        HOUSING,
         CHASING,
         FRIGHTENED,
         DEAD
@@ -55,20 +55,21 @@ public:
 
     void ActivateFrightenedMode();
 
-    const Vec2& GetPosition() const;
+    Vec2 GetPosition() const;
     const std::string_view GetName() const;
+    Vec2 GetDirectionVector(EMovingDirection direction) const;
     Vec2 GetDirectionVector() const;
-    bool IsOnChasingMode() const;
+    bool IsOnChasingState() const;
 
 private:
     TextureManager& texture_manager_;
     const GameMap& game_map_;
     const std::string name_;
     EType type_;
-    Vec2 position_;
+    SDL_Rect hitbox_;
     EMovingDirection direction_;
     PathfindingPattern patfinder_pattern_;
-    EMode mode_;
+    EState state_;
 
     CountdownTimer timer_mode_house_ {2.f};
     CountdownTimer timer_mode_house_swap_direction_{.25f};
@@ -86,5 +87,13 @@ private:
     void RenderPath(SDL_Renderer& renderer);
     SDL_Rect GetSourceRect() const;
 
-    void SwapToOpositeDirection();
+    void ReverseDirection();
+    EMovingDirection GetOppositeDirection() const;
+
+    bool TryToMove(Vec2 delta_movement);
+    bool IsMovementAllowed(SDL_Rect moved_rect) const;
+
+    void UpdateStateHouse(float dt);
+    void UpdateStateChasing(float dt);
+    void UpdateStateFrightened(float dt);
 };

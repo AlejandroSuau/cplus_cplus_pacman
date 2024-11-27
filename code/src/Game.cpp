@@ -91,26 +91,19 @@ void Game::Init() {
 void Game::Update(float dt) {
     search_countdown_.Update(dt);
     if (search_countdown_.DidFinish()) {
-        // player_.ProcessGhostCollision();
-        /*const auto player_pos = player_.GetPosition();
-        const auto [row, col] = map_.FromCoordsToRowCol(
-            static_cast<int>(player_pos.x),
-            static_cast<int>(player_pos.y));
-        ghosts_[0].FindPath(row, col);*/
         for (auto& ghost : ghosts_) {
-            if (!ghost || !ghost->IsOnChasingMode()) continue;
+            if (!ghost->IsOnChasingState()) continue;
+            
             ghost->FindPath(*this);
         }
     }
 
     player_.Update(dt);
     for (auto& ghost : ghosts_) {
-        if (!ghost) continue;
         ghost->Update(dt);
     }
 
     collectables_.ProcessCollisions(*this);
-
     collectables_.RemoveCollectablesMarkedForDestroy();
 }
 

@@ -3,17 +3,9 @@
 #include "Constants.hpp"
 #include "Game.hpp"
 
-// Inky Azul
-// Target: 
-//          1- 2 casillas en direcc del player (punto imaginario)
-//              Coge a blinky y trza una línea entre el y ese punto.
-//              Distancia entre blinky y el punto. Y se la suma al punto.
-
-// Pinky (Rosa)
-//      4 tiles delante de la dirección de Pacman y 4 a la izquierda (debido a un error en la lógica original).
-    // ghost
-    // player
-    // mapa
+#include <algorithm>
+#include <array>
+#include <random>
 
 Ghost::Ghost(
     TextureManager& texture_manager,
@@ -28,10 +20,10 @@ Ghost::Ghost(
     , game_map_(game_map)
     , name_(name)
     , type_(type)
-    , position_(x, y)
+    , hitbox_(x, y, 31, 31)
     , direction_(direction)
     , patfinder_pattern_(pathfinding_pattern)
-    , mode_(EMode::HOUSE)
+    , state_(EState::HOUSING)
     , path_index_(0)
     , path_step_timer_(0.5f)
     , animation_timer_(0.1f)
@@ -42,9 +34,9 @@ Ghost::Ghost(
 }
 
 void Ghost::FindPath(Game& game) {
-    const auto [row, col] = game_map_.FromCoordsToRowCol(position_.x, position_.y);
+    const auto [row, col] = game_map_.FromCoordsToRowCol(hitbox_.x, hitbox_.y);
     path_step_timer_.Restart();
-    path_index_ = 0;
+    path_index_ = 1;
     path_ = patfinder_pattern_({col, row}, game);
 }
 
@@ -54,48 +46,112 @@ void Ghost::Update(float dt) {
         sprite_index_ = (sprite_index_ + 1) % sprites_count_;
     }
 
-    if (mode_ == EMode::HOUSE) {
-        timer_mode_house_.Update(dt);
-        timer_mode_house_swap_direction_.Update(dt);
-        const auto direction_vector = GetDirectionVector();
-        const auto dx = static_cast<int>(GhostParameters::kHouseModeVelocity * dt) * direction_vector.x;
-        const auto dy = static_cast<int>(GhostParameters::kHouseModeVelocity * dt) * direction_vector.y;
-        position_.x += dx;
-        position_.y += dy;
-        if (timer_mode_house_swap_direction_.DidFinish()) {
-            SwapToOpositeDirection();
-        }
-        if (timer_mode_house_.DidFinish()) {
-            mode_ = EMode::CHASING;
-        }
-    }
-
-    if (mode_ == EMode::CHASING) {
-        path_step_timer_.Update(dt);
-        if (!path_.empty() && path_step_timer_.DidFinish()) {
-            ++path_index_;
-            if (path_index_ >= path_.size()) return;
-
-            const auto prev_pos = position_;
-            const auto row_col = path_[path_index_];
-            const auto new_coords = game_map_.FromRowColToCoords(row_col.first, row_col.second);
-            position_.x = new_coords.first;
-            position_.y = new_coords.second;
-            if (position_.y < prev_pos.y) {
-                direction_ = EMovingDirection::UP;
-            } else if (position_.y > prev_pos.y){
-                direction_ = EMovingDirection::DOWN;
-            } else if (position_.x > prev_pos.x) {
-                direction_ = EMovingDirection::RIGHT;
-            } else if (position_.x < prev_pos.x) {
-                direction_ = EMovingDirection::LEFT;
-            }
-        }
+    switch(state_) {
+        case EState::HOUSING:    UpdateStateHouse(dt);       break;
+        case EState::FRIGHTENED: UpdateStateFrightened(dt);  break;
+        case EState::CHASING:    UpdateStateChasing(dt);     break;
     }
 }
 
+void Ghost::UpdateStateHouse(float dt) {
+    timer_mode_house_.Update(dt);
+    timer_mode_house_swap_direction_.Update(dt);
+    const auto direction_vector = GetDirectionVector();
+    const auto delta = static_cast<int>(GhostParameters::kVelocityStateHousing * dt);
+    hitbox_.x += delta * direction_vector.x;
+    hitbox_.y += delta * direction_vector.y;
+    if (timer_mode_house_swap_direction_.DidFinish()) {
+        ReverseDirection();
+    }
+    if (timer_mode_house_.DidFinish()) {
+        state_ = EState::CHASING;
+    }
+}
+
+void Ghost::UpdateStateChasing(float dt) {
+    if (path_index_ >= path_.size()) return;
+
+    const Vec2 position {hitbox_.x, hitbox_.y};
+    const auto [target_row, target_col] = path_[path_index_];
+    const auto [target_x, target_y] = game_map_.FromRowColToCoords(target_row, target_col);
+
+    if (position.x < target_x) {
+        direction_ = EMovingDirection::RIGHT;
+    } else if (position.x > target_x) {
+        direction_ = EMovingDirection::LEFT;
+    } else if (position.y < target_y) {
+        direction_ = EMovingDirection::DOWN;
+    } else if (position.y > target_y) {
+        direction_ = EMovingDirection::UP;
+    } else {
+        ++path_index_;
+        return;
+    }
+
+    const auto delta = static_cast<int>(GhostParameters::kVelocityStateChasing * dt);
+    const auto dir_vector = GetDirectionVector();
+    hitbox_.x += delta * dir_vector.x;
+    hitbox_.y += delta * dir_vector.y;
+}
+
+void Ghost::UpdateStateFrightened(float dt) {
+    const int delta = static_cast<int>(PlayerParameters::kVelocity * dt);
+    std::array directions {
+        EMovingDirection::LEFT,
+        EMovingDirection::UP,
+        EMovingDirection::DOWN,
+        EMovingDirection::RIGHT
+    };
+
+    auto directions_end = std::remove(
+        directions.begin(), directions.end(), GetOppositeDirection());
+    auto is_prohibited_movement = [&](EMovingDirection dir) {
+        SDL_Rect next_hitbox_ = hitbox_;
+        const auto dir_vector = GetDirectionVector(dir);
+        next_hitbox_.x += delta * dir_vector.x;
+        next_hitbox_.y += delta * dir_vector.y;
+        return !IsMovementAllowed(next_hitbox_);
+    };
+
+    directions_end = std::remove_if(directions.begin(), directions_end, is_prohibited_movement);
+    if (std::distance(directions.begin(), directions_end) > 1) {
+        static thread_local std::mt19937 rng{std::random_device{}()};
+        std::ranges::shuffle(directions.begin(), directions_end, rng);
+    }
+
+    direction_ = *directions.begin();
+    const auto direction_vector = GetDirectionVector();
+    hitbox_.x += delta * direction_vector.x; 
+    hitbox_.y += delta * direction_vector.y;
+}
+
+bool Ghost::TryToMove(Vec2 delta_movement) {
+    const auto dir_vector = GetDirectionVector();
+    SDL_Rect next_hitbox = hitbox_;
+    next_hitbox.x += delta_movement.x * dir_vector.x;
+    next_hitbox.y += delta_movement.y * dir_vector.y;
+    if (IsMovementAllowed(next_hitbox)) {
+        hitbox_ = next_hitbox;
+        return true;
+    }
+
+    return false;
+}
+
+bool Ghost::IsMovementAllowed(SDL_Rect moved_rect) const {
+    const std::array<std::pair<int, int>, 4> rect_points {{
+        {moved_rect.x, moved_rect.y},
+        {moved_rect.x, moved_rect.y + moved_rect.h},
+        {moved_rect.x + moved_rect.w, moved_rect.y},
+        {moved_rect.x + moved_rect.w, moved_rect.y + moved_rect.h}}};
+    auto is_coord_walkable = [&](const auto& coord_pair) {
+        return game_map_.AreCoordsWalkable(coord_pair.first, coord_pair.second);
+    };
+    return std::all_of(rect_points.cbegin(), rect_points.cend(), is_coord_walkable);
+}
+
 void Ghost::ActivateFrightenedMode() {
-    mode_ = EMode::FRIGHTENED;
+    state_ = EState::FRIGHTENED;
     // render el otro
     // comenzar el tempor
     // Si han pasado X segundos, cambiamos la imagen durante 1s. luego vuelve y luego vuelve a hacerlo
@@ -106,14 +162,8 @@ void Ghost::ActivateFrightenedMode() {
 
 void Ghost::Render(SDL_Renderer& renderer) {
     RenderPath(renderer);
-
     auto src_r = GetSourceRect();
-    SDL_Rect dst_r {
-        static_cast<int>(position_.x),
-        static_cast<int>(position_.y),
-        kCellSizeInt,
-        kCellSizeInt};
-    SDL_RenderCopyEx(&renderer, sprite_sheet_, &src_r, &dst_r, 0, nullptr, SDL_RendererFlip::SDL_FLIP_NONE);
+    SDL_RenderCopyEx(&renderer, sprite_sheet_, &src_r, &hitbox_, 0, nullptr, SDL_RendererFlip::SDL_FLIP_NONE);
 }
 
 void Ghost::RenderPath(SDL_Renderer& renderer) {
@@ -141,7 +191,11 @@ const std::string_view Ghost::GetName() const {
 }
 
 Vec2 Ghost::GetDirectionVector() const {
-    switch(direction_) {
+    return GetDirectionVector(direction_);
+}
+
+Vec2 Ghost::GetDirectionVector(EMovingDirection direction) const {
+    switch(direction) {
         default:
         case EMovingDirection::DOWN:  return { 0,  1};
         case EMovingDirection::UP:    return { 0, -1};
@@ -150,19 +204,24 @@ Vec2 Ghost::GetDirectionVector() const {
     }
 }
 
-bool Ghost::IsOnChasingMode() const {
-    return (mode_ == EMode::CHASING);
+bool Ghost::IsOnChasingState() const {
+    return (state_ == EState::CHASING);
 }
 
-const Vec2& Ghost::GetPosition() const {
-    return position_;
+Vec2 Ghost::GetPosition() const {
+    return {hitbox_.x, hitbox_.y};
 }
 
-void Ghost::SwapToOpositeDirection() {
+void Ghost::ReverseDirection() {
+    direction_ = GetOppositeDirection();
+}
+
+Ghost::EMovingDirection Ghost::GetOppositeDirection() const {
     switch(direction_) {
-        case EMovingDirection::UP:    direction_ = EMovingDirection::DOWN; break;
-        case EMovingDirection::DOWN:  direction_ = EMovingDirection::UP; break;
-        case EMovingDirection::RIGHT: direction_ = EMovingDirection::LEFT; break;
-        case EMovingDirection::LEFT:  direction_ = EMovingDirection::RIGHT; break;
+        default:
+        case EMovingDirection::UP:    return EMovingDirection::DOWN;
+        case EMovingDirection::DOWN:  return EMovingDirection::UP;
+        case EMovingDirection::RIGHT: return EMovingDirection::LEFT;
+        case EMovingDirection::LEFT:  return EMovingDirection::RIGHT;
     }
 }

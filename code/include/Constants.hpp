@@ -74,7 +74,8 @@ static const int kAnimationCount = 2;
 
 // Ghost
 namespace GhostParameters {
-static const float kHouseModeVelocity {150.f};
+static const float kVelocityStateHousing {150.f};
+static const float kVelocityStateChasing {100.f};
 }
 
 // Player
