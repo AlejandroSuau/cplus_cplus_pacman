@@ -10,27 +10,28 @@
 
 #include <vector>
 #include <memory>
+#include <optional>
 
 class Game;
 
 class CollectableList {
 public:
+    enum class ECollectableType {
+        SMALL,
+        BIG
+    };
     CollectableList(
         TextureManager& texture_manager,
         ScoreManager& score_manager,
         const GameMap& game_map);
 
     void Init();
-    void ProcessCollisions(Game& game);
+    std::optional<ECollectableType> ProcessCollisions(Game& game);
     void RemoveCollectablesMarkedForDestroy();
 
     void Render(SDL_Renderer& renderer);
 
 private:
-    enum class ECollectableType {
-        SMALL,
-        BIG
-    };
     struct Collectable {
         ECollectableType type;
         unsigned int score;

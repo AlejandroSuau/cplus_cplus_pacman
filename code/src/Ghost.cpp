@@ -272,6 +272,9 @@ SDL_Rect Ghost::GetSourceRect() const {
         x = kStartingX +
             ((kPadding + kWidth) * dir);
         y = 202;
+    } else if (state_ == EState::FRIGHTENED) {
+        x = kStartingX + ((kPadding + kWidth) * sprite_index_);
+        y = 163;
     }
     return SDL_Rect {x, y, kWidth, kHeight};
 }

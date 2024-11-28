@@ -102,7 +102,13 @@ void Game::Update(float dt) {
         }
     }
 
-    collectables_.ProcessCollisions(*this);
+    auto collectable_type = collectables_.ProcessCollisions(*this);
+    if (collectable_type == CollectableList::ECollectableType::BIG) {
+        for (auto& ghost : ghosts_) {
+            ghost->ActivateFrightenedMode();
+        }
+    }
+
     collectables_.RemoveCollectablesMarkedForDestroy();
 }
 

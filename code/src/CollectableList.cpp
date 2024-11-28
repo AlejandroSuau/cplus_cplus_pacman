@@ -64,14 +64,17 @@ void CollectableList::Init() {
     }
 }
 
-void CollectableList::ProcessCollisions(Game& game) {
+std::optional<CollectableList::ECollectableType> CollectableList::ProcessCollisions(Game& game) {
     for (auto& c : collectables_) {
         const SDL_Rect c_rect {c->x, c->y, c->w, c->h};
         const auto& p_rect = game.GetPlayer().GetHitbox();
         if (AreColliding(c_rect, p_rect)) {
-           OnCollision(*c);
+            OnCollision(*c);
+            return {c->type};
         }
     }
+
+    return std::nullopt;
 }
 
 void CollectableList::OnCollision(Collectable& collectable) {
