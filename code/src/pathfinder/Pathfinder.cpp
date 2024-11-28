@@ -140,7 +140,7 @@ Pathfinder::Path Pathfinder::ReconstructPath() const {
     Pathfinder::Path path;
 
     MapNode* current_node = target_node_;
-    while (current_node != nullptr) {
+    while (current_node) {
         const auto [row, col] = map_.FromIndexToRowCol(current_node->map_index);
         path.push_back(std::make_pair(row, col));
         current_node = current_node->parent;

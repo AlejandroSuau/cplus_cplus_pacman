@@ -22,6 +22,7 @@ Pathfinder::Path FindPathPatternBlinky(const Vec2& ghost_row_col, Game& game) {
 // 1. Imaginary point 2 cells through player's direction.
 // 2. Then: Target = (2 * Imaginary Point) - Blinky's position)
 Pathfinder::Path FindPathPatternInky(const Vec2& ghost_row_col, Game& game) {
+    return {};
     auto& pathfinder = game.GetPathfinder();
     const auto& game_map = game.GetMap();
     const auto player_position = game.GetPlayer().GetPosition();
@@ -52,6 +53,7 @@ Pathfinder::Path FindPathPatternInky(const Vec2& ghost_row_col, Game& game) {
 // Rules:
 // 4 tiles facing player's direction.
 Pathfinder::Path FindPathPatternPinky(const Vec2& ghost_row_col, Game& game) {
+    return {};
     auto& pathfinder = game.GetPathfinder();
     const auto& game_map = game.GetMap();
     const auto player_position = game.GetPlayer().GetPosition();
@@ -73,6 +75,7 @@ Pathfinder::Path FindPathPatternPinky(const Vec2& ghost_row_col, Game& game) {
 // If player is farder or equal to a euclidean distance of kLimitDistance, then try to chase player.
 // Otherwise, go to the bottom left corner.
 Pathfinder::Path FindPathPatternClyde(const Vec2& ghost_row_col, Game& game) {
+    return {};
     auto& pathfinder = game.GetPathfinder();
     const auto& game_map = game.GetMap();
     const auto player_position = game.GetPlayer().GetPosition();

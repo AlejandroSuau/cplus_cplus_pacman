@@ -21,6 +21,7 @@ public:
         HOUSING,
         CHASING,
         FRIGHTENED,
+        EYES,
         DEAD
     };
 
@@ -53,6 +54,8 @@ public:
     void Update(float dt);
     void Render(SDL_Renderer& renderer);
 
+    void OnCollisionWithPlayer(Game& game);
+
     void ActivateFrightenedMode();
 
     Vec2 GetPosition() const;
@@ -60,6 +63,7 @@ public:
     Vec2 GetDirectionVector(EMovingDirection direction) const;
     Vec2 GetDirectionVector() const;
     bool IsOnChasingState() const;
+    const SDL_Rect& GetHibox() const;
 
 private:
     TextureManager& texture_manager_;
@@ -67,6 +71,7 @@ private:
     const std::string name_;
     EType type_;
     SDL_Rect hitbox_;
+    const Vec2 starting_position_;
     EMovingDirection direction_;
     PathfindingPattern patfinder_pattern_;
     EState state_;
@@ -74,10 +79,10 @@ private:
     CountdownTimer timer_mode_house_ {2.f};
     CountdownTimer timer_mode_house_swap_direction_{.25f};
     CountdownTimer timer_mode_frightened_ {8.f};
-
+    
+    bool is_moving_between_tiles_;
     Pathfinder::Path path_;
     std::size_t path_index_;
-    CountdownTimer path_step_timer_;
     
     CountdownTimer animation_timer_;
     int sprite_index_;
@@ -96,4 +101,8 @@ private:
     void UpdateStateHouse(float dt);
     void UpdateStateChasing(float dt);
     void UpdateStateFrightened(float dt);
+    void UpdateStateEyes(float dt);
+
+    void SetStateEyes(Game& game);
+    void SetHousingState();
 };

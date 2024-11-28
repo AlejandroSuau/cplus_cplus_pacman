@@ -67,13 +67,15 @@ static const int kStartingY = 3;
 
 namespace GhostSprite {
 static const int kStartingY = 83;
-static const int kAnimationCount = 2;
+static const int kAnimationCountChasing = 2;
+static const int kAnimationCountEyes = 1;
 }
 
 }
 
 // Ghost
 namespace GhostParameters {
+static const float kVelocityStateEyes {100.f};
 static const float kVelocityStateHousing {150.f};
 static const float kVelocityStateChasing {100.f};
 }

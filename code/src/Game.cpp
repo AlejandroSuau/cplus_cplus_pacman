@@ -3,6 +3,7 @@
 #include "Constants.hpp"
 #include "Player.hpp"
 #include "Ghost.hpp"
+#include "utils/Collisions.hpp"
 
 #include <ranges>
 #include <stdexcept>
@@ -89,18 +90,16 @@ void Game::Init() {
 }
 
 void Game::Update(float dt) {
-    search_countdown_.Update(dt);
-    if (search_countdown_.DidFinish()) {
-        for (auto& ghost : ghosts_) {
-            if (!ghost->IsOnChasingState()) continue;
-            
-            ghost->FindPath(*this);
-        }
-    }
-
     player_.Update(dt);
     for (auto& ghost : ghosts_) {
         ghost->Update(dt);
+        if (ghost->IsOnChasingState()) {
+            ghost->FindPath(*this);
+        }
+
+        if (AreColliding(player_.GetHitbox(), ghost->GetHibox())) {
+            ghost->OnCollisionWithPlayer(*this);
+        }
     }
 
     collectables_.ProcessCollisions(*this);

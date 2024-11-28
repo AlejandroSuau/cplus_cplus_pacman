@@ -74,7 +74,7 @@ private:
     Player player_;
     GhostFactory ghost_factory_;
     std::array<std::unique_ptr<Ghost>, 4> ghosts_;
-    CountdownTimer search_countdown_{1.f};
+    CountdownTimer search_countdown_{.25f};
     CollectableList collectables_;
  
     void Init();
