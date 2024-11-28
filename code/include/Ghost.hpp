@@ -73,6 +73,7 @@ private:
     SDL_Rect hitbox_;
     const Vec2 starting_position_;
     EMovingDirection direction_;
+    const EMovingDirection starting_direction_;
     PathfindingPattern patfinder_pattern_;
     EState state_;
 

@@ -24,6 +24,7 @@ Ghost::Ghost(
     , hitbox_(x, y, 31, 31)
     , starting_position_(x, y)
     , direction_(direction)
+    , starting_direction_(direction)
     , patfinder_pattern_(pathfinding_pattern)
     , state_(EState::HOUSING)
     , path_index_(0)
@@ -98,16 +99,13 @@ void Ghost::UpdateStateChasing(float dt) {
 
     const auto delta = static_cast<int>(GhostParameters::kVelocityStateChasing * dt);
     const auto dir_vector = GetDirectionVector();
-    hitbox_.x += delta * dir_vector.x;
-    hitbox_.y += delta * dir_vector.y;
-
     if (std::abs(delta * dir_vector.x) > std::abs(target_x - hitbox_.x)) {
         hitbox_.x = target_x;
     } else {
         hitbox_.x += delta * dir_vector.x;
     }
 
-    if (std::abs(delta * dir_vector.y) > std::abs(target_x - hitbox_.y)) { 
+    if (std::abs(delta * dir_vector.y) > std::abs(target_y - hitbox_.y)) { 
         hitbox_.y = target_y;
     } else {
         hitbox_.y += delta * dir_vector.y;
@@ -180,7 +178,7 @@ void Ghost::UpdateStateEyes(float dt) {
         hitbox_.x += delta * dir_vector.x;
     }
 
-    if (std::abs(delta * dir_vector.y) > std::abs(target_x - hitbox_.y)) { 
+    if (std::abs(delta * dir_vector.y) > std::abs(target_y - hitbox_.y)) { 
         hitbox_.y = target_y;
     } else {
         hitbox_.y += delta * dir_vector.y;
@@ -189,9 +187,9 @@ void Ghost::UpdateStateEyes(float dt) {
 
 void Ghost::SetHousingState() {
     state_ = EState::HOUSING;
+    direction_ = starting_direction_;
     timer_mode_house_.Restart();
     timer_mode_house_swap_direction_.Restart();
-
 }
 
 void Ghost::OnCollisionWithPlayer(Game& game) {
@@ -265,7 +263,7 @@ SDL_Rect Ghost::GetSourceRect() const {
 
     int x = 0;
     int y = 0;
-    if (IsOnChasingState()) {
+    if (IsOnChasingState() || state_ == EState::HOUSING) {
         x = kStartingX +
             ((kPadding + kWidth) * GhostSprite::kAnimationCountChasing) * dir +
             ((kPadding + kWidth) * sprite_index_);
