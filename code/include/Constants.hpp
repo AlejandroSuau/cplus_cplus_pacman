@@ -75,9 +75,9 @@ static const int kAnimationCountEyes = 1;
 
 // Ghost
 namespace GhostParameters {
-static const float kVelocityStateEyes {400.f};
+static const float kVelocityStateEyes {175.f};
 static const float kVelocityStateHousing {150.f};
-static const float kVelocityStateChasing {400.f};
+static const float kVelocityStateChasing {125.f};
 }
 
 // Player

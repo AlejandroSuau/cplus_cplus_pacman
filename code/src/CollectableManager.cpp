@@ -1,9 +1,8 @@
-#include "CollectableList.hpp"
+#include "CollectableManager.hpp"
 
 #include "utils/Collisions.hpp"
 
 #include "Constants.hpp"
-#include "Game.hpp"
 #include "Player.hpp"
 
 #include <array>
@@ -17,17 +16,16 @@ static const unsigned int kScoreSmall = 5;
 static const unsigned int kScoreBig = 100;
 }
 
-CollectableList::CollectableList(
+CollectableManager::CollectableManager(
     TextureManager& texture_manager,
-    ScoreManager& score_manager,
     const GameMap& game_map) 
     : texture_manager_(texture_manager)
-    , score_manager_(score_manager)
-    , game_map_(game_map) {
+    , game_map_(game_map)
+    , texture_(nullptr) {
     Init();
 }
 
-void CollectableList::Init() {
+void CollectableManager::Init() {
     texture_ = texture_manager_.LoadTexture(kAssetsFolderImages + "spritesheet.png");
     auto is_big_spawn = [](std::size_t row, std::size_t col) {
         static const std::array<std::pair<std::size_t, std::size_t>, 4> big_spawns {{
@@ -64,39 +62,36 @@ void CollectableList::Init() {
     }
 }
 
-std::optional<CollectableList::ECollectableType> CollectableList::ProcessCollisions(Game& game) {
+/*std::optional<CollectableManager::ECollectableType> CollectableManager::ProcessCollisions(Game& game) {
     for (auto& c : collectables_) {
-        const SDL_Rect c_rect {c->x, c->y, c->w, c->h};
         const auto& p_rect = game.GetPlayer().GetHitbox();
-        if (AreColliding(c_rect, p_rect)) {
+        if (AreColliding(c->rect, p_rect)) {
             OnCollision(*c);
             return {c->type};
         }
     }
 
     return std::nullopt;
-}
+}*/
 
-void CollectableList::OnCollision(Collectable& collectable) {
-    collectable.is_marked_for_destroy = true;
-    score_manager_.IncreaseScore(static_cast<int>(collectable.score));
-    if (collectable.type == ECollectableType::BIG) {
-        // make vulnerables ghosts
-    }
-}
+void CollectableManager::RemoveCollectablesMarkedForDestroy() {
+    auto should_remove_collectable = [](const auto& collectable) {
+        return collectable->is_marked_for_destroy;
+    };
 
-void CollectableList::RemoveCollectablesMarkedForDestroy() {
-    auto should_remove_collectable = [](const auto& collectable) { return collectable->is_marked_for_destroy; };
     collectables_.erase(
         std::remove_if(collectables_.begin(), collectables_.end(), should_remove_collectable),
         collectables_.end()
     );
 }
 
-void CollectableList::Render(SDL_Renderer& renderer) {
+void CollectableManager::Render(SDL_Renderer& renderer) {
     const SDL_Rect src_r {2, 182, 8, 8};
     for (const auto& c : collectables_) {
-        SDL_Rect dst_r{c->x, c->y, c->w, c->h};
-        SDL_RenderCopyEx(&renderer, texture_, &src_r, &dst_r, 0, nullptr, SDL_RendererFlip::SDL_FLIP_NONE);
+        SDL_RenderCopyEx(&renderer, texture_, &src_r, &c->hitbox, 0, nullptr, SDL_RendererFlip::SDL_FLIP_NONE);
     }
+}
+
+CollectableList& CollectableManager::GetCollectableList() {
+    return collectables_;
 }

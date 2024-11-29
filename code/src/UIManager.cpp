@@ -10,10 +10,10 @@ static const SDL_Color kWhiteColor {255, 255, 255, 255};
 UIManager::UIManager(
     TextManager& text_manager,
     TextureManager& texture_manager,
-    ScoreManager& score_manager)
+    Player& player)
     : text_manager_(text_manager)
     , texture_manager_(texture_manager)
-    , score_manager_(score_manager)
+    , player_(player)
     , font_(nullptr)
     , sprite_sheet_(nullptr) {
     LoadTextures();
@@ -27,7 +27,7 @@ void UIManager::LoadTextures() {
 void UIManager::Render(SDL_Renderer& renderer, const Game& game) {
     // Current score
     text_manager_.RenderText(renderer, *font_, "Score", kWhiteColor, 155, 45);
-    const auto score_string = std::to_string(score_manager_.GetScore());
+    const auto score_string = std::to_string(player_.GetScore());
     text_manager_.RenderText(renderer, *font_, score_string, kWhiteColor, 155, 75);
 
     // Game Status
@@ -41,13 +41,15 @@ void UIManager::Render(SDL_Renderer& renderer, const Game& game) {
     SDL_RenderCopyEx(&renderer, sprite_sheet_, &src_r_ready, &dst_r_ready, 0, nullptr, SDL_RendererFlip::SDL_FLIP_NONE);*/
 
     // GAME OVER
-    /*const SDL_Rect src_r_gameover {13, 192, 79, 7};
-    const SDL_Rect dst_r_gameover {
-        kGamePaddingX + kGameWidth / 2 - 77,
-        kGamePaddingY + kGameHeight / 2 + 40,
-        src_r_gameover.w * 2,
-        src_r_gameover.h * 2};
-    SDL_RenderCopyEx(&renderer, sprite_sheet_, &src_r_gameover, &dst_r_gameover, 0, nullptr, SDL_RendererFlip::SDL_FLIP_NONE);*/
+    if (game.IsGameOver()) {
+        const SDL_Rect src_r_gameover {13, 192, 79, 7};
+        const SDL_Rect dst_r_gameover {
+            kGamePaddingX + kGameWidth / 2 - 77,
+            kGamePaddingY + kGameHeight / 2 + 40,
+            src_r_gameover.w * 2,
+            src_r_gameover.h * 2};
+        SDL_RenderCopyEx(&renderer, sprite_sheet_, &src_r_gameover, &dst_r_gameover, 0, nullptr, SDL_RendererFlip::SDL_FLIP_NONE);
+    }
 
     // Player lifes.
     const SDL_Rect src_r_lifes {85, 164, 10, 11};

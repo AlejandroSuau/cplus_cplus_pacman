@@ -29,13 +29,12 @@ Game::Game()
         SDL_DestroyRenderer)
     , is_running_(false)
     , texture_manager_(*renderer_.get())
-    , score_manager_(texture_manager_)
-    , ui_manager_(text_manager_, texture_manager_, score_manager_)
     , state_(EGameState::READY_TO_PLAY)
     , background_texture_(nullptr)
     , map_(kGameWidth, kGameHeight, kGamePaddingX, kGamePaddingY, kCellSize)
     , pathfinder_(map_)
-    , player_(texture_manager_, map_, pathfinder_, score_manager_)
+    , player_(texture_manager_, map_, pathfinder_)
+    , ui_manager_(text_manager_, texture_manager_, player_)
     , ghost_factory_(texture_manager_, map_)
     , ghosts_{{
         ghost_factory_.CreateGhostBlinky(),
@@ -43,7 +42,8 @@ Game::Game()
         ghost_factory_.CreateGhostPinky(),
         ghost_factory_.CreateGhostClyde()
     }}
-    , collectables_(texture_manager_, score_manager_, map_) {
+    , collectable_manager_(texture_manager_, map_)
+    , collision_manager_(player_, ghosts_, collectable_manager_) {
 
     if (!window_ || !renderer_) {
         throw std::runtime_error(
@@ -92,24 +92,21 @@ void Game::Init() {
 void Game::Update(float dt) {
     player_.Update(dt);
     for (auto& ghost : ghosts_) {
-        ghost->Update(dt);
-        if (ghost->IsOnChasingState()) {
+        ghost->Update(dt); // TODO: LO METEMOS AQUI
+        if (ghost->IsInStateChasing()) {
             ghost->FindPath(*this);
         }
-
-        if (AreColliding(player_.GetHitbox(), ghost->GetHibox())) {
-            ghost->OnCollisionWithPlayer(*this);
-        }
     }
 
-    auto collectable_type = collectables_.ProcessCollisions(*this);
-    if (collectable_type == CollectableList::ECollectableType::BIG) {
-        for (auto& ghost : ghosts_) {
-            ghost->ActivateFrightenedMode();
-        }
-    }
+    collision_manager_.CheckCollisions();
 
-    collectables_.RemoveCollectablesMarkedForDestroy();
+    collectable_manager_.RemoveCollectablesMarkedForDestroy();
+
+    if (player_.IsDying()) {
+        state_ = EGameState::GAMEOVER;
+    } else if (player_.IsDead() && player_.GetLifes() > 0) {
+        Reset();
+    }
 }
 
 void Game::Render() {
@@ -119,7 +116,7 @@ void Game::Render() {
     //SDL_RenderCopy(renderer, background_texture_, nullptr, &kTextureRectBackground);
 
     map_.Render(*renderer);
-    collectables_.Render(*renderer);
+    collectable_manager_.Render(*renderer);
     player_.Render(*renderer);
     for (auto& g : ghosts_) {
         if (!g) continue;
@@ -154,12 +151,8 @@ bool Game::IsPlaying() const {
     return (state_ == EGameState::PLAYING);
 }
 
-bool Game::IsFinishing() const {
-    return (state_ == EGameState::FINISHING);
-}
-
-bool Game::IsFinished() const {
-    return (state_ == EGameState::FINISHED);
+bool Game::IsGameOver() const {
+    return (state_ == EGameState::GAMEOVER);
 }
 
 void Game::HandlePressedKeySpace() {
@@ -175,17 +168,20 @@ void Game::HandlePressedKeySpace() {
     }*/
 }
 
-Game::OptionalGhostReference Game::GetGhost(std::string_view name) const {
+OptionalGhostReference Game::GetGhost(std::string_view name) const {
     auto it = std::ranges::find_if(ghosts_, [&name](const auto& ghost) {
         return (ghost && ghost->GetName() == name);
     });
 
-    return (it == ghosts_.end()) ? std::nullopt : Game::OptionalGhostReference(**it);
+    return (it == ghosts_.end()) ? std::nullopt : OptionalGhostReference(**it);
 }
 
 void Game::Reset() {
     state_ = EGameState::READY_TO_PLAY;
-    score_manager_.Reset();
+    player_.Reset();
+    for (auto& ghost : ghosts_) {
+        ghost->Reset();
+    }
 }
 
 Pathfinder& Game::GetPathfinder() {

@@ -6,52 +6,43 @@
 #include "utils/TextureManager.hpp"
 
 #include "GameMap.hpp"
-#include "ScoreManager.hpp"
+#include "Types.hpp"
 
 #include <vector>
 #include <memory>
-#include <optional>
 
-class Game;
+enum class ECollectableType {
+    SMALL,
+    BIG
+};
 
-class CollectableList {
+struct Collectable {
+    ECollectableType type;
+    unsigned int score;
+    const SDL_Rect hitbox;
+    bool is_marked_for_destroy;
+    
+    Collectable(ECollectableType type_, unsigned int score_, int x_, int y_, int w_, int h_)
+        : type(type_), score(score_), hitbox{x_, y_, w_, h_}, is_marked_for_destroy(false) {}
+};
+
+class CollectableManager {
 public:
-    enum class ECollectableType {
-        SMALL,
-        BIG
-    };
-    CollectableList(
+    CollectableManager(
         TextureManager& texture_manager,
-        ScoreManager& score_manager,
         const GameMap& game_map);
 
     void Init();
-    std::optional<ECollectableType> ProcessCollisions(Game& game);
     void RemoveCollectablesMarkedForDestroy();
 
     void Render(SDL_Renderer& renderer);
 
+    CollectableList& GetCollectableList();
 private:
-    struct Collectable {
-        ECollectableType type;
-        unsigned int score;
-        int x;
-        int y;
-        int w;
-        int h;
-        bool is_marked_for_destroy;
-        Collectable(ECollectableType type_, unsigned int score_, int x_, int y_, int w_, int h_)
-            : type(type_), score(score_), x(x_), y(y_), w(w_), h(h_), is_marked_for_destroy(false) {}
-    };
-
     TextureManager& texture_manager_;
-    ScoreManager& score_manager_;
     const GameMap& game_map_;
-    
-    std::vector<std::unique_ptr<Collectable>> collectables_;
+    CollectableList collectables_;
     SDL_Texture* texture_;
-
-    void OnCollision(Collectable& collectable);
 };
 
 

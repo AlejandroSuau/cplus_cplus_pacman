@@ -9,7 +9,6 @@
 #include "pathfinder/Pathfinder.hpp"
 
 #include "GameMap.hpp"
-#include "ScoreManager.hpp"
 
 class Player {
 public:
@@ -23,15 +22,13 @@ public:
     Player(
         TextureManager& texture_manager,
         const GameMap& game_map,
-        Pathfinder& pathfinder,
-        ScoreManager& score_manager);
+        Pathfinder& pathfinder);
+
+    void Die();
+    void Reset();
 
     void Update(float dt);
     void Render(SDL_Renderer& renderer);
-
-    void ProcessGhostCollision();
-    void ProcessBigCoinCollision();
-    void ProcessCoinCollision();
 
     void HandleKeyPressed(SDL_Scancode scancode);
 
@@ -39,12 +36,17 @@ public:
     unsigned int GetLifes() const;
     const SDL_Rect& GetHitbox() const;
 
+    void IncreaseScore(unsigned int value);
+
     Vec2 GetPosition() const;
     EMovingDirection GetDirection() const;
     Vec2 GetDirectionVector() const;
-    
+    unsigned int GetScore() const;
+    bool IsDying() const;
+    bool IsDead() const;
+
 private:
-    enum class EStatus {
+    enum class EState {
         READY,
         MOVING,
         DYING,
@@ -54,13 +56,14 @@ private:
     TextureManager& texture_manager_;
     const GameMap& game_map_;
     Pathfinder& pathfinder_;
-    ScoreManager& score_manager_;
     SDL_Rect hitbox_;
+    const Vec2 starting_position_;
     CountdownTimer moving_timer_{0.3f};
     EMovingDirection direction_;
     EMovingDirection next_direction_;
-    EStatus status_;
+    EState state_;
     unsigned int lifes_;
+    unsigned int score_;
 
     SDL_Texture* sprite_sheet_;
     CountdownTimer moving_animation_timer_{0.1f};

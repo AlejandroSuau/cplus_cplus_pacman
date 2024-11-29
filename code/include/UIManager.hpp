@@ -7,7 +7,7 @@
 #include "utils/TextureManager.hpp"
 #include "utils/TextManager.hpp"
 
-#include "ScoreManager.hpp"
+#include "Player.hpp"
 
 class Game;
 
@@ -16,14 +16,14 @@ public:
     UIManager(
         TextManager& text_manager,
         TextureManager& texture_manager,
-        ScoreManager& score_manager);
+        Player& player);
     
     void Render(SDL_Renderer& renderer, const Game& game);
 
 private:
     TextManager& text_manager_;
     TextureManager& texture_manager_;
-    ScoreManager& score_manager_;
+    Player& player_;
     
     TTF_Font* font_;
     SDL_Texture* sprite_sheet_;

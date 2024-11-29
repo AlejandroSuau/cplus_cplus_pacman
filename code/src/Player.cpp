@@ -8,64 +8,72 @@
 Player::Player(
     TextureManager& texture_manager,
     const GameMap& game_map,
-    Pathfinder& pathfinder,
-    ScoreManager& score_manager)
+    Pathfinder& pathfinder)
     : texture_manager_(texture_manager)
     , game_map_(game_map)
     , pathfinder_(pathfinder)
-    , score_manager_(score_manager)
-    , hitbox_{0, 0, PlayerParameters::kWidth, PlayerParameters::kHeight}
+    , hitbox_{356, 516, PlayerParameters::kWidth, PlayerParameters::kHeight}
+    , starting_position_(hitbox_.x, hitbox_.y)
     , direction_(Player::EMovingDirection::RIGHT)
     , next_direction_(direction_)
-    , status_(EStatus::READY)
-    , lifes_(PlayerParameters::kLifes) {
+    , state_(EState::READY)
+    , lifes_(PlayerParameters::kLifes)
+    , score_(0) {
     sprite_sheet_ = texture_manager_.LoadTexture(kAssetsFolderImages + "spritesheet.png");
-    const auto starting_coords = game_map_.FromRowColToCoords(13, 8);
-    hitbox_.x = starting_coords.first;
-    hitbox_.y = starting_coords.second;
+}
+
+void Player::Reset() {
+    score_ = 0;
+    state_ = EState::READY;
+    hitbox_.x = starting_position_.x;
+    hitbox_.y = starting_position_.y;
+    dying_animation_timer_.Restart();
+    dying_animation_sprite_index_ = 0;
+    moving_animation_timer_.Restart();
+    moving_animation_sprite_index_ = 0;
 }
 
 void Player::HandleKeyPressed(SDL_Scancode scancode) {
     switch(scancode) {
         case SDL_SCANCODE_UP:
-            status_ = EStatus::MOVING;
+            state_ = EState::MOVING;
             next_direction_ = EMovingDirection::UP;
         break;
         case SDL_SCANCODE_DOWN:
-            status_ = EStatus::MOVING;
+            state_ = EState::MOVING;
             next_direction_ = EMovingDirection::DOWN;
         break;
         case SDL_SCANCODE_RIGHT:
-            status_ = EStatus::MOVING;
+            state_ = EState::MOVING;
             next_direction_ = EMovingDirection::RIGHT;
         break;
         case SDL_SCANCODE_LEFT:
-            status_ = EStatus::MOVING;
+            state_ = EState::MOVING;
             next_direction_ = EMovingDirection::LEFT;
         break;
     }
 }
 
 void Player::Update(float dt) {
-    if (status_ == EStatus::DEAD) return;
+    if (state_ == EState::DEAD) return;
 
-    if (status_ == EStatus::DYING) {
+    if (state_ == EState::DYING) {
         dying_animation_timer_.Update(dt);
         if (dying_animation_timer_.DidFinish()) {
             ++dying_animation_sprite_index_;
             if (dying_animation_sprite_index_ == PlayerParameters::kDyingAnimationCount) {
-                status_ = EStatus::DEAD;
+                state_ = EState::DEAD;
             }
         }
     }
 
-    if (status_ == EStatus::READY || status_ == EStatus::MOVING) {
+    if (state_ == EState::READY || state_ == EState::MOVING) {
         moving_animation_timer_.Update(dt);
         if (moving_animation_timer_.DidFinish()) {
             moving_animation_sprite_index_ = (moving_animation_sprite_index_ + 1) % PlayerParameters::kMovingAnimationCount;
         }
 
-        if (status_ == EStatus::MOVING) {
+        if (state_ == EState::MOVING) {
             Move(dt);
         }
     }
@@ -111,36 +119,12 @@ bool Player::IsMovementAllowed(SDL_Rect moved_rect) const {
     return std::all_of(rect_points.cbegin(), rect_points.cend(), is_coord_walkable);
 }
 
-void Player::ProcessGhostCollision() {
-    if (status_ == EStatus::DEAD) return;
-    
-    status_ = EStatus::DYING;
-    // Depends on player status
-        // Die?
-        // Destroy
-    //int x = 10;
-    //score_manager_.IncreaseScore(x);
-}
-
-void Player::ProcessBigCoinCollision() {
-    // Increase Score
-    // Change ghost status
-    int x = 10;
-    score_manager_.IncreaseScore(x);
-}
-
-void Player::ProcessCoinCollision() {
-    // Increase Score.
-    int x = 10;
-    score_manager_.IncreaseScore(x);
-}
-
 void Player::Render(SDL_Renderer& renderer) {
-    if (status_ == EStatus::MOVING || status_ == EStatus::READY) {
+    if (state_ == EState::MOVING || state_ == EState::READY) {
         auto src_r = GetSourceRectMoving();
         const double angle = 90.0 * static_cast<double>(direction_);
         SDL_RenderCopyEx(&renderer, sprite_sheet_, &src_r, &hitbox_, angle, nullptr, SDL_RendererFlip::SDL_FLIP_NONE);
-    } else if (status_ == EStatus::DYING) {
+    } else if (state_ == EState::DYING) {
         auto src_r = GetSourceRectDying();
         const double angle = 90.0 * static_cast<double>(direction_);
         SDL_RenderCopyEx(&renderer, sprite_sheet_, &src_r, &hitbox_, angle, nullptr, SDL_RendererFlip::SDL_FLIP_NONE);
@@ -167,6 +151,11 @@ const SDL_Rect& Player::GetHitbox() const {
     return hitbox_;
 }
 
+void Player::Die() {
+    state_ = EState::DYING;
+    DecreaseOneLife();
+}
+
 void Player::DecreaseOneLife() {
     if (lifes_ == 0) {
         throw std::runtime_error("Trying to decrease lifes on already died player!");
@@ -185,9 +174,26 @@ Player::EMovingDirection Player::GetDirection() const {
 
 Vec2 Player::GetDirectionVector() const {
     switch(direction_) {
+        default:
         case EMovingDirection::DOWN:  return { 0,  1};
         case EMovingDirection::UP:    return { 0, -1};
         case EMovingDirection::LEFT:  return {-1,  0};
         case EMovingDirection::RIGHT: return { 1,  0};
     }
+}
+
+void Player::IncreaseScore(unsigned int value) {
+    score_ += value;
+}
+
+unsigned int Player::GetScore() const {
+    return score_;
+}
+
+bool Player::IsDying() const {
+    return (state_ == EState::DYING);
+}
+
+bool Player::IsDead() const {
+    return (state_ == EState::DEAD);
 }

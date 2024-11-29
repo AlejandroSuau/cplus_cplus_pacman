@@ -10,12 +10,13 @@
 #include "utils/SoundsManager.hpp"
 
 #include "UIManager.hpp"
-#include "ScoreManager.hpp"
 #include "GameMap.hpp"
 #include "Ghost.hpp"
 #include "GhostFactory.hpp"
 #include "Player.hpp"
-#include "CollectableList.hpp"
+#include "CollectableManager.hpp"
+#include "Types.hpp"
+#include "CollisionManager.hpp"
 
 #include "pathfinder/Pathfinder.hpp"
 
@@ -29,8 +30,7 @@ public:
     enum class EGameState {
         READY_TO_PLAY,
         PLAYING,
-        FINISHING,
-        FINISHED
+        GAMEOVER
     };
 
     Game();
@@ -38,14 +38,12 @@ public:
 
     bool IsReadyToPlay() const;
     bool IsPlaying() const;
-    bool IsFinishing() const;
-    bool IsFinished() const;
+    bool IsGameOver() const;
 
     Pathfinder& GetPathfinder();
     const GameMap& GetMap() const;
     const Player& GetPlayer() const;
  
-    using OptionalGhostReference = std::optional<std::reference_wrapper<const Ghost>>;
     OptionalGhostReference GetGhost(std::string_view name) const;
 
 private:
@@ -63,7 +61,6 @@ private:
     SoundsManager sounds_manager_;
     TextureManager texture_manager_;
     TextManager text_manager_;
-    ScoreManager score_manager_;
     UIManager ui_manager_;
     EGameState state_;
     SDL_Texture* background_texture_;
@@ -73,9 +70,9 @@ private:
     Pathfinder pathfinder_;
     Player player_;
     GhostFactory ghost_factory_;
-    std::array<std::unique_ptr<Ghost>, 4> ghosts_;
-    CountdownTimer search_countdown_{.25f};
-    CollectableList collectables_;
+    GhostList ghosts_;
+    CollectableManager collectable_manager_;
+    CollisionManager collision_manager_;
  
     void Init();
 

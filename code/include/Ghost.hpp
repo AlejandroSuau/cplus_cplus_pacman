@@ -12,6 +12,8 @@
 
 #include <string>
 #include <string_view>
+#include <array>
+#include <memory>
 
 class Game;
 
@@ -22,7 +24,7 @@ public:
         CHASING,
         FRIGHTENED,
         EYES,
-        DEAD
+        STOP
     };
 
     enum class EType {
@@ -51,18 +53,21 @@ public:
 
     void FindPath(Game& game);
 
+    void Reset();
     void Update(float dt);
     void Render(SDL_Renderer& renderer);
 
-    void OnCollisionWithPlayer(Game& game);
+    void Die();
 
-    void ActivateFrightenedMode();
+    void SetStateStop();
+    void SetStateFrightened();
+    bool IsInStateFrightened() const;
+    bool IsInStateChasing() const;
 
     Vec2 GetPosition() const;
     const std::string_view GetName() const;
     Vec2 GetDirectionVector(EMovingDirection direction) const;
     Vec2 GetDirectionVector() const;
-    bool IsOnChasingState() const;
     const SDL_Rect& GetHibox() const;
 
 private:

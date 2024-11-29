@@ -36,6 +36,17 @@ Ghost::Ghost(
     sprite_sheet_ = texture_manager_.LoadTexture(kAssetsFolderImages + "spritesheet.png");
 }
 
+void Ghost::Reset() {
+    hitbox_.x = starting_position_.x;
+    hitbox_.y = starting_position_.y;
+    direction_ = starting_direction_;
+    state_ = EState::HOUSING;
+    is_moving_between_tiles_ = false;
+    timer_mode_house_.Restart();
+    timer_mode_house_swap_direction_.Restart();
+    path_.clear();
+}
+
 void Ghost::FindPath(Game& game) {
     if (is_moving_between_tiles_) return;
 
@@ -55,6 +66,7 @@ void Ghost::Update(float dt) {
         case EState::FRIGHTENED: UpdateStateFrightened(dt);  break;
         case EState::CHASING:    UpdateStateChasing(dt);     break;
         case EState::EYES:       UpdateStateEyes(dt);        break;
+        default:                                             break;
     }
 }
 
@@ -192,12 +204,6 @@ void Ghost::SetHousingState() {
     timer_mode_house_swap_direction_.Restart();
 }
 
-void Ghost::OnCollisionWithPlayer(Game& game) {
-    if (!IsOnChasingState()) return;
-
-    SetStateEyes(game);
-}
-
 void Ghost::SetStateEyes(Game& game) {
     state_ = EState::EYES;
     const auto [row, col] = game_map_.FromCoordsToRowCol(hitbox_.x, hitbox_.y);
@@ -231,14 +237,8 @@ bool Ghost::IsMovementAllowed(SDL_Rect moved_rect) const {
     return std::all_of(rect_points.cbegin(), rect_points.cend(), is_coord_walkable);
 }
 
-void Ghost::ActivateFrightenedMode() {
+void Ghost::SetStateFrightened() {
     state_ = EState::FRIGHTENED;
-    // render el otro
-    // comenzar el tempor
-    // Si han pasado X segundos, cambiamos la imagen durante 1s. luego vuelve y luego vuelve a hacerlo
-    // despues termina vulnerability
-
-    // igual pero 163
 }
 
 void Ghost::Render(SDL_Renderer& renderer) {
@@ -263,7 +263,7 @@ SDL_Rect Ghost::GetSourceRect() const {
 
     int x = 0;
     int y = 0;
-    if (IsOnChasingState() || state_ == EState::HOUSING) {
+    if (IsInStateChasing() || state_ == EState::HOUSING || state_ == EState::STOP) {
         x = kStartingX +
             ((kPadding + kWidth) * GhostSprite::kAnimationCountChasing) * dir +
             ((kPadding + kWidth) * sprite_index_);
@@ -297,10 +297,6 @@ Vec2 Ghost::GetDirectionVector(EMovingDirection direction) const {
     }
 }
 
-bool Ghost::IsOnChasingState() const {
-    return (state_ == EState::CHASING);
-}
-
 Vec2 Ghost::GetPosition() const {
     return {hitbox_.x, hitbox_.y};
 }
@@ -317,6 +313,23 @@ Ghost::EMovingDirection Ghost::GetOppositeDirection() const {
         case EMovingDirection::RIGHT: return EMovingDirection::LEFT;
         case EMovingDirection::LEFT:  return EMovingDirection::RIGHT;
     }
+}
+
+void Ghost::Die() {
+    // Spawn score
+    state_ = EState::EYES;
+}
+
+void Ghost::SetStateStop() {
+    state_ = EState::STOP;
+}
+
+bool Ghost::IsInStateChasing() const {
+    return (state_ == EState::CHASING);
+}
+
+bool Ghost::IsInStateFrightened() const {
+    return (state_ == EState::FRIGHTENED);
 }
 
 const SDL_Rect& Ghost::GetHibox() const {
