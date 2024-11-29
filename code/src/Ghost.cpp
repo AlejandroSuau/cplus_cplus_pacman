@@ -128,6 +128,19 @@ void Ghost::UpdateStateChasing(float dt) {
 }
 
 void Ghost::UpdateStateFrightened(float dt) {
+    timer_mode_frightened_.Update(dt);
+    if (timer_mode_frightened_.GetSecondsToFinish() <= intermittent_time_last_seconds_) {
+        timer_frightened_intermittent_.Update(dt);
+        if (timer_frightened_intermittent_.DidFinish()) {
+            frightened_animation_index = !frightened_animation_index;
+        }
+    }
+
+    if (timer_mode_frightened_.DidFinish()) {
+        state_ = EState::CHASING;
+        return;
+    }
+
     const int delta = static_cast<int>(PlayerParameters::kVelocity * dt);
     std::array directions {
         EMovingDirection::LEFT,
@@ -257,7 +270,8 @@ SDL_Rect Ghost::GetSourceRect() const {
             ((kPadding + kWidth) * dir);
         y = 202;
     } else if (state_ == EState::FRIGHTENED) {
-        x = kStartingX + ((kPadding + kWidth) * sprite_index_);
+        x = kStartingX + ((kPadding + kWidth) * sprite_index_) +
+            (kPadding + kWidth) * (frightened_animation_index);
         y = 163;
     }
     return SDL_Rect {x, y, kWidth, kHeight};
@@ -317,6 +331,11 @@ void Ghost::SetHousingState() {
 
 void Ghost::SetStateFrightened() {
     state_ = EState::FRIGHTENED;
+    timer_mode_frightened_.Restart();
+    timer_frightened_intermittent_.Restart();
+    frightened_animation_index = 0;
+    is_moving_between_tiles_ = false;
+    path_.clear();
 }
 
 void Ghost::SetStateStop() {

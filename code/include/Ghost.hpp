@@ -87,8 +87,12 @@ private:
     EState state_;
 
     CountdownTimer timer_mode_house_ {2.f};
-    CountdownTimer timer_mode_house_swap_direction_{.25f};
-    CountdownTimer timer_mode_frightened_ {8.f};
+    CountdownTimer timer_mode_house_swap_direction_ {.25f};
+    
+    const float intermittent_time_last_seconds_ = 4.f;
+    CountdownTimer timer_frightened_intermittent_ {2.f};
+    CountdownTimer timer_mode_frightened_ {6.f};
+    int frightened_animation_index = 0;
     
     bool is_moving_between_tiles_;
     Pathfinder::Path path_;

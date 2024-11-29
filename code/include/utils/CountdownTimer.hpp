@@ -8,6 +8,10 @@ public:
     void Update(float dt);
     bool DidFinish() const;
 
+    float GetElapsedSeconds() const;
+    float GetIntervalSeconds() const;
+    float GetSecondsToFinish() const;
+
 private:
     float interval_seconds_;
     float elapsed_seconds_;
