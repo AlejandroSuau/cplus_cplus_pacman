@@ -27,30 +27,12 @@ CollectableManager::CollectableManager(
 
 void CollectableManager::Init() {
     texture_ = texture_manager_.LoadTexture(kAssetsFolderImages + "spritesheet.png");
-    auto is_big_spawn = [](std::size_t row, std::size_t col) {
-        static const std::array<std::pair<std::size_t, std::size_t>, 4> big_spawns {{
-            {2, 1}, {2, 15}, {15, 1}, {15, 15}
-        }};
-        for (const auto [r, c] : big_spawns) {
-            if (r == row && c == col) return true;
-        }
-        return false;
-    };
 
-    // TODO: CREATE FACTORY
-    auto is_walkable_cell = [&](const GameMap::Cell& cell) { return (cell.is_walkable /* TODO: || players.position() */); };
     const auto& cells = game_map_.GetCells();
     const auto cell_size = game_map_.GetCellSizeInt();
-    for (const auto& cell : cells | std::views::filter(is_walkable_cell)) {
-        if (is_big_spawn(cell.row, cell.col)) {
-            collectables_.emplace_back(std::make_unique<Collectable>(
-                ECollectableType::BIG,
-                kScoreBig,
-                cell.x + (cell_size / 2) - (kSizeBig / 2),
-                cell.y + (cell_size / 2) - (kSizeBig / 2),
-                kSizeBig,
-                kSizeBig));
-        } else {
+    for (const auto& cell : cells) {
+        const auto spawn_type = kMapCollectables[cell.row][cell.col];
+        if (spawn_type == 1) {
             collectables_.emplace_back(std::make_unique<Collectable>(
                 ECollectableType::SMALL,
                 kScoreSmall,
@@ -58,21 +40,17 @@ void CollectableManager::Init() {
                 cell.y + (cell_size / 2) - (kSizeSmall / 2),
                 kSizeSmall,
                 kSizeSmall));
+        } else if (spawn_type == 2) {
+            collectables_.emplace_back(std::make_unique<Collectable>(
+                ECollectableType::BIG,
+                kScoreBig,
+                cell.x + (cell_size / 2) - (kSizeBig / 2),
+                cell.y + (cell_size / 2) - (kSizeBig / 2),
+                kSizeBig,
+                kSizeBig));
         }
     }
 }
-
-/*std::optional<CollectableManager::ECollectableType> CollectableManager::ProcessCollisions(Game& game) {
-    for (auto& c : collectables_) {
-        const auto& p_rect = game.GetPlayer().GetHitbox();
-        if (AreColliding(c->rect, p_rect)) {
-            OnCollision(*c);
-            return {c->type};
-        }
-    }
-
-    return std::nullopt;
-}*/
 
 void CollectableManager::RemoveCollectablesMarkedForDestroy() {
     auto should_remove_collectable = [](const auto& collectable) {

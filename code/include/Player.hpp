@@ -44,6 +44,7 @@ public:
     unsigned int GetScore() const;
     bool IsDying() const;
     bool IsDead() const;
+    bool IsMoving() const;
 
 private:
     enum class EState {

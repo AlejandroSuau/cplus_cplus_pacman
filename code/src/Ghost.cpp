@@ -10,6 +10,7 @@
 
 Ghost::Ghost(
     TextureManager& texture_manager,
+    Pathfinder& pathfinder,
     const GameMap& game_map,
     std::string name,
     EType type,
@@ -18,6 +19,7 @@ Ghost::Ghost(
     EMovingDirection direction,
     PathfindingPattern pathfinding_pattern)
     : texture_manager_(texture_manager)
+    , pathfinder_(pathfinder)
     , game_map_(game_map)
     , name_(name)
     , type_(type)
@@ -66,7 +68,8 @@ void Ghost::Update(float dt) {
         case EState::FRIGHTENED: UpdateStateFrightened(dt);  break;
         case EState::CHASING:    UpdateStateChasing(dt);     break;
         case EState::EYES:       UpdateStateEyes(dt);        break;
-        default:                                             break;
+        default:                                             
+        case EState::STOP:                                   break;
     }
 }
 
@@ -197,21 +200,6 @@ void Ghost::UpdateStateEyes(float dt) {
     }
 }
 
-void Ghost::SetHousingState() {
-    state_ = EState::HOUSING;
-    direction_ = starting_direction_;
-    timer_mode_house_.Restart();
-    timer_mode_house_swap_direction_.Restart();
-}
-
-void Ghost::SetStateEyes(Game& game) {
-    state_ = EState::EYES;
-    const auto [row, col] = game_map_.FromCoordsToRowCol(hitbox_.x, hitbox_.y);
-    const auto [target_row, target_col] = game_map_.FromCoordsToRowCol(starting_position_.x, starting_position_.y);
-    path_index_ = 0;
-    path_ = game.GetPathfinder().FindPath(row, col, target_row, target_col);
-}
-
 bool Ghost::TryToMove(Vec2 delta_movement) {
     const auto dir_vector = GetDirectionVector();
     SDL_Rect next_hitbox = hitbox_;
@@ -235,10 +223,6 @@ bool Ghost::IsMovementAllowed(SDL_Rect moved_rect) const {
         return game_map_.AreCoordsWalkable(coord_pair.first, coord_pair.second);
     };
     return std::all_of(rect_points.cbegin(), rect_points.cend(), is_coord_walkable);
-}
-
-void Ghost::SetStateFrightened() {
-    state_ = EState::FRIGHTENED;
 }
 
 void Ghost::Render(SDL_Renderer& renderer) {
@@ -316,8 +300,23 @@ Ghost::EMovingDirection Ghost::GetOppositeDirection() const {
 }
 
 void Ghost::Die() {
-    // Spawn score
+    // TODO: Spawn score
     state_ = EState::EYES;
+    const auto [row, col] = game_map_.FromCoordsToRowCol(hitbox_.x, hitbox_.y);
+    const auto [target_row, target_col] = game_map_.FromCoordsToRowCol(starting_position_.x, starting_position_.y);
+    path_index_ = 0;
+    path_ = pathfinder_.FindPath(row, col, target_row, target_col);
+}
+
+void Ghost::SetHousingState() {
+    state_ = EState::HOUSING;
+    direction_ = starting_direction_;
+    timer_mode_house_.Restart();
+    timer_mode_house_swap_direction_.Restart();
+}
+
+void Ghost::SetStateFrightened() {
+    state_ = EState::FRIGHTENED;
 }
 
 void Ghost::SetStateStop() {
@@ -330,6 +329,10 @@ bool Ghost::IsInStateChasing() const {
 
 bool Ghost::IsInStateFrightened() const {
     return (state_ == EState::FRIGHTENED);
+}
+
+bool Ghost::IsInStateEyes() const {
+    return (state_ == EState::EYES);
 }
 
 const SDL_Rect& Ghost::GetHibox() const {

@@ -22,6 +22,7 @@ void CollisionManager::CheckCollisions() {
 
     // Player - Ghost
     for (auto& ghost : ghosts_) {
+        // TODO: Consider lower the hitbox for not colliding on intersections.
         if (AreColliding(player_hitbox, ghost->GetHibox())) {
             OnCollisionWithGhost(*ghost);
         }
@@ -39,7 +40,7 @@ void CollisionManager::OnCollisionWithCollectable(Collectable& collectable) {
 }
 
 void CollisionManager::OnCollisionWithGhost(Ghost& ghost) {
-    if (player_.IsDying()) return;
+    if (player_.IsDying() || ghost.IsInStateEyes()) return;
 
     if (ghost.IsInStateFrightened()) {
         ghost.Die();

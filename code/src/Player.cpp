@@ -23,8 +23,8 @@ Player::Player(
 }
 
 void Player::Reset() {
-    score_ = 0;
     state_ = EState::READY;
+    direction_ = EMovingDirection::RIGHT;
     hitbox_.x = starting_position_.x;
     hitbox_.y = starting_position_.y;
     dying_animation_timer_.Restart();
@@ -34,6 +34,8 @@ void Player::Reset() {
 }
 
 void Player::HandleKeyPressed(SDL_Scancode scancode) {
+    if (IsDying() || IsDead()) return;
+
     switch(scancode) {
         case SDL_SCANCODE_UP:
             state_ = EState::MOVING;
@@ -65,6 +67,7 @@ void Player::Update(float dt) {
                 state_ = EState::DEAD;
             }
         }
+        return;
     }
 
     if (state_ == EState::READY || state_ == EState::MOVING) {
@@ -196,4 +199,8 @@ bool Player::IsDying() const {
 
 bool Player::IsDead() const {
     return (state_ == EState::DEAD);
+}
+
+bool Player::IsMoving() const {
+    return (state_ == EState::MOVING);
 }

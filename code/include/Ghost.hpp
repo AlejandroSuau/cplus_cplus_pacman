@@ -9,6 +9,7 @@
 
 #include "GameMap.hpp"
 #include "GhostMovementPatterns.hpp"
+#include "pathfinder/Pathfinder.hpp"
 
 #include <string>
 #include <string_view>
@@ -43,6 +44,7 @@ public:
     
     Ghost(
         TextureManager& texture_manager,
+        Pathfinder& pathfinder,
         const GameMap& game_map,
         std::string name,
         EType type,
@@ -61,6 +63,7 @@ public:
 
     void SetStateStop();
     void SetStateFrightened();
+    bool IsInStateEyes() const;
     bool IsInStateFrightened() const;
     bool IsInStateChasing() const;
 
@@ -72,6 +75,7 @@ public:
 
 private:
     TextureManager& texture_manager_;
+    Pathfinder& pathfinder_;
     const GameMap& game_map_;
     const std::string name_;
     EType type_;
