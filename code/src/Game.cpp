@@ -24,16 +24,16 @@ Game::Game()
             kGameHeight + (kGamePaddingY * 2),
             0),
         SDL_DestroyWindow)
-    , renderer_(
+    , sdl_renderer_(
         SDL_CreateRenderer(window_.get(), -1, SDL_RENDERER_ACCELERATED),
         SDL_DestroyRenderer)
     , is_running_(false)
-    , texture_manager_(*renderer_.get())
+    , renderer_(*sdl_renderer_.get())
+    , texture_manager_(*sdl_renderer_.get())
     , state_(EGameState::READY_TO_PLAY)
-    , background_texture_(nullptr)
     , map_(kGameWidth, kGameHeight, kGamePaddingX, kGamePaddingY, kCellSize)
     , pathfinder_(map_)
-    , player_(texture_manager_, map_, pathfinder_)
+    , player_(renderer_, texture_manager_, map_, pathfinder_)
     , ui_manager_(text_manager_, texture_manager_, player_)
     , ghost_factory_(texture_manager_, pathfinder_, map_)
     , ghosts_{{
@@ -45,12 +45,12 @@ Game::Game()
     , collectable_manager_(texture_manager_, map_)
     , collision_manager_(player_, ghosts_, collectable_manager_) {
 
-    if (!window_ || !renderer_) {
+    if (!window_ || !sdl_renderer_) {
         throw std::runtime_error(
             std::string("Error creating the game") + SDL_GetError());
     }
     
-    SDL_SetRenderDrawBlendMode(renderer_.get(), SDL_BLENDMODE_BLEND);
+    SDL_SetRenderDrawBlendMode(sdl_renderer_.get(), SDL_BLENDMODE_BLEND);
 }
 
 void Game::Run() {
@@ -85,9 +85,7 @@ void Game::Run() {
     }
 }
 
-void Game::Init() {
-    background_texture_ = texture_manager_.LoadTexture(kAssetsFolderImages + "maze.png");
-}
+void Game::Init() {}
 
 void Game::Update(float dt) {
     player_.Update(dt);
@@ -110,14 +108,14 @@ void Game::Update(float dt) {
 }
 
 void Game::Render() {
-    auto* renderer = renderer_.get();
+    auto* renderer = sdl_renderer_.get();
     SDL_RenderClear(renderer);
     
     //SDL_RenderCopy(renderer, background_texture_, nullptr, &kTextureRectBackground);
 
     map_.Render(*renderer);
     collectable_manager_.Render(*renderer);
-    player_.Render(*renderer);
+    player_.Render();
     for (auto& ghost : ghosts_) {
         ghost->Render(*renderer);
     }

@@ -5,7 +5,7 @@
 #include "utils/SDLTTFInitializer.hpp"
 #include "utils/SDLMixerInitializer.hpp"
 #include "utils/CountdownTimer.hpp"
-
+#include "utils/Renderer.hpp"
 #include "utils/TextureManager.hpp"
 #include "utils/SoundsManager.hpp"
 
@@ -55,15 +55,15 @@ private:
 
     // SDL window & render
     std::unique_ptr<SDL_Window, void(*)(SDL_Window*)> window_;
-    std::unique_ptr<SDL_Renderer, void(*)(SDL_Renderer*)> renderer_;
+    std::unique_ptr<SDL_Renderer, void(*)(SDL_Renderer*)> sdl_renderer_;
     bool is_running_;
 
+    Renderer renderer_;
     SoundsManager sounds_manager_;
     TextureManager texture_manager_;
     TextManager text_manager_;
     UIManager ui_manager_;
     EGameState state_;
-    SDL_Texture* background_texture_;
 
     // Game Objects
     GameMap map_;

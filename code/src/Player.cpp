@@ -6,14 +6,14 @@
 #include <algorithm>
 
 Player::Player(
+    Renderer& renderer,
     TextureManager& texture_manager,
     const GameMap& game_map,
     Pathfinder& pathfinder)
-    : texture_manager_(texture_manager)
+    : Entity(renderer, {356, 516, 31, 31})
+    , texture_manager_(texture_manager)
     , game_map_(game_map)
     , pathfinder_(pathfinder)
-    , hitbox_{356, 516, PlayerParameters::kWidth, PlayerParameters::kHeight}
-    , starting_position_(hitbox_.x, hitbox_.y)
     , direction_(Player::EMovingDirection::RIGHT)
     , next_direction_(direction_)
     , state_(EState::READY)
@@ -25,12 +25,11 @@ Player::Player(
 void Player::Reset() {
     state_ = EState::READY;
     direction_ = EMovingDirection::RIGHT;
-    hitbox_.x = starting_position_.x;
-    hitbox_.y = starting_position_.y;
     dying_animation_timer_.Restart();
     dying_animation_sprite_index_ = 0;
     moving_animation_timer_.Restart();
     moving_animation_sprite_index_ = 0;
+    ResetHitBox();
 }
 
 void Player::HandleKeyPressed(SDL_Scancode scancode) {
@@ -122,15 +121,15 @@ bool Player::IsMovementAllowed(SDL_Rect moved_rect) const {
     return std::all_of(rect_points.cbegin(), rect_points.cend(), is_coord_walkable);
 }
 
-void Player::Render(SDL_Renderer& renderer) {
+void Player::Render() {
     if (state_ == EState::MOVING || state_ == EState::READY) {
-        auto src_r = GetSourceRectMoving();
+        const auto src_r = GetSourceRectMoving();
         const double angle = 90.0 * static_cast<double>(direction_);
-        SDL_RenderCopyEx(&renderer, sprite_sheet_, &src_r, &hitbox_, angle, nullptr, SDL_RendererFlip::SDL_FLIP_NONE);
+        renderer_.RenderTexture(sprite_sheet_, src_r, hitbox_, angle);
     } else if (state_ == EState::DYING) {
-        auto src_r = GetSourceRectDying();
+        const auto src_r = GetSourceRectDying();
         const double angle = 90.0 * static_cast<double>(direction_);
-        SDL_RenderCopyEx(&renderer, sprite_sheet_, &src_r, &hitbox_, angle, nullptr, SDL_RendererFlip::SDL_FLIP_NONE);
+        renderer_.RenderTexture(sprite_sheet_, src_r, hitbox_, angle);
     }
 }
 

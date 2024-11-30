@@ -2,15 +2,17 @@
 
 #include <SDL2/SDL.h>
 
+#include "utils/Renderer.hpp"
 #include "utils/Vec2.hpp"
 #include "utils/TextureManager.hpp"
 #include "utils/CountdownTimer.hpp"
+#include "utils/Entity.hpp"
 
 #include "pathfinder/Pathfinder.hpp"
 
 #include "GameMap.hpp"
 
-class Player {
+class Player : Entity {
 public:
     enum class EMovingDirection {
         LEFT = 0,
@@ -20,6 +22,7 @@ public:
     };
 
     Player(
+        Renderer& renderer,
         TextureManager& texture_manager,
         const GameMap& game_map,
         Pathfinder& pathfinder);
@@ -27,8 +30,8 @@ public:
     void Die();
     void Reset();
 
-    void Update(float dt);
-    void Render(SDL_Renderer& renderer);
+    void Update(float dt) override;
+    void Render() override;
 
     void HandleKeyPressed(SDL_Scancode scancode);
 
@@ -57,8 +60,6 @@ private:
     TextureManager& texture_manager_;
     const GameMap& game_map_;
     Pathfinder& pathfinder_;
-    SDL_Rect hitbox_;
-    const Vec2 starting_position_;
     CountdownTimer moving_timer_{0.3f};
     EMovingDirection direction_;
     EMovingDirection next_direction_;
