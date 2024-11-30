@@ -9,24 +9,21 @@
 #include <cmath>
 
 Ghost::Ghost(
+    Renderer& renderer,
     TextureManager& texture_manager,
-    Pathfinder& pathfinder,
     const GameMap& game_map,
+    Pathfinder& pathfinder,
     std::string name,
     EType type,
-    int x,
-    int y,
-    EMovingDirection direction,
+    SDL_Rect hitbox,
+    float velocity,
+    EDirection direction,
     PathfindingPattern pathfinding_pattern)
-    : texture_manager_(texture_manager)
+    : EntityMovable(renderer, hitbox, game_map, velocity, direction)
+    , texture_manager_(texture_manager)
     , pathfinder_(pathfinder)
-    , game_map_(game_map)
     , name_(name)
     , type_(type)
-    , hitbox_(x, y, 31, 31)
-    , starting_position_(x, y)
-    , direction_(direction)
-    , starting_direction_(direction)
     , patfinder_pattern_(pathfinding_pattern)
     , state_(EState::HOUSING)
     , path_index_(0)
@@ -34,13 +31,11 @@ Ghost::Ghost(
     , animation_timer_(0.1f)
     , sprite_index_(0)
     , sprites_count_(2) {
-    
     sprite_sheet_ = texture_manager_.LoadTexture(kAssetsFolderImages + "spritesheet.png");
 }
 
 void Ghost::Reset() {
-    hitbox_.x = starting_position_.x;
-    hitbox_.y = starting_position_.y;
+    hitbox_ = starting_hitbox_;
     direction_ = starting_direction_;
     state_ = EState::HOUSING;
     is_moving_between_tiles_ = false;
@@ -97,13 +92,13 @@ void Ghost::UpdateStateChasing(float dt) {
         path_[path_index_].first, path_[path_index_].second);
 
     if (hitbox_.x < target_x) {
-        direction_ = EMovingDirection::RIGHT;
+        direction_ = EDirection::RIGHT;
     } else if (hitbox_.x > target_x) {
-        direction_ = EMovingDirection::LEFT;
+        direction_ = EDirection::LEFT;
     } else if (hitbox_.y < target_y) {
-        direction_ = EMovingDirection::DOWN;
+        direction_ = EDirection::DOWN;
     } else if (hitbox_.y > target_y) {
-        direction_ = EMovingDirection::UP;
+        direction_ = EDirection::UP;
     } else {
         is_moving_between_tiles_ = false;
         ++path_index_;
@@ -143,15 +138,15 @@ void Ghost::UpdateStateFrightened(float dt) {
 
     const int delta = static_cast<int>(PlayerParameters::kVelocity * dt);
     std::array directions {
-        EMovingDirection::LEFT,
-        EMovingDirection::UP,
-        EMovingDirection::DOWN,
-        EMovingDirection::RIGHT
+        EDirection::LEFT,
+        EDirection::UP,
+        EDirection::DOWN,
+        EDirection::RIGHT
     };
 
     auto directions_end = std::remove(
         directions.begin(), directions.end(), GetOppositeDirection());
-    auto is_prohibited_movement = [&](EMovingDirection dir) {
+    auto is_prohibited_movement = [&](EDirection dir) {
         SDL_Rect next_hitbox_ = hitbox_;
         const auto dir_vector = GetDirectionVector(dir);
         next_hitbox_.x += delta * dir_vector.x;
@@ -183,13 +178,13 @@ void Ghost::UpdateStateEyes(float dt) {
         path_[path_index_].first, path_[path_index_].second);
 
     if (hitbox_.x < target_x) {
-        direction_ = EMovingDirection::RIGHT;
+        direction_ = EDirection::RIGHT;
     } else if (hitbox_.x > target_x) {
-        direction_ = EMovingDirection::LEFT;
+        direction_ = EDirection::LEFT;
     } else if (hitbox_.y < target_y) {
-        direction_ = EMovingDirection::DOWN;
+        direction_ = EDirection::DOWN;
     } else if (hitbox_.y > target_y) {
-        direction_ = EMovingDirection::UP;
+        direction_ = EDirection::UP;
     } else {
         is_moving_between_tiles_ = false;
         hitbox_.x = target_x;
@@ -213,61 +208,42 @@ void Ghost::UpdateStateEyes(float dt) {
     }
 }
 
-bool Ghost::TryToMove(Vec2 delta_movement) {
-    const auto dir_vector = GetDirectionVector();
-    SDL_Rect next_hitbox = hitbox_;
-    next_hitbox.x += delta_movement.x * dir_vector.x;
-    next_hitbox.y += delta_movement.y * dir_vector.y;
-    if (IsMovementAllowed(next_hitbox)) {
-        hitbox_ = next_hitbox;
-        return true;
-    }
-
-    return false;
-}
-
-bool Ghost::IsMovementAllowed(SDL_Rect moved_rect) const {
-    const std::array<std::pair<int, int>, 4> rect_points {{
-        {moved_rect.x, moved_rect.y},
-        {moved_rect.x, moved_rect.y + moved_rect.h},
-        {moved_rect.x + moved_rect.w, moved_rect.y},
-        {moved_rect.x + moved_rect.w, moved_rect.y + moved_rect.h}}};
-    auto is_coord_walkable = [&](const auto& coord_pair) {
-        return game_map_.AreCoordsWalkable(coord_pair.first, coord_pair.second);
-    };
-    return std::all_of(rect_points.cbegin(), rect_points.cend(), is_coord_walkable);
-}
-
-void Ghost::Render(SDL_Renderer& renderer) {
-    RenderPath(renderer);
+void Ghost::Render() {
+    RenderPath();
     auto src_r = GetSourceRect();
-    SDL_RenderCopyEx(&renderer, sprite_sheet_, &src_r, &hitbox_, 0, nullptr, SDL_RendererFlip::SDL_FLIP_NONE);
+    renderer_.RenderTexture(sprite_sheet_, src_r, hitbox_);
 }
 
-void Ghost::RenderPath(SDL_Renderer& renderer) {
-    SDL_SetRenderDrawColor(&renderer, 200, 200, 200, 50);
+void Ghost::RenderPath() {
+    renderer_.SetRenderingColor({200, 200, 200, 50});
     const auto cell_size = game_map_.GetCellSizeInt();
     for (const auto& [row, col] : path_) {
         const auto& cell = game_map_.GetCell(row, col);
         SDL_Rect r {cell.x, cell.y, cell_size, cell_size};
-        SDL_RenderFillRect(&renderer, &r);
+        renderer_.RenderRectFilled(r);
     }
 }
 
 SDL_Rect Ghost::GetSourceRect() const {
     using namespace SpriteSheet;
-    const auto dir = static_cast<int>(direction_);
+    int asset_by_direction;
+    switch(direction_) {
+        case EDirection::UP:    asset_by_direction = 0; break; 
+        case EDirection::DOWN:  asset_by_direction = 1; break;
+        case EDirection::LEFT:  asset_by_direction = 2; break;
+        case EDirection::RIGHT: asset_by_direction = 3; break;
+;    }
 
     int x = 0;
     int y = 0;
     if (IsInStateChasing() || state_ == EState::HOUSING || state_ == EState::STOP) {
         x = kStartingX +
-            ((kPadding + kWidth) * GhostSprite::kAnimationCountChasing) * dir +
+            ((kPadding + kWidth) * GhostSprite::kAnimationCountChasing) * asset_by_direction +
             ((kPadding + kWidth) * sprite_index_);
         y = GhostSprite::kStartingY + (kPadding + kHeight) * static_cast<int>(type_);
     } else if (state_ == EState::EYES) {
         x = kStartingX +
-            ((kPadding + kWidth) * dir);
+            ((kPadding + kWidth) * asset_by_direction);
         y = 202;
     } else if (state_ == EState::FRIGHTENED) {
         x = kStartingX + ((kPadding + kWidth) * sprite_index_) +
@@ -281,43 +257,11 @@ const std::string_view Ghost::GetName() const {
     return name_;
 }
 
-Vec2 Ghost::GetDirectionVector() const {
-    return GetDirectionVector(direction_);
-}
-
-Vec2 Ghost::GetDirectionVector(EMovingDirection direction) const {
-    switch(direction) {
-        default:
-        case EMovingDirection::DOWN:  return { 0,  1};
-        case EMovingDirection::UP:    return { 0, -1};
-        case EMovingDirection::LEFT:  return {-1,  0};
-        case EMovingDirection::RIGHT: return { 1,  0};
-    }
-}
-
-Vec2 Ghost::GetPosition() const {
-    return {hitbox_.x, hitbox_.y};
-}
-
-void Ghost::ReverseDirection() {
-    direction_ = GetOppositeDirection();
-}
-
-Ghost::EMovingDirection Ghost::GetOppositeDirection() const {
-    switch(direction_) {
-        default:
-        case EMovingDirection::UP:    return EMovingDirection::DOWN;
-        case EMovingDirection::DOWN:  return EMovingDirection::UP;
-        case EMovingDirection::RIGHT: return EMovingDirection::LEFT;
-        case EMovingDirection::LEFT:  return EMovingDirection::RIGHT;
-    }
-}
-
 void Ghost::Die() {
     // TODO: Spawn score
     state_ = EState::EYES;
     const auto [row, col] = game_map_.FromCoordsToRowCol(hitbox_.x, hitbox_.y);
-    const auto [target_row, target_col] = game_map_.FromCoordsToRowCol(starting_position_.x, starting_position_.y);
+    const auto [target_row, target_col] = game_map_.FromCoordsToRowCol(starting_hitbox_.x, starting_hitbox_.y);
     path_index_ = 0;
     path_ = pathfinder_.FindPath(row, col, target_row, target_col);
 }
@@ -352,8 +296,4 @@ bool Ghost::IsInStateFrightened() const {
 
 bool Ghost::IsInStateEyes() const {
     return (state_ == EState::EYES);
-}
-
-const SDL_Rect& Ghost::GetHibox() const {
-    return hitbox_;
 }

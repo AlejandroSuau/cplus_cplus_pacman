@@ -35,7 +35,7 @@ Game::Game()
     , pathfinder_(map_)
     , player_(renderer_, texture_manager_, map_)
     , ui_manager_(text_manager_, texture_manager_, player_)
-    , ghost_factory_(texture_manager_, pathfinder_, map_)
+    , ghost_factory_(renderer_, texture_manager_, map_, pathfinder_)
     , ghosts_{{
         ghost_factory_.CreateGhostBlinky(),
         ghost_factory_.CreateGhostInky(),
@@ -117,7 +117,7 @@ void Game::Render() {
     collectable_manager_.Render(*renderer);
     player_.Render();
     for (auto& ghost : ghosts_) {
-        ghost->Render(*renderer);
+        ghost->Render();
     }
 
     ui_manager_.Render(*renderer, *this);

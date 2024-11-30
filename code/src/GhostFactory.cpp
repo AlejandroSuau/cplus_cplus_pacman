@@ -4,61 +4,71 @@
 #include "GhostMovementPatterns.hpp"
 
 GhostFactory::GhostFactory(
+    Renderer& renderer,
     TextureManager& texture_manager,
-    Pathfinder& pathfinder,
-    const GameMap& game_map) 
-    : texture_manager_(texture_manager)
+    const GameMap& game_map, 
+    Pathfinder& pathfinder)
+    : renderer_(renderer)
+    , texture_manager_(texture_manager)
     , pathfinder_(pathfinder)
     , game_map_(game_map) {}
 
 std::unique_ptr<Ghost> GhostFactory::CreateGhostBlinky() {
     const auto [x, y] = game_map_.FromRowColToCoords(6, 8);
     return std::make_unique<Ghost>(
+        renderer_,
         texture_manager_,
-        pathfinder_,
         game_map_,
+        pathfinder_,
         "Blinky",
         Ghost::EType::RED,
-        x, y,
-        Ghost::EMovingDirection::RIGHT,
+        SDL_Rect{x, y, 31, 31},
+        150.f,
+        EDirection::RIGHT,
         FindPathPatternBlinky);
 }
 
 std::unique_ptr<Ghost> GhostFactory::CreateGhostInky() {
     const auto [x, y] = game_map_.FromRowColToCoords(8, 7);
     return std::make_unique<Ghost>(
+        renderer_,
         texture_manager_,
-        pathfinder_,
         game_map_,
+        pathfinder_,
         "Inky",
         Ghost::EType::BLUE,
-        x, y,
-        Ghost::EMovingDirection::DOWN,
+        SDL_Rect{x, y, 31, 31},
+        150.f,
+        EDirection::DOWN,
         FindPathPatternInky);
 }
 
 std::unique_ptr<Ghost> GhostFactory::CreateGhostPinky() {
     const auto [x, y] = game_map_.FromRowColToCoords(9, 8);
     return std::make_unique<Ghost>(
+        renderer_,
         texture_manager_,
-        pathfinder_,
         game_map_,
+        pathfinder_,
         "Pinky",
         Ghost::EType::PINK,
-        x, y,
-        Ghost::EMovingDirection::UP,
+        SDL_Rect{x, y, 31, 31},
+        150.f,
+        EDirection::UP,
         FindPathPatternPinky);
 }
 
 std::unique_ptr<Ghost> GhostFactory::CreateGhostClyde() {
     const auto [x, y] = game_map_.FromRowColToCoords(8, 9);
     return std::make_unique<Ghost>(
+        renderer_,
         texture_manager_,
-        pathfinder_,
         game_map_,
+        pathfinder_,
         "Clyde",
         Ghost::EType::YELLOW,
-        x, y,
-        Ghost::EMovingDirection::DOWN,
+        SDL_Rect{x, y, 31, 31},
+        150.f,
+        EDirection::DOWN,
         FindPathPatternClyde);
 }

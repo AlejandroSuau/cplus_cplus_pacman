@@ -6,8 +6,8 @@
 #include "utils/CountdownTimer.hpp"
 #include "utils/Vec2.hpp"
 #include "utils/TextureManager.hpp"
+#include "utils/EntityMovable.hpp"
 
-#include "GameMap.hpp"
 #include "GhostMovementPatterns.hpp"
 #include "pathfinder/Pathfinder.hpp"
 
@@ -18,7 +18,7 @@
 
 class Game;
 
-class Ghost {
+class Ghost : public EntityMovable {
 public:
     enum class EState {
         HOUSING,
@@ -35,29 +35,30 @@ public:
         YELLOW = 3
     };
 
-    enum class EMovingDirection {
+    /*enum class EMovingDirection {
         UP = 0,
         DOWN = 1,
         LEFT = 2,
         RIGHT = 3
-    };
+    };*/
     
     Ghost(
+        Renderer& renderer,
         TextureManager& texture_manager,
-        Pathfinder& pathfinder,
         const GameMap& game_map,
+        Pathfinder& pathfinder,
         std::string name,
         EType type,
-        int x,
-        int y,
-        EMovingDirection direction,
+        SDL_Rect hitbox,
+        float velocity,
+        EDirection direction,
         PathfindingPattern pathfinding_pattern);
 
     void FindPath(Game& game);
 
     void Reset();
-    void Update(float dt);
-    void Render(SDL_Renderer& renderer);
+    void Update(float dt) override;
+    void Render() override;
 
     void Die();
 
@@ -67,22 +68,13 @@ public:
     bool IsInStateFrightened() const;
     bool IsInStateChasing() const;
 
-    Vec2 GetPosition() const;
     const std::string_view GetName() const;
-    Vec2 GetDirectionVector(EMovingDirection direction) const;
-    Vec2 GetDirectionVector() const;
-    const SDL_Rect& GetHibox() const;
 
 private:
     TextureManager& texture_manager_;
     Pathfinder& pathfinder_;
-    const GameMap& game_map_;
     const std::string name_;
     EType type_;
-    SDL_Rect hitbox_;
-    const Vec2 starting_position_;
-    EMovingDirection direction_;
-    const EMovingDirection starting_direction_;
     PathfindingPattern patfinder_pattern_;
     EState state_;
 
@@ -103,14 +95,8 @@ private:
     int sprites_count_;
     SDL_Texture* sprite_sheet_;
 
-    void RenderPath(SDL_Renderer& renderer);
+    void RenderPath();
     SDL_Rect GetSourceRect() const;
-
-    void ReverseDirection();
-    EMovingDirection GetOppositeDirection() const;
-
-    bool TryToMove(Vec2 delta_movement);
-    bool IsMovementAllowed(SDL_Rect moved_rect) const;
 
     void UpdateStateHouse(float dt);
     void UpdateStateChasing(float dt);
