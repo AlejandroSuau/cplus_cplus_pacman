@@ -33,7 +33,7 @@ Game::Game()
     , state_(EGameState::READY_TO_PLAY)
     , map_(kGameWidth, kGameHeight, kGamePaddingX, kGamePaddingY, kCellSize)
     , pathfinder_(map_)
-    , player_(renderer_, texture_manager_, map_, pathfinder_)
+    , player_(renderer_, texture_manager_, map_)
     , ui_manager_(text_manager_, texture_manager_, player_)
     , ghost_factory_(texture_manager_, pathfinder_, map_)
     , ghosts_{{

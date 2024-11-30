@@ -6,45 +6,34 @@
 #include "utils/Vec2.hpp"
 #include "utils/TextureManager.hpp"
 #include "utils/CountdownTimer.hpp"
-#include "utils/Entity.hpp"
+#include "utils/EntityMovable.hpp"
 
-#include "pathfinder/Pathfinder.hpp"
+class GameMap;
 
-#include "GameMap.hpp"
-
-class Player : Entity {
+class Player : public EntityMovable {
 public:
-    enum class EMovingDirection {
-        LEFT = 0,
-        UP = 1,
-        RIGHT = 2,
-        DOWN = 3
-    };
-
     Player(
         Renderer& renderer,
         TextureManager& texture_manager,
-        const GameMap& game_map,
-        Pathfinder& pathfinder);
+        const GameMap& game_map);
 
     void Die();
     void Reset();
 
+    // Entity
     void Update(float dt) override;
     void Render() override;
+    
+    // EntityMovable
+    bool Step(float dt) override;
 
     void HandleKeyPressed(SDL_Scancode scancode);
-
+    
+    void IncreaseScore(unsigned int value);
     void DecreaseOneLife();
     unsigned int GetLifes() const;
-    const SDL_Rect& GetHitbox() const;
-
-    void IncreaseScore(unsigned int value);
-
-    Vec2 GetPosition() const;
-    EMovingDirection GetDirection() const;
-    Vec2 GetDirectionVector() const;
     unsigned int GetScore() const;
+
     bool IsDying() const;
     bool IsDead() const;
     bool IsMoving() const;
@@ -58,11 +47,8 @@ private:
     };
 
     TextureManager& texture_manager_;
-    const GameMap& game_map_;
-    Pathfinder& pathfinder_;
     CountdownTimer moving_timer_{0.3f};
-    EMovingDirection direction_;
-    EMovingDirection next_direction_;
+    EDirection next_direction_;
     EState state_;
     unsigned int lifes_;
     unsigned int score_;
@@ -74,9 +60,9 @@ private:
     CountdownTimer dying_animation_timer_{0.15f};
     int dying_animation_sprite_index_{0};
 
-    void Move(float dt);
+    /*void Move(float dt);
     bool TryToMove(EMovingDirection direction, int dx, int dy);
-    bool IsMovementAllowed(SDL_Rect moved_rect) const;
+    bool IsMovementAllowed(SDL_Rect moved_rect) const;*/
 
     SDL_Rect GetSourceRectMoving() const;
     SDL_Rect GetSourceRectDying() const;

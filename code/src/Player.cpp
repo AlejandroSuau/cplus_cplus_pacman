@@ -8,13 +8,9 @@
 Player::Player(
     Renderer& renderer,
     TextureManager& texture_manager,
-    const GameMap& game_map,
-    Pathfinder& pathfinder)
-    : Entity(renderer, {356, 516, 31, 31})
+    const GameMap& game_map)
+    : EntityMovable(renderer, {356, 516, 31, 31}, game_map, PlayerParameters::kVelocity, EDirection::RIGHT)
     , texture_manager_(texture_manager)
-    , game_map_(game_map)
-    , pathfinder_(pathfinder)
-    , direction_(Player::EMovingDirection::RIGHT)
     , next_direction_(direction_)
     , state_(EState::READY)
     , lifes_(PlayerParameters::kLifes)
@@ -24,7 +20,7 @@ Player::Player(
 
 void Player::Reset() {
     state_ = EState::READY;
-    direction_ = EMovingDirection::RIGHT;
+    direction_ = EDirection::RIGHT;
     dying_animation_timer_.Restart();
     dying_animation_sprite_index_ = 0;
     moving_animation_timer_.Restart();
@@ -38,19 +34,19 @@ void Player::HandleKeyPressed(SDL_Scancode scancode) {
     switch(scancode) {
         case SDL_SCANCODE_UP:
             state_ = EState::MOVING;
-            next_direction_ = EMovingDirection::UP;
+            next_direction_ = EDirection::UP;
         break;
         case SDL_SCANCODE_DOWN:
             state_ = EState::MOVING;
-            next_direction_ = EMovingDirection::DOWN;
+            next_direction_ = EDirection::DOWN;
         break;
         case SDL_SCANCODE_RIGHT:
             state_ = EState::MOVING;
-            next_direction_ = EMovingDirection::RIGHT;
+            next_direction_ = EDirection::RIGHT;
         break;
         case SDL_SCANCODE_LEFT:
             state_ = EState::MOVING;
-            next_direction_ = EMovingDirection::LEFT;
+            next_direction_ = EDirection::LEFT;
         break;
     }
 }
@@ -76,49 +72,13 @@ void Player::Update(float dt) {
         }
 
         if (state_ == EState::MOVING) {
-            Move(dt);
+            Step(dt);
         }
     }
 }
 
-void Player::Move(float dt) {
-    const auto dx = static_cast<int>(PlayerParameters::kVelocity * dt);
-    const auto dy = static_cast<int>(PlayerParameters::kVelocity * dt);
-    if (!TryToMove(next_direction_, dx, dy)) {
-        TryToMove(direction_, dx, dy);
-    }
-}
-
-bool Player::TryToMove(EMovingDirection direction, int dx, int dy) {
-    const auto prev_x = hitbox_.x;
-    const auto prev_y = hitbox_.y;
-    switch(direction) {
-        case EMovingDirection::DOWN:  hitbox_.y += dy; break;
-        case EMovingDirection::UP:    hitbox_.y -= dy; break;
-        case EMovingDirection::LEFT:  hitbox_.x -= dx; break; 
-        case EMovingDirection::RIGHT: hitbox_.x += dx; break;
-    }
-    
-    if (!IsMovementAllowed(hitbox_)) {
-        hitbox_.x = prev_x;
-        hitbox_.y = prev_y;
-        return false;
-    }
-
-    direction_ = direction;
-    return true;
-}
-
-bool Player::IsMovementAllowed(SDL_Rect moved_rect) const {
-    const std::array<std::pair<int, int>, 4> rect_points {{
-        {moved_rect.x, moved_rect.y},
-        {moved_rect.x, moved_rect.y + moved_rect.h},
-        {moved_rect.x + moved_rect.w, moved_rect.y},
-        {moved_rect.x + moved_rect.w, moved_rect.y + moved_rect.h}}};
-    auto is_coord_walkable = [&](const auto& coord_pair) {
-        return game_map_.AreCoordsWalkable(coord_pair.first, coord_pair.second);
-    };
-    return std::all_of(rect_points.cbegin(), rect_points.cend(), is_coord_walkable);
+bool Player::Step(float dt) {
+    return (TryToStep(dt, next_direction_) || TryToStep(dt, direction_));
 }
 
 void Player::Render() {
@@ -145,14 +105,6 @@ SDL_Rect Player::GetSourceRectDying() const {
     return {x, 245, kWidth, kHeight};
 }
 
-Vec2 Player::GetPosition() const {
-    return {hitbox_.x, hitbox_.y};
-}
-
-const SDL_Rect& Player::GetHitbox() const {
-    return hitbox_;
-}
-
 void Player::Die() {
     state_ = EState::DYING;
     DecreaseOneLife();
@@ -168,20 +120,6 @@ void Player::DecreaseOneLife() {
 
 unsigned int Player::GetLifes() const {
     return lifes_;
-}
-
-Player::EMovingDirection Player::GetDirection() const {
-    return direction_;
-}
-
-Vec2 Player::GetDirectionVector() const {
-    switch(direction_) {
-        default:
-        case EMovingDirection::DOWN:  return { 0,  1};
-        case EMovingDirection::UP:    return { 0, -1};
-        case EMovingDirection::LEFT:  return {-1,  0};
-        case EMovingDirection::RIGHT: return { 1,  0};
-    }
 }
 
 void Player::IncreaseScore(unsigned int value) {

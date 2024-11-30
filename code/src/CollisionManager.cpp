@@ -12,10 +12,10 @@ CollisionManager::CollisionManager(
 
 void CollisionManager::CheckCollisions() {
     // Player - Collectable
-    const auto& player_hitbox = player_.GetHitbox();
+    const auto& player_hitbox = player_.GetHitBox();
     auto& collectables = collectable_manager_.GetCollectableList();
     for (auto& collectable : collectables) {
-        if (AreColliding(player_.GetHitbox(), collectable->hitbox)) {
+        if (AreColliding(player_.GetHitBox(), collectable->hitbox)) {
             OnCollisionWithCollectable(*collectable);
         }
     }
