@@ -99,8 +99,8 @@ GameMap::CoordsPair GameMap::FromRowColToCoords(int row, int col) const {
 }
 
 bool GameMap::AreCoordsInsideBoundaries(int x, int y) const {
-    return (x >= padding_x_ && x <= (width_ + padding_x_) &&
-            y >= padding_y_ && y <= (height_ + padding_y_));
+    return (x >= padding_x_ && x < (width_ + padding_x_) &&
+            y >= padding_y_ && y < (height_ + padding_y_));
 }
 
 std::size_t GameMap::FromRowColToIndex(int row, int col) const {

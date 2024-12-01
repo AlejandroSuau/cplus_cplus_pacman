@@ -104,6 +104,5 @@ private:
     void UpdateStateFrightened(float dt);
     void UpdateStateEyes(float dt);
 
-    void SetStateEyes(Game& game);
     void SetHousingState();
 };
