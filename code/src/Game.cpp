@@ -88,6 +88,11 @@ void Game::Run() {
 void Game::Init() {}
 
 void Game::Update(float dt) {
+    if (!is_key_hack_able_) {
+        key_spam_prevent_timer_.Update(dt);
+        if (key_spam_prevent_timer_.DidFinish()) is_key_hack_able_ = true;
+    }
+
     player_.Update(dt);
     for (auto& ghost : ghosts_) {
         ghost->Update(dt); // TODO: LO METEMOS AQUI
@@ -138,12 +143,15 @@ void Game::HandleEvents() {
             player_.HandleKeyPressed(event.key.keysym.scancode);
 
             // HACK commands
+            if (!is_key_hack_able_) return;
             // Activate Frightened mode
             if (event.key.keysym.scancode == SDL_SCANCODE_F) {
+                is_key_hack_able_ = false;
                 for (auto& g : ghosts_) g->SetStateFrightened();
             }
             // Kill all ghosts
             if (event.key.keysym.scancode == SDL_SCANCODE_D) {
+                is_key_hack_able_ = false;
                 for (auto& g : ghosts_) g->Die();
             }
         }

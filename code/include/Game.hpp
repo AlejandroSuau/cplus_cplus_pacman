@@ -64,6 +64,9 @@ private:
     TextManager text_manager_;
     UIManager ui_manager_;
     EGameState state_;
+    
+    CountdownTimer key_spam_prevent_timer_{.5f};
+    bool is_key_hack_able_{true};
 
     // Game Objects
     GameMap map_;
