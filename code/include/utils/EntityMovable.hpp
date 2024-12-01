@@ -26,6 +26,9 @@ public:
     ~EntityMovable() = default;
 
     virtual bool Step(float dt);
+    bool StepHitBox(float dt, SDL_Rect& hitbox, EDirection direction) const;
+
+    void StepIntoAllowedRandomDirection(float dt);
     void StepToTarget(float dt, Vec2 target_coords);
     bool TryToStep(float dt, EDirection direction);
     void AdjustPosition(Vec2 target_coords);

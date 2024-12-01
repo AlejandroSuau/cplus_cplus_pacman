@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <array>
+#include <random>
 
 EntityMovable::EntityMovable(
     Renderer& renderer,
@@ -28,16 +29,48 @@ void EntityMovable::SetDirectionByTarget(Vec2 target_coords) {
     }
 }
 
+void EntityMovable::StepIntoAllowedRandomDirection(float dt) {
+    std::array directions {
+        EDirection::LEFT,
+        EDirection::UP,
+        EDirection::DOWN,
+        EDirection::RIGHT
+    };
+
+    auto directions_end = std::remove(
+        directions.begin(), directions.end(), GetOppositeDirection());
+    
+    const int delta = static_cast<int>(velocity_ * dt);
+    auto is_prohibited_movement = [&](EDirection dir) {
+        SDL_Rect next_hitbox = hitbox_;
+        StepHitBox(dt, next_hitbox, dir);
+        return !IsMovementAllowed(next_hitbox);
+    };
+
+    directions_end = std::remove_if(directions.begin(), directions_end, is_prohibited_movement);
+    if (std::distance(directions.begin(), directions_end) > 1) {
+        static thread_local std::mt19937 rng{std::random_device{}()};
+        std::ranges::shuffle(directions.begin(), directions_end, rng);
+    }
+
+    direction_ = *directions.begin();
+    Step(dt);
+}
+
 void EntityMovable::StepToTarget(float dt, Vec2 target_coords) {
     Step(dt);
     AdjustPosition(target_coords);
 }
 
 bool EntityMovable::Step(float dt) {
+    return StepHitBox(dt, hitbox_, direction_);
+}
+
+bool EntityMovable::StepHitBox(float dt, SDL_Rect& hitbox, EDirection direction) const {
     const auto delta = static_cast<int>(velocity_ * dt);
-    const auto dir_vector = GetDirectionVector();
-    hitbox_.x += delta * dir_vector.x;
-    hitbox_.y += delta * dir_vector.y;
+    const auto dir_vector = GetDirectionVector(direction);
+    hitbox.x += delta * dir_vector.x;
+    hitbox.y += delta * dir_vector.y;
     
     return true;
 }

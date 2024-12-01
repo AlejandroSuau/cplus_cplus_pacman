@@ -8,8 +8,6 @@
 - Add sounds.
 - Add maze assets (removing the color rects).
 - Add ghosts score animation.
-- Add ready label.
-- Pause the game a few seconds after player dead.
 - Add buttons (sound off / sound on)
 - Create animations class.
 - BUG: Walking randomly on last column while Frightened is not working properly.

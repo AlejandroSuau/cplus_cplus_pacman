@@ -3,11 +3,6 @@
 #include "Constants.hpp"
 #include "Game.hpp"
 
-#include <algorithm>
-#include <array>
-#include <random>
-#include <cmath>
-
 Ghost::Ghost(
     Renderer& renderer,
     TextureManager& texture_manager,
@@ -117,32 +112,7 @@ void Ghost::UpdateStateFrightened(float dt) {
         return;
     }
 
-    const int delta = static_cast<int>(70.f * dt);
-    std::array directions {
-        EDirection::LEFT,
-        EDirection::UP,
-        EDirection::DOWN,
-        EDirection::RIGHT
-    };
-
-    auto directions_end = std::remove(
-        directions.begin(), directions.end(), GetOppositeDirection());
-    auto is_prohibited_movement = [&](EDirection dir) {
-        SDL_Rect next_hitbox_ = hitbox_;
-        const auto dir_vector = GetDirectionVector(dir);
-        next_hitbox_.x += delta * dir_vector.x;
-        next_hitbox_.y += delta * dir_vector.y;
-        return !IsMovementAllowed(next_hitbox_);
-    };
-
-    directions_end = std::remove_if(directions.begin(), directions_end, is_prohibited_movement);
-    if (std::distance(directions.begin(), directions_end) > 1) {
-        static thread_local std::mt19937 rng{std::random_device{}()};
-        std::ranges::shuffle(directions.begin(), directions_end, rng);
-    }
-
-    direction_ = *directions.begin();
-    Step(dt);
+    StepIntoAllowedRandomDirection(dt);
 }
 
 void Ghost::UpdateStateEyes(float dt) {
