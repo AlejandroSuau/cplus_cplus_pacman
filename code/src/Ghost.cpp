@@ -86,39 +86,20 @@ void Ghost::UpdateStateHouse(float dt) {
 void Ghost::UpdateStateChasing(float dt) {
     if (path_index_ >= path_.size()) return;
 
+    StepPath(dt);
+}
+
+void Ghost::StepPath(float dt) {
     is_moving_between_tiles_ = true;
-    const auto [target_row, target_col] = path_[path_index_];
-    const auto [target_x, target_y] = game_map_.FromRowColToCoords(
+    const auto target = game_map_.FromRowColToCoords(
         path_[path_index_].first, path_[path_index_].second);
 
-    if (hitbox_.x < target_x) {
-        direction_ = EDirection::RIGHT;
-    } else if (hitbox_.x > target_x) {
-        direction_ = EDirection::LEFT;
-    } else if (hitbox_.y < target_y) {
-        direction_ = EDirection::DOWN;
-    } else if (hitbox_.y > target_y) {
-        direction_ = EDirection::UP;
-    } else {
-        is_moving_between_tiles_ = false;
+    SetDirectionByTarget({target.first, target.second});
+    StepToTarget(dt, {target.first, target.second});
+
+    if (hitbox_.x == target.first && hitbox_.y == target.second) {
         ++path_index_;
-        hitbox_.x = target_x;
-        hitbox_.y = target_y;
-        return;
-    }
-
-    const auto delta = static_cast<int>(GhostParameters::kVelocityStateChasing * dt);
-    const auto dir_vector = GetDirectionVector();
-    if (std::abs(delta * dir_vector.x) > std::abs(target_x - hitbox_.x)) {
-        hitbox_.x = target_x;
-    } else {
-        hitbox_.x += delta * dir_vector.x;
-    }
-
-    if (std::abs(delta * dir_vector.y) > std::abs(target_y - hitbox_.y)) { 
-        hitbox_.y = target_y;
-    } else {
-        hitbox_.y += delta * dir_vector.y;
+        is_moving_between_tiles_ = false;
     }
 }
 
@@ -136,7 +117,7 @@ void Ghost::UpdateStateFrightened(float dt) {
         return;
     }
 
-    const int delta = static_cast<int>(PlayerParameters::kVelocity * dt);
+    const int delta = static_cast<int>(70.f * dt);
     std::array directions {
         EDirection::LEFT,
         EDirection::UP,
@@ -161,9 +142,7 @@ void Ghost::UpdateStateFrightened(float dt) {
     }
 
     direction_ = *directions.begin();
-    const auto direction_vector = GetDirectionVector();
-    hitbox_.x += delta * direction_vector.x; 
-    hitbox_.y += delta * direction_vector.y;
+    Step(dt);
 }
 
 void Ghost::UpdateStateEyes(float dt) {
@@ -172,45 +151,12 @@ void Ghost::UpdateStateEyes(float dt) {
         return;
     }
 
-    is_moving_between_tiles_ = true;
-    const auto [target_row, target_col] = path_[path_index_];
-    const auto [target_x, target_y] = game_map_.FromRowColToCoords(
-        path_[path_index_].first, path_[path_index_].second);
-
-    if (hitbox_.x < target_x) {
-        direction_ = EDirection::RIGHT;
-    } else if (hitbox_.x > target_x) {
-        direction_ = EDirection::LEFT;
-    } else if (hitbox_.y < target_y) {
-        direction_ = EDirection::DOWN;
-    } else if (hitbox_.y > target_y) {
-        direction_ = EDirection::UP;
-    } else {
-        is_moving_between_tiles_ = false;
-        hitbox_.x = target_x;
-        hitbox_.y = target_y;
-        ++path_index_;
-        return;
-    }
-
-    const auto delta = static_cast<int>(GhostParameters::kVelocityStateEyes * dt);
-    const auto dir_vector = GetDirectionVector();
-    if (std::abs(delta * dir_vector.x) > std::abs(target_x - hitbox_.x)) {
-        hitbox_.x = target_x;
-    } else {
-        hitbox_.x += delta * dir_vector.x;
-    }
-
-    if (std::abs(delta * dir_vector.y) > std::abs(target_y - hitbox_.y)) { 
-        hitbox_.y = target_y;
-    } else {
-        hitbox_.y += delta * dir_vector.y;
-    }
+    StepPath(dt);
 }
 
 void Ghost::Render() {
     RenderPath();
-    auto src_r = GetSourceRect();
+    const auto src_r = GetSourceRect();
     renderer_.RenderTexture(sprite_sheet_, src_r, hitbox_);
 }
 
@@ -232,7 +178,7 @@ SDL_Rect Ghost::GetSourceRect() const {
         case EDirection::DOWN:  asset_by_direction = 1; break;
         case EDirection::LEFT:  asset_by_direction = 2; break;
         case EDirection::RIGHT: asset_by_direction = 3; break;
-;    }
+    }
 
     int x = 0;
     int y = 0;
@@ -261,7 +207,13 @@ void Ghost::Die() {
     // TODO: Spawn score
     state_ = EState::EYES;
     const auto [row, col] = game_map_.FromCoordsToRowCol(hitbox_.x, hitbox_.y);
+    const auto [fixed_x, fixed_y] = game_map_.FromRowColToCoords(row, col);
+    /*hitbox_.x = fixed_x;
+    hitbox_.y = fixed_y;*/
+
     const auto [target_row, target_col] = game_map_.FromCoordsToRowCol(starting_hitbox_.x, starting_hitbox_.y);
+    
+    
     path_index_ = 0;
     path_ = pathfinder_.FindPath(row, col, target_row, target_col);
 }

@@ -26,8 +26,10 @@ public:
     ~EntityMovable() = default;
 
     virtual bool Step(float dt);
-    void StepToTarget(float dt, Vec2 target);
+    void StepToTarget(float dt, Vec2 target_coords);
     bool TryToStep(float dt, EDirection direction);
+    void AdjustPosition(Vec2 target_coords);
+    void SetDirectionByTarget(Vec2 target_coords);
 
     void ReverseDirection();
     EDirection GetOppositeDirection();

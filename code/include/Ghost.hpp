@@ -59,6 +59,7 @@ public:
     void Reset();
     void Update(float dt) override;
     void Render() override;
+    void StepPath(float dt);
 
     void Die();
 

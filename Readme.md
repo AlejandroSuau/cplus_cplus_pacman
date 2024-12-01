@@ -1,19 +1,18 @@
 # PACMAN - C++ and SDL
 
 ## TODO:
-1. Ghost inheritance.
-2. Player and ghost entity inheritance.
-3. Eyes and Frightened should check if is between tiles (as chasing do).
-4. Main menu.
-5. Config levels from JSON file.
-6. Prevent ghosts from entering in the house while in frightened mode.
-7. Add sounds.
-8. Add maze assets (removing the color rects).
-9. Add ghosts score animation.
-10. Add ready label.
-11. Pause the game a few seconds after player dead.
-12. Add buttons (sound off / sound on)
-13. Create animations class.
+- Eyes and Frightened should check if is between tiles (as chasing do).
+- Main menu.
+- Config levels from JSON file.
+- Prevent ghosts from entering in the house while in frightened mode.
+- Add sounds.
+- Add maze assets (removing the color rects).
+- Add ghosts score animation.
+- Add ready label.
+- Pause the game a few seconds after player dead.
+- Add buttons (sound off / sound on)
+- Create animations class.
+- BUG: Walking randomly on last column while Frightened is not working properly.
 
 ## Technology
 Compilation:

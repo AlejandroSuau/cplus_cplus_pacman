@@ -16,6 +16,23 @@ EntityMovable::EntityMovable(
     , direction_(direction)
     , is_moving_between_tiles_(false) {}
 
+void EntityMovable::SetDirectionByTarget(Vec2 target_coords) {
+    if (hitbox_.x < target_coords.x) {
+        direction_ = EDirection::RIGHT;
+    } else if (hitbox_.x > target_coords.x) {
+        direction_ = EDirection::LEFT;
+    } else if (hitbox_.y < target_coords.y) {
+        direction_ = EDirection::DOWN;
+    } else if (hitbox_.y > target_coords.y) {
+        direction_ = EDirection::UP;
+    }
+}
+
+void EntityMovable::StepToTarget(float dt, Vec2 target_coords) {
+    Step(dt);
+    AdjustPosition(target_coords);
+}
+
 bool EntityMovable::Step(float dt) {
     const auto delta = static_cast<int>(velocity_ * dt);
     const auto dir_vector = GetDirectionVector();
@@ -25,8 +42,17 @@ bool EntityMovable::Step(float dt) {
     return true;
 }
 
-void EntityMovable::StepToTarget(float dt, Vec2 target) {
-
+void EntityMovable::AdjustPosition(Vec2 target_coords) {
+    const auto dir_vector = GetDirectionVector();
+    if ((dir_vector.x > 0 && hitbox_.x >= target_coords.x) ||
+        (dir_vector.x < 0 && hitbox_.x <= target_coords.x)) {
+        hitbox_.x = target_coords.x;
+    }
+    
+    if ((dir_vector.y > 0 && hitbox_.y >= target_coords.y) ||
+        (dir_vector.y < 0 && hitbox_.y <= target_coords.y)) {
+        hitbox_.y = target_coords.y;
+    }
 }
 
 Vec2 EntityMovable::GetDirectionVector() const {
