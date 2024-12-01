@@ -88,6 +88,13 @@ void Game::Run() {
 void Game::Init() {}
 
 void Game::Update(float dt) {
+    if (state_ == EGameState::READY_TO_PLAY) {
+        timer_to_start_.Update(dt);
+        if (timer_to_start_.DidFinish()) {
+            state_ = EGameState::PLAYING;
+        }
+    }
+
     if (!is_key_hack_able_) {
         key_spam_prevent_timer_.Update(dt);
         if (key_spam_prevent_timer_.DidFinish()) is_key_hack_able_ = true;

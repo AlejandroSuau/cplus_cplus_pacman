@@ -32,13 +32,15 @@ void UIManager::Render(SDL_Renderer& renderer, const Game& game) {
 
     // Game Status
     // GAME READY
-    /*const SDL_Rect src_r_ready {203, 2, 46, 7};
-    const SDL_Rect dst_r_ready {
-        kGamePaddingX + kGameWidth / 2 - 40,
-        kGamePaddingY + kGameHeight / 2 + 40,
-        src_r_ready.w * 2,
-        src_r_ready.h * 2};
-    SDL_RenderCopyEx(&renderer, sprite_sheet_, &src_r_ready, &dst_r_ready, 0, nullptr, SDL_RendererFlip::SDL_FLIP_NONE);*/
+    if (game.IsReadyToPlay()) {
+        const SDL_Rect src_r_ready {203, 2, 46, 7};
+        const SDL_Rect dst_r_ready {
+            kGamePaddingX + kGameWidth / 2 - 40,
+            kGamePaddingY + kGameHeight / 2 + 40,
+            src_r_ready.w * 2,
+            src_r_ready.h * 2};
+        SDL_RenderCopyEx(&renderer, sprite_sheet_, &src_r_ready, &dst_r_ready, 0, nullptr, SDL_RendererFlip::SDL_FLIP_NONE);
+    }
 
     // GAME OVER
     if (game.IsGameOver()) {
