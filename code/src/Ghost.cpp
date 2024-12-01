@@ -134,7 +134,7 @@ void Ghost::UpdateStateFrightened(float dt) {
         next_hitbox_.y += delta * dir_vector.y;
         return !IsMovementAllowed(next_hitbox_);
     };
-
+/// se mueve un puto pixel?
     directions_end = std::remove_if(directions.begin(), directions_end, is_prohibited_movement);
     if (std::distance(directions.begin(), directions_end) > 1) {
         static thread_local std::mt19937 rng{std::random_device{}()};

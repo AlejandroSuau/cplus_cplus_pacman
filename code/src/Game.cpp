@@ -136,6 +136,16 @@ void Game::HandleEvents() {
         const auto is_key_down = (event.type == SDL_KEYDOWN);
         if (is_key_down) {
             player_.HandleKeyPressed(event.key.keysym.scancode);
+
+            // HACK commands
+            // Activate Frightened mode
+            if (event.key.keysym.scancode == SDL_SCANCODE_F) {
+                for (auto& g : ghosts_) g->SetStateFrightened();
+            }
+            // Kill all ghosts
+            if (event.key.keysym.scancode == SDL_SCANCODE_D) {
+                for (auto& g : ghosts_) g->Die();
+            }
         }
     }
 }
