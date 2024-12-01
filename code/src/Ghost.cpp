@@ -208,8 +208,8 @@ void Ghost::Die() {
     state_ = EState::EYES;
     const auto [row, col] = game_map_.FromCoordsToRowCol(hitbox_.x, hitbox_.y);
     const auto [fixed_x, fixed_y] = game_map_.FromRowColToCoords(row, col);
-    /*hitbox_.x = fixed_x;
-    hitbox_.y = fixed_y;*/
+    hitbox_.x = fixed_x;
+    hitbox_.y = fixed_y;
 
     const auto [target_row, target_col] = game_map_.FromCoordsToRowCol(starting_hitbox_.x, starting_hitbox_.y);
     
