@@ -134,7 +134,7 @@ void Ghost::UpdateStateFrightened(float dt) {
         next_hitbox_.y += delta * dir_vector.y;
         return !IsMovementAllowed(next_hitbox_);
     };
-/// se mueve un puto pixel?
+
     directions_end = std::remove_if(directions.begin(), directions_end, is_prohibited_movement);
     if (std::distance(directions.begin(), directions_end) > 1) {
         static thread_local std::mt19937 rng{std::random_device{}()};
@@ -210,11 +210,9 @@ void Ghost::Die() {
     const auto [fixed_x, fixed_y] = game_map_.FromRowColToCoords(row, col);
     hitbox_.x = fixed_x;
     hitbox_.y = fixed_y;
-
-    const auto [target_row, target_col] = game_map_.FromCoordsToRowCol(starting_hitbox_.x, starting_hitbox_.y);
-    
     
     path_index_ = 0;
+    const auto [target_row, target_col] = game_map_.FromCoordsToRowCol(starting_hitbox_.x, starting_hitbox_.y);
     path_ = pathfinder_.FindPath(row, col, target_row, target_col);
 }
 

@@ -115,7 +115,8 @@ void Game::Update(float dt) {
     if (player_.IsDying()) {
         state_ = EGameState::GAMEOVER;
     } else if (player_.IsDead() && player_.GetLifes() > 0) {
-        Reset();
+        timer_to_restart_.Update(dt);
+        if (timer_to_restart_.DidFinish()) Reset();
     }
 }
 
