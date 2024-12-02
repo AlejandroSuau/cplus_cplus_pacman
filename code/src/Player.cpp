@@ -5,11 +5,15 @@
 #include <stdexcept>
 #include <algorithm>
 
+namespace {
+    static const SDL_FRect kRendererRect {356.f, 516.f, 30.f, 30.f};
+}
+
 Player::Player(
     Renderer& renderer,
     TextureManager& texture_manager,
     const GameMap& game_map)
-    : EntityMovable(renderer, {356, 516, 31, 31}, game_map, PlayerParameters::kVelocity, EDirection::RIGHT)
+    : EntityMovable(renderer, kRendererRect, game_map, 150.f, EDirection::RIGHT, 1.f)
     , texture_manager_(texture_manager)
     , next_direction_(direction_)
     , state_(EState::READY)
@@ -19,13 +23,13 @@ Player::Player(
 }
 
 void Player::Reset() {
+    ResetHitBox();
     state_ = EState::READY;
     direction_ = EDirection::RIGHT;
     dying_animation_timer_.Restart();
     dying_animation_sprite_index_ = 0;
     moving_animation_timer_.Restart();
     moving_animation_sprite_index_ = 0;
-    ResetHitBox();
 }
 
 void Player::HandleKeyPressed(SDL_Scancode scancode) {
@@ -82,14 +86,17 @@ bool Player::Step(float dt) {
 }
 
 void Player::Render() {
+    renderer_.SetRenderingColor({255, 0, 0, 255});
+    renderer_.RenderRect(GetHitBox());
+
     if (state_ == EState::MOVING || state_ == EState::READY) {
         const auto src_r = GetSourceRectMoving();
         const double angle = 90.0 * static_cast<double>(direction_);
-        renderer_.RenderTexture(sprite_sheet_, src_r, hitbox_, angle);
+        renderer_.RenderTexture(sprite_sheet_, src_r, GetRendererRect(), angle);
     } else if (state_ == EState::DYING) {
         const auto src_r = GetSourceRectDying();
         const double angle = 90.0 * static_cast<double>(direction_);
-        renderer_.RenderTexture(sprite_sheet_, src_r, hitbox_, angle);
+        renderer_.RenderTexture(sprite_sheet_, src_r, GetRendererRect(), angle);
     }
 }
 

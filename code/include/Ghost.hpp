@@ -16,8 +16,6 @@
 #include <array>
 #include <memory>
 
-class Game;
-
 class Ghost : public EntityMovable {
 public:
     enum class EState {
@@ -34,13 +32,6 @@ public:
         BLUE = 2,
         YELLOW = 3
     };
-
-    /*enum class EMovingDirection {
-        UP = 0,
-        DOWN = 1,
-        LEFT = 2,
-        RIGHT = 3
-    };*/
     
     Ghost(
         Renderer& renderer,
@@ -49,7 +40,7 @@ public:
         Pathfinder& pathfinder,
         std::string name,
         EType type,
-        SDL_Rect hitbox,
+        SDL_FRect hitbox,
         float velocity,
         EDirection direction,
         PathfindingPattern pathfinding_pattern);

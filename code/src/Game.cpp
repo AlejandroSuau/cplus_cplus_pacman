@@ -31,7 +31,7 @@ Game::Game()
     , renderer_(*sdl_renderer_.get())
     , texture_manager_(*sdl_renderer_.get())
     , state_(EGameState::READY_TO_PLAY)
-    , map_(kGameWidth, kGameHeight, kGamePaddingX, kGamePaddingY, kCellSize)
+    , map_(kGameWidth, kGameHeight, Vec2{static_cast<float>(kGamePaddingX), static_cast<float>(kGamePaddingY)}, kCellSize)
     , pathfinder_(map_)
     , player_(renderer_, texture_manager_, map_)
     , ui_manager_(text_manager_, texture_manager_, player_)
@@ -42,7 +42,7 @@ Game::Game()
         ghost_factory_.CreateGhostPinky(),
         ghost_factory_.CreateGhostClyde()
     }}
-    , collectable_manager_(texture_manager_, map_)
+    , collectable_manager_(renderer_, texture_manager_, map_)
     , collision_manager_(player_, ghosts_, collectable_manager_) {
 
     if (!window_ || !sdl_renderer_) {
@@ -127,7 +127,7 @@ void Game::Render() {
     //SDL_RenderCopy(renderer, background_texture_, nullptr, &kTextureRectBackground);
 
     map_.Render(*renderer);
-    collectable_manager_.Render(*renderer);
+    collectable_manager_.Render();
     player_.Render();
     for (auto& ghost : ghosts_) {
         ghost->Render();

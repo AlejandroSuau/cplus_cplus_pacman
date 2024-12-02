@@ -14,7 +14,7 @@ GhostFactory::GhostFactory(
     , game_map_(game_map) {}
 
 std::unique_ptr<Ghost> GhostFactory::CreateGhostBlinky() {
-    const auto [x, y] = game_map_.FromRowColToCoords(6, 8);
+    const auto coords = game_map_.FromColRowToCoords(Vec2<int>{8, 6});
     return std::make_unique<Ghost>(
         renderer_,
         texture_manager_,
@@ -22,14 +22,14 @@ std::unique_ptr<Ghost> GhostFactory::CreateGhostBlinky() {
         pathfinder_,
         "Blinky",
         Ghost::EType::RED,
-        SDL_Rect{x, y, 31, 31},
-        150.f,
+        SDL_FRect{coords.x, coords.y, 30.f, 30.f},
+        110.f,
         EDirection::RIGHT,
         FindPathPatternBlinky);
 }
 
 std::unique_ptr<Ghost> GhostFactory::CreateGhostInky() {
-    const auto [x, y] = game_map_.FromRowColToCoords(8, 7);
+    const auto coords = game_map_.FromColRowToCoords(Vec2<int>{7, 8});
     return std::make_unique<Ghost>(
         renderer_,
         texture_manager_,
@@ -37,14 +37,14 @@ std::unique_ptr<Ghost> GhostFactory::CreateGhostInky() {
         pathfinder_,
         "Inky",
         Ghost::EType::BLUE,
-        SDL_Rect{x, y, 31, 31},
-        150.f,
+        SDL_FRect{coords.x, coords.y, 30.f, 30.f},
+        120.f,
         EDirection::DOWN,
         FindPathPatternInky);
 }
 
 std::unique_ptr<Ghost> GhostFactory::CreateGhostPinky() {
-    const auto [x, y] = game_map_.FromRowColToCoords(9, 8);
+    const auto coords = game_map_.FromColRowToCoords(Vec2<int>{8, 9});
     return std::make_unique<Ghost>(
         renderer_,
         texture_manager_,
@@ -52,14 +52,14 @@ std::unique_ptr<Ghost> GhostFactory::CreateGhostPinky() {
         pathfinder_,
         "Pinky",
         Ghost::EType::PINK,
-        SDL_Rect{x, y, 31, 31},
-        150.f,
+        SDL_FRect{coords.x, coords.y, 30.f, 30.f},
+        100.f,
         EDirection::UP,
         FindPathPatternPinky);
 }
 
 std::unique_ptr<Ghost> GhostFactory::CreateGhostClyde() {
-    const auto [x, y] = game_map_.FromRowColToCoords(8, 9);
+    const auto coords = game_map_.FromColRowToCoords(Vec2<int>{9, 8});
     return std::make_unique<Ghost>(
         renderer_,
         texture_manager_,
@@ -67,8 +67,8 @@ std::unique_ptr<Ghost> GhostFactory::CreateGhostClyde() {
         pathfinder_,
         "Clyde",
         Ghost::EType::YELLOW,
-        SDL_Rect{x, y, 31, 31},
-        150.f,
+        SDL_FRect{coords.x, coords.y, 30.f, 30.f},
+        140.f,
         EDirection::DOWN,
         FindPathPatternClyde);
 }

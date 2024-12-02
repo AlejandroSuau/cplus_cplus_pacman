@@ -6,25 +6,27 @@
 
 EntityMovable::EntityMovable(
     Renderer& renderer,
-    SDL_Rect hitbox,
+    SDL_FRect renderer_rect,
     const GameMap& game_map,
     float velocity,
-    EDirection direction)
-    : Entity(renderer, hitbox)
+    EDirection direction,
+    float hitbox_scale)
+    : Entity(renderer, renderer_rect, hitbox_scale)
     , game_map_(game_map)
     , velocity_(velocity)
     , starting_direction_(direction)
     , direction_(direction)
     , is_moving_between_tiles_(false) {}
 
-void EntityMovable::SetDirectionByTarget(Vec2 target_coords) {
-    if (hitbox_.x < target_coords.x) {
+void EntityMovable::SetDirectionByTarget(Vec2<float> target_coords) {
+    const auto& hitbox = GetHitBox();
+    if (hitbox.x < target_coords.x) {
         direction_ = EDirection::RIGHT;
-    } else if (hitbox_.x > target_coords.x) {
+    } else if (hitbox.x > target_coords.x) {
         direction_ = EDirection::LEFT;
-    } else if (hitbox_.y < target_coords.y) {
+    } else if (hitbox.y < target_coords.y) {
         direction_ = EDirection::DOWN;
-    } else if (hitbox_.y > target_coords.y) {
+    } else if (hitbox.y > target_coords.y) {
         direction_ = EDirection::UP;
     }
 }
@@ -40,9 +42,8 @@ void EntityMovable::StepIntoAllowedRandomDirection(float dt) {
     auto directions_end = std::remove(
         directions.begin(), directions.end(), GetOppositeDirection());
     
-    const int delta = static_cast<int>(velocity_ * dt);
     auto is_prohibited_movement = [&](EDirection dir) {
-        SDL_Rect next_hitbox = hitbox_;
+        SDL_FRect next_hitbox = GetHitBox();
         StepHitBox(dt, next_hitbox, dir);
         return !IsMovementAllowed(next_hitbox);
     };
@@ -57,17 +58,20 @@ void EntityMovable::StepIntoAllowedRandomDirection(float dt) {
     Step(dt);
 }
 
-void EntityMovable::StepToTarget(float dt, Vec2 target_coords) {
+void EntityMovable::StepToTarget(float dt, Vec2<float> target_coords) {
     Step(dt);
     AdjustPosition(target_coords);
 }
 
 bool EntityMovable::Step(float dt) {
-    return StepHitBox(dt, hitbox_, direction_);
+    SDL_FRect hitbox = GetHitBox();
+    const bool did_step =  StepHitBox(dt, hitbox, direction_);
+    UpdatePosition({hitbox.x, hitbox.y});
+    return did_step;
 }
 
-bool EntityMovable::StepHitBox(float dt, SDL_Rect& hitbox, EDirection direction) const {
-    const auto delta = static_cast<int>(velocity_ * dt);
+bool EntityMovable::StepHitBox(float dt, SDL_FRect& hitbox, EDirection direction) const {
+    const auto delta = velocity_ * dt;
     const auto dir_vector = GetDirectionVector(direction);
     hitbox.x += delta * dir_vector.x;
     hitbox.y += delta * dir_vector.y;
@@ -75,39 +79,39 @@ bool EntityMovable::StepHitBox(float dt, SDL_Rect& hitbox, EDirection direction)
     return true;
 }
 
-void EntityMovable::AdjustPosition(Vec2 target_coords) {
+void EntityMovable::AdjustPosition(Vec2<float> target_coords) {
+    SDL_FRect new_hitbox = GetHitBox();
     const auto dir_vector = GetDirectionVector();
-    if ((dir_vector.x > 0 && hitbox_.x >= target_coords.x) ||
-        (dir_vector.x < 0 && hitbox_.x <= target_coords.x)) {
-        hitbox_.x = target_coords.x;
+    if ((dir_vector.x > 0 && new_hitbox.x >= target_coords.x) ||
+        (dir_vector.x < 0 && new_hitbox.x <= target_coords.x)) {
+        new_hitbox.x = target_coords.x;
     }
     
-    if ((dir_vector.y > 0 && hitbox_.y >= target_coords.y) ||
-        (dir_vector.y < 0 && hitbox_.y <= target_coords.y)) {
-        hitbox_.y = target_coords.y;
+    if ((dir_vector.y > 0 && new_hitbox.y >= target_coords.y) ||
+        (dir_vector.y < 0 && new_hitbox.y <= target_coords.y)) {
+        new_hitbox.y = target_coords.y;
     }
+
+    UpdatePosition({new_hitbox.x, new_hitbox.y});
 }
 
-Vec2 EntityMovable::GetDirectionVector() const {
+Vec2<int> EntityMovable::GetDirectionVector() const {
     return GetDirectionVector(direction_);
 }
 
 bool EntityMovable::TryToStep(float dt, EDirection direction) {
-    SDL_Rect next_hitbox = hitbox_;
-    const auto dir_vector = GetDirectionVector(direction);
-    const auto delta = static_cast<int>(velocity_ * dt);
-    next_hitbox.x += delta * dir_vector.x;
-    next_hitbox.y += delta * dir_vector.y;
+    SDL_FRect next_hitbox = GetHitBox();
+    StepHitBox(dt, next_hitbox, direction); // SI CAMBIAMOS ESTO SE MUEVE BIEN PERO LAS COLISIONES MAL
     if (IsMovementAllowed(next_hitbox)) {
-        hitbox_ = next_hitbox;
         direction_ = direction;
+        UpdatePosition({next_hitbox.x, next_hitbox.y});
         return true;
     }
 
     return false;
 }
 
-Vec2 EntityMovable::GetDirectionVector(EDirection direction) const {
+Vec2<int> EntityMovable::GetDirectionVector(EDirection direction) const {
     switch(direction) {
         case EDirection::DOWN:  return { 0,  1};
         case EDirection::UP:    return { 0, -1};
@@ -117,14 +121,14 @@ Vec2 EntityMovable::GetDirectionVector(EDirection direction) const {
     }
 }
 
-bool EntityMovable::IsMovementAllowed(const SDL_Rect& moved_rect) const {
-    const std::array<Vec2, 4> rect_points {{
+bool EntityMovable::IsMovementAllowed(const SDL_FRect& moved_rect) const {
+    const std::array<Vec2<float>, 4> rect_points {{
         {moved_rect.x, moved_rect.y},
         {moved_rect.x, moved_rect.y + moved_rect.h},
         {moved_rect.x + moved_rect.w, moved_rect.y},
         {moved_rect.x + moved_rect.w, moved_rect.y + moved_rect.h}}};
     auto is_coord_walkable = [&](const auto& coords) {
-        return game_map_.AreCoordsWalkable(coords.x, coords.y);
+        return game_map_.AreCoordsWalkable(coords);
     };
     return std::all_of(rect_points.cbegin(), rect_points.cend(), is_coord_walkable);
 }

@@ -10,11 +10,11 @@ Ghost::Ghost(
     Pathfinder& pathfinder,
     std::string name,
     EType type,
-    SDL_Rect hitbox,
+    SDL_FRect renderer_rect,
     float velocity,
     EDirection direction,
     PathfindingPattern pathfinding_pattern)
-    : EntityMovable(renderer, hitbox, game_map, velocity, direction)
+    : EntityMovable(renderer, renderer_rect, game_map, velocity, direction, 1.f)
     , texture_manager_(texture_manager)
     , pathfinder_(pathfinder)
     , name_(name)
@@ -30,7 +30,7 @@ Ghost::Ghost(
 }
 
 void Ghost::Reset() {
-    hitbox_ = starting_hitbox_;
+    ResetHitBox();
     direction_ = starting_direction_;
     state_ = EState::HOUSING;
     is_moving_between_tiles_ = false;
@@ -42,9 +42,10 @@ void Ghost::Reset() {
 void Ghost::FindPath(Game& game) {
     if (is_moving_between_tiles_) return;
 
-    const auto [row, col] = game_map_.FromCoordsToRowCol(hitbox_.x, hitbox_.y);
+    const auto& hitbox = GetHitBox();
+    const auto col_row = game_map_.FromCoordsToColRow({hitbox.x, hitbox.y});
     path_index_ = 1;
-    path_ = patfinder_pattern_({col, row}, game);
+    path_ = patfinder_pattern_(col_row, game);
 }
 
 void Ghost::Update(float dt) {
@@ -66,13 +67,11 @@ void Ghost::Update(float dt) {
 void Ghost::UpdateStateHouse(float dt) {
     timer_mode_house_.Update(dt);
     timer_mode_house_swap_direction_.Update(dt);
-    const auto direction_vector = GetDirectionVector();
-    const auto delta = static_cast<int>(GhostParameters::kVelocityStateHousing * dt);
-    hitbox_.x += delta * direction_vector.x;
-    hitbox_.y += delta * direction_vector.y;
     if (timer_mode_house_swap_direction_.DidFinish()) {
         ReverseDirection();
     }
+
+    Step(dt);
     if (timer_mode_house_.DidFinish()) {
         state_ = EState::CHASING;
     }
@@ -86,13 +85,13 @@ void Ghost::UpdateStateChasing(float dt) {
 
 void Ghost::StepPath(float dt) {
     is_moving_between_tiles_ = true;
-    const auto target = game_map_.FromRowColToCoords(
-        path_[path_index_].first, path_[path_index_].second);
+    const auto target_coords = game_map_.FromColRowToCoords(path_[path_index_]);
 
-    SetDirectionByTarget({target.first, target.second});
-    StepToTarget(dt, {target.first, target.second});
+    SetDirectionByTarget(target_coords);
+    StepToTarget(dt, target_coords);
 
-    if (hitbox_.x == target.first && hitbox_.y == target.second) {
+    const auto& hitbox = GetHitBox();
+    if (Vec2{hitbox.x, hitbox.y} == target_coords) {
         ++path_index_;
         is_moving_between_tiles_ = false;
     }
@@ -127,15 +126,15 @@ void Ghost::UpdateStateEyes(float dt) {
 void Ghost::Render() {
     RenderPath();
     const auto src_r = GetSourceRect();
-    renderer_.RenderTexture(sprite_sheet_, src_r, hitbox_);
+    renderer_.RenderTexture(sprite_sheet_, src_r, GetRendererRect());
 }
 
 void Ghost::RenderPath() {
     renderer_.SetRenderingColor({200, 200, 200, 50});
-    const auto cell_size = game_map_.GetCellSizeInt();
-    for (const auto& [row, col] : path_) {
-        const auto& cell = game_map_.GetCell(row, col);
-        SDL_Rect r {cell.x, cell.y, cell_size, cell_size};
+    const auto cell_size = game_map_.GetCellSizeFloat();
+    for (const auto& col_row : path_) {
+        const auto& cell = game_map_.GetCell(col_row);
+        SDL_FRect r {cell.position.x, cell.position.y, cell_size, cell_size};
         renderer_.RenderRectFilled(r);
     }
 }
@@ -176,14 +175,14 @@ const std::string_view Ghost::GetName() const {
 void Ghost::Die() {
     // TODO: Spawn score
     state_ = EState::EYES;
-    const auto [row, col] = game_map_.FromCoordsToRowCol(hitbox_.x, hitbox_.y);
-    const auto [fixed_x, fixed_y] = game_map_.FromRowColToCoords(row, col);
-    hitbox_.x = fixed_x;
-    hitbox_.y = fixed_y;
+    const auto& hitbox = GetHitBox();
+    const auto col_row_from = game_map_.FromCoordsToColRow({hitbox.x, hitbox.y});
+    const auto fixed_coords = game_map_.FromColRowToCoords(col_row_from);
+    UpdatePosition(fixed_coords);
     
     path_index_ = 0;
-    const auto [target_row, target_col] = game_map_.FromCoordsToRowCol(starting_hitbox_.x, starting_hitbox_.y);
-    path_ = pathfinder_.FindPath(row, col, target_row, target_col);
+    const auto col_row_to = game_map_.FromCoordsToColRow({starting_hitbox_.x, starting_hitbox_.y});
+    path_ = pathfinder_.FindPath(col_row_from, col_row_to);
 }
 
 void Ghost::SetHousingState() {

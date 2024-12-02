@@ -1,5 +1,7 @@
 #pragma once
 
+#include "utils/Vec2.hpp"
+
 #include <string>
 #include <vector>
 #include <array>
@@ -10,7 +12,6 @@
 class GameMap;
 
 class Pathfinder {
-private:
     struct MapNode {
             std::size_t map_index;
             int g; // distance from starting_node
@@ -38,18 +39,16 @@ private:
             };
         };
 public:
-    using Path = std::vector<std::pair<int, int>>;
-
+    using Path = std::vector<Vec2<int>>;
     Pathfinder(GameMap& map);
 
     Path FindPath(
-        int start_row,
-        int start_col,
-        int target_row,
-        int target_col);
+        Vec2<int> col_row_from,
+        Vec2<int> col_row_to);
+
     void Step();
     void Render(SDL_Renderer& renderer);
-    void Reset(int start_row, int start_col, int target_row, int target_col);
+    void Reset(Vec2<int> col_row_from = {}, Vec2<int> col_row_to = {});
     bool DidFinish() const;
 
 private:
@@ -64,10 +63,10 @@ private:
     using Neighbours = std::array<MapNode*, 4>;
     Neighbours GetNeighbours(std::size_t node_index);
 
-    int start_row_, start_col_;
-    int target_row_, target_col_;
+    Vec2<int> col_row_from_;
+    Vec2<int> col_row_to_;
     bool did_finish_;
 
-    int Heuristic(int row1, int col1, int row2, int col2) const;
+    int Heuristic(Vec2<int> col_row_left, Vec2<int> col_row_right) const;
     Path ReconstructPath() const;
 };

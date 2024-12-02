@@ -19,25 +19,25 @@ class EntityMovable : public Entity {
 public:
     EntityMovable(
         Renderer& renderer,
-        SDL_Rect hitbox,
+        SDL_FRect renderer_rect,
         const GameMap& game_map,
         float velocity,
-        EDirection direction);
+        EDirection direction,
+        float hitbox_scale = 1.f);
     ~EntityMovable() = default;
 
     virtual bool Step(float dt);
-    bool StepHitBox(float dt, SDL_Rect& hitbox, EDirection direction) const;
-
+    bool StepHitBox(float dt, SDL_FRect& hitbox, EDirection direction) const;
     void StepIntoAllowedRandomDirection(float dt);
-    void StepToTarget(float dt, Vec2 target_coords);
+    void StepToTarget(float dt, Vec2<float> target_coords);
     bool TryToStep(float dt, EDirection direction);
-    void AdjustPosition(Vec2 target_coords);
-    void SetDirectionByTarget(Vec2 target_coords);
+    void AdjustPosition(Vec2<float> target_coords);
+    void SetDirectionByTarget(Vec2<float> target_coords);
 
     void ReverseDirection();
     EDirection GetOppositeDirection();
-    Vec2 GetDirectionVector() const;
-    Vec2 GetDirectionVector(EDirection direction) const;
+    Vec2<int> GetDirectionVector() const;
+    Vec2<int> GetDirectionVector(EDirection direction) const;
 
 protected:
     const GameMap& game_map_;
@@ -46,5 +46,5 @@ protected:
     EDirection direction_;
     bool is_moving_between_tiles_;
 
-    bool IsMovementAllowed(const SDL_Rect& moved_rect) const;
+    bool IsMovementAllowed(const SDL_FRect& moved_rect) const;
 };

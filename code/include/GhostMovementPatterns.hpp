@@ -8,9 +8,9 @@
 
 class Game;
 
-using PathfindingPattern = std::function<Pathfinder::Path(Vec2, Game&)>;
+using PathfindingPattern = std::function<Pathfinder::Path(Vec2<int>, Game&)>;
 
-Pathfinder::Path FindPathPatternInky(const Vec2& ghost_row_col, Game& game);
-Pathfinder::Path FindPathPatternBlinky(const Vec2& ghost_row_col, Game& game);
-Pathfinder::Path FindPathPatternPinky(const Vec2& ghost_row_col, Game& game);
-Pathfinder::Path FindPathPatternClyde(const Vec2& ghost_row_col, Game& game);
+Pathfinder::Path FindPathPatternInky(const Vec2<int>& col_row_ghost, Game& game);
+Pathfinder::Path FindPathPatternBlinky(const Vec2<int>& col_row_ghost, Game& game);
+Pathfinder::Path FindPathPatternPinky(const Vec2<int>& col_row_ghost, Game& game);
+Pathfinder::Path FindPathPatternClyde(const Vec2<int>& col_row_ghost, Game& game);

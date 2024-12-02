@@ -10,7 +10,8 @@
 - Add ghosts score animation.
 - Add buttons (sound off / sound on)
 - Create animations class.
-- BUG: Walking randomly on last column while Frightened is not working properly.
+- On win the game. Stop all ghosts / player. Reproduce sounds. Remove ghosts. Blinky background blues. Start again (without resetting score).
+- Add text renderer to the renderer?
 
 ## Technology
 Compilation:

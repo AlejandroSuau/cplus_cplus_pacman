@@ -60,10 +60,6 @@ private:
     CountdownTimer dying_animation_timer_{0.15f};
     int dying_animation_sprite_index_{0};
 
-    /*void Move(float dt);
-    bool TryToMove(EMovingDirection direction, int dx, int dy);
-    bool IsMovementAllowed(SDL_Rect moved_rect) const;*/
-
     SDL_Rect GetSourceRectMoving() const;
     SDL_Rect GetSourceRectDying() const;
 };

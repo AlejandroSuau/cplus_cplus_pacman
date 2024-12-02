@@ -20,15 +20,23 @@ UIManager::UIManager(
 }
 
 void UIManager::LoadTextures() {
-    font_ = text_manager_.LoadFont(kAssetsFolderFonts + "atari-full.ttf", 18);
+    font_ = text_manager_.LoadFont(kAssetsFolderFonts + "atari-full.ttf", 14);
     sprite_sheet_ = texture_manager_.LoadTexture(kAssetsFolderImages + "spritesheet.png");
 }
 
 void UIManager::Render(SDL_Renderer& renderer, const Game& game) {
     // Current score
-    text_manager_.RenderText(renderer, *font_, "Score", kWhiteColor, 155, 45);
+    text_manager_.RenderText(renderer, *font_, "Score", kWhiteColor, 140, 45);
     const auto score_string = std::to_string(player_.GetScore());
-    text_manager_.RenderText(renderer, *font_, score_string, kWhiteColor, 155, 75);
+    text_manager_.RenderText(renderer, *font_, score_string, kWhiteColor, 138, 75);
+
+    text_manager_.RenderText(renderer, *font_, "Level", kWhiteColor, 350, 45);
+    const auto high_score_string = std::to_string(player_.GetScore());
+    text_manager_.RenderText(renderer, *font_, score_string, kWhiteColor, 350, 75);
+
+    text_manager_.RenderText(renderer, *font_, "High Score", kWhiteColor, 580, 45);
+    const auto level_string = std::to_string(player_.GetScore());
+    text_manager_.RenderText(renderer, *font_, score_string, kWhiteColor, 580, 75);
 
     // Game Status
     // GAME READY

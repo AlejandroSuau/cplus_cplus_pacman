@@ -74,12 +74,6 @@ static const std::array<std::array<unsigned int, kColsCount>, kRowsCount> kMapTi
 
 static const SDL_Rect kTextureRectBackground {-16, -16, kGameWidth + kCellSizeInt, kGameHeight + kCellSize};
 
-// Score
-namespace ScoreParamenters {
-static const Vec2 kTextureDimensions {24, 36};
-static const Vec2 kPosition {0, 25};
-}
-
 // Sprite Sheet
 namespace SpriteSheet {
 static const int kPadding = 6;

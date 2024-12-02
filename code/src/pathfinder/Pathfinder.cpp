@@ -8,25 +8,16 @@
 Pathfinder::Pathfinder(GameMap& map)
     : map_(map)
     , target_index_(0)
-    , start_row_(0)
-    , start_col_(0)
-    , target_col_(0)
-    , target_row_(0)
     , target_node_(nullptr)
     , did_finish_(false)
     , target_nodes_count_(0) {
 
-    Reset(0, 0, 0, 0);
+    Reset();
 }
 
 
-Pathfinder::Path Pathfinder::FindPath(
-    int start_row,
-    int start_col,
-    int target_row,
-    int target_col) {
-
-    Reset(start_row, start_col, target_row, target_col);
+Pathfinder::Path Pathfinder::FindPath(Vec2<int> col_row_from, Vec2<int> col_row_to) {
+    Reset(col_row_from, col_row_to);
     while (!did_finish_) {
         Step();
     }
@@ -34,16 +25,14 @@ Pathfinder::Path Pathfinder::FindPath(
     return ReconstructPath();
 }
 
-void Pathfinder::Reset(int start_row, int start_col, int target_row, int target_col) {
-    start_row_ = start_row;
-    start_col_ = start_col;
-    target_row_ = target_row;
-    target_col_ = target_col;
+void Pathfinder::Reset(Vec2<int> col_row_from, Vec2<int> col_row_to) {
+    col_row_from_ = col_row_from;
+    col_row_to_ = col_row_to;
     
     did_finish_ = false;
     target_node_ = nullptr;
     
-    target_index_ = map_.FromRowColToIndex(target_row_, target_col_);
+    target_index_ = map_.FromColRowToIndex(col_row_to_);
 
     // Map Nodes
     open_nodes_.clear();
@@ -55,13 +44,10 @@ void Pathfinder::Reset(int start_row, int start_col, int target_row, int target_
         map_nodes_.emplace_back(i);
     }
 
-    // Nodes Open
-    // TODO: Crear método para reiniciarla
-    // nodes_open_ = std::priority_queue<Pathfinder::MapNode*>();
-    const auto node_index = map_.FromRowColToIndex(start_row_, start_col_);
-    target_index_ = map_.FromRowColToIndex(target_row_, target_col_);
+    const auto node_index = map_.FromColRowToIndex(col_row_from_);
+    target_index_ = map_.FromColRowToIndex(col_row_to_);
     auto& starting_node = map_nodes_[node_index];
-    starting_node.h = Heuristic(start_row, start_col, target_row_, target_col_);
+    starting_node.h = Heuristic(col_row_from_, col_row_to_);
     starting_node.is_closed = true;
 
     open_nodes_.emplace(&starting_node);
@@ -75,7 +61,7 @@ void Pathfinder::Step() {
 
     auto* node = *open_nodes_.begin();
     open_nodes_.erase(open_nodes_.begin());
-    const auto [cr, cc] = map_.FromIndexToRowCol(node->map_index);
+    const auto [cr, cc] = map_.FromIndexToColRow(node->map_index);
     if (node->map_index == target_index_) {
         target_node_ = node;
         did_finish_ = true;
@@ -88,7 +74,7 @@ void Pathfinder::Step() {
 
     node->is_closed = true;
     auto neighbours = GetNeighbours(node->map_index);
-    auto [row, col] = map_.FromIndexToRowCol(node->map_index);
+    auto [row, col] = map_.FromIndexToColRow(node->map_index);
     for (auto* neighbour : neighbours) {
         const bool skip_neighbour = (!neighbour || neighbour->is_closed);
         if (skip_neighbour) continue;
@@ -100,8 +86,8 @@ void Pathfinder::Step() {
             }
             
             neighbour->g = g_cost;
-            const auto [nrow, ncol] = map_.FromIndexToRowCol(neighbour->map_index);
-            neighbour->h = Heuristic(nrow, ncol, target_row_, target_col_);
+            const auto n_col_row = map_.FromIndexToColRow(neighbour->map_index);
+            neighbour->h = Heuristic(n_col_row, col_row_to_);
             neighbour->parent = node;
 
             neighbour->is_open = true;
@@ -132,8 +118,8 @@ Pathfinder::Neighbours Pathfinder::GetNeighbours(std::size_t node_index) {
     return neighbours;
 }
 
-int Pathfinder::Heuristic(int row1, int col1, int row2, int col2) const {
-    return std::abs(row1 - row2) + std::abs(col1 - col2);
+int Pathfinder::Heuristic(Vec2<int> col_row_left, Vec2<int> col_row_right) const {
+    return std::abs(col_row_left.y - col_row_right.y) + std::abs(col_row_left.x - col_row_right.x);
 }
 
 Pathfinder::Path Pathfinder::ReconstructPath() const {
@@ -141,8 +127,8 @@ Pathfinder::Path Pathfinder::ReconstructPath() const {
 
     MapNode* current_node = target_node_;
     while (current_node) {
-        const auto [row, col] = map_.FromIndexToRowCol(current_node->map_index);
-        path.push_back(std::make_pair(row, col));
+        const auto [row, col] = map_.FromIndexToColRow(current_node->map_index);
+        path.emplace_back(col, row);
         current_node = current_node->parent;
     }
 
@@ -151,11 +137,11 @@ Pathfinder::Path Pathfinder::ReconstructPath() const {
 }
 
 void Pathfinder::Render(SDL_Renderer& renderer) {
-    SDL_Rect starter_rect {start_col_ * 16, start_row_ * 16, 16, 16};
+    SDL_Rect starter_rect {col_row_from_.x * 16, col_row_from_.y * 16, 16, 16};
     SDL_SetRenderDrawColor(&renderer, 0, 0, 255, 255);
     SDL_RenderFillRect(&renderer, &starter_rect);
 
-    SDL_Rect target_rect {target_col_ * 16, target_row_ * 16, 16, 16};
+    SDL_Rect target_rect {col_row_to_.x * 16, col_row_to_.y * 16, 16, 16};
     SDL_SetRenderDrawColor(&renderer, 0, 255, 0, 255);
     SDL_RenderFillRect(&renderer, &target_rect);
 }

@@ -11,60 +11,58 @@ class GameMap {
 public:
     struct Cell {
         std::size_t cell_index;
-        int x;
-        int y;
+        Vec2<float> position;
         std::size_t row;
         std::size_t col;
         bool is_walkable;
-        Cell(std::size_t cell_index_, int x_, int y_, std::size_t row_, std::size_t col_, bool is_walkable_)
-            : cell_index(cell_index_), x(x_), y(y_), row(row_), col(col_), is_walkable(is_walkable_) {}
+        Cell(std::size_t cell_index_, Vec2<float> position_, std::size_t row_, std::size_t col_, bool is_walkable_)
+            : cell_index(cell_index_), position(position_), row(row_), col(col_), is_walkable(is_walkable_) {}
     };
 
     GameMap(
-        int width,
-        int height,
-        int padding_x,
-        int padding_y,
+        float width,
+        float height,
+        Vec2<float> padding,
         std::size_t cell_size);
 
     void Init();
     void Update();
     void Render(SDL_Renderer& renderer);
 
-    void SetIsWalkable(int row, int col, bool is_walkable);
-    bool AreRowColWalkable(int row, int col) const;
+    void SetIsWalkable(Vec2<int> col_row, bool is_walkable);
+    bool AreColRowWalkable(Vec2<int> col_row) const;
     bool IsWalkable(std::size_t index) const;
-    bool AreCoordsWalkable(int x, int y) const;
-    void ClampRowColIntoMapDimensions(Vec2& row_col) const;
+    bool AreCoordsWalkable(Vec2<float> coords) const;
+    void ClampColRowIntoMapDimensions(Vec2<int>& col_row) const;
 
-    std::size_t FromRowColToIndex(int row, int col) const;
-    using CoordsPair = std::pair<int, int>;
-    CoordsPair FromRowColToCoords(int row, int col) const;
+    std::size_t FromColRowToIndex(Vec2<int> col_row) const;
+    Vec2<float> FromColRowToCoords(Vec2<int> col_row) const;
 
-    using RowColPair = std::pair<int, int>;
-    RowColPair FromIndexToRowCol(std::size_t index) const;
-    RowColPair FromCoordsToRowCol(int coord_x, int coord_y) const;
-    RowColPair GetCloserWalkableRowCol(Vec2 row_col, int cells_distance, Vec2 direction) const;
+    Vec2<int> FromIndexToColRow(std::size_t index) const;
+    Vec2<int> FromCoordsToColRow(Vec2<float> coords) const;
 
     std::size_t GetRowsCount() const;
     std::size_t GetColumnsCount() const;
     std::size_t GetCellsCount() const;
     std::size_t GetCellSize() const;
     int GetCellSizeInt() const;
+    float GetCellSizeFloat() const;
 
-    bool AreRowColInsideBoundaries(int row, int col) const;
-    bool AreCoordsInsideBoundaries(int x, int y) const;
+    bool AreColRowInsideBoundaries(Vec2<int> col_row) const;
+    bool AreCoordsInsideBoundaries(Vec2<float> coords) const;
 
-    const Cell& GetCell(int row, int col) const;
+    const Cell& GetCell(Vec2<int> col_row) const;
     const std::vector<Cell>& GetCells() const;
 
 private:
-    int width_;
-    int height_;
-    int padding_x_;
-    int padding_y_;
-    std::size_t cells_size_;
+    float width_;
+    float height_;
+    Vec2<float> padding_;
+    std::size_t cell_size_;
     int cell_size_int_;
+    float cell_size_float_;
+    int rows_count_int_;
+    int cols_count_int_;
     std::size_t rows_count_;
     std::size_t cols_count_;
     std::size_t cells_count_;

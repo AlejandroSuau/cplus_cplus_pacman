@@ -10,16 +10,18 @@
 #include <ranges>
 
 namespace {
-static const int kSizeSmall = 2;
-static const int kSizeBig = 16;
-static const unsigned int kScoreSmall = 5;
+static const float kSizeSmall = 4.f;
+static const float kSizeBig = 16.f;
+static const unsigned int kScoreSmall = 10;
 static const unsigned int kScoreBig = 100;
 }
 
 CollectableManager::CollectableManager(
+    Renderer& renderer,
     TextureManager& texture_manager,
     const GameMap& game_map) 
-    : texture_manager_(texture_manager)
+    : renderer_(renderer)
+    , texture_manager_(texture_manager)
     , game_map_(game_map)
     , texture_(nullptr) {
     Init();
@@ -29,23 +31,23 @@ void CollectableManager::Init() {
     texture_ = texture_manager_.LoadTexture(kAssetsFolderImages + "spritesheet.png");
 
     const auto& cells = game_map_.GetCells();
-    const auto cell_size = game_map_.GetCellSizeInt();
+    const auto cell_size = static_cast<float>(game_map_.GetCellSize());
     for (const auto& cell : cells) {
         const auto spawn_type = kMapCollectables[cell.row][cell.col];
         if (spawn_type == 1) {
             collectables_.emplace_back(std::make_unique<Collectable>(
                 ECollectableType::SMALL,
                 kScoreSmall,
-                cell.x + (cell_size / 2) - (kSizeSmall / 2),
-                cell.y + (cell_size / 2) - (kSizeSmall / 2),
+                cell.position.x + (cell_size / 2.f) - (kSizeSmall / 2.f),
+                cell.position.y + (cell_size / 2.f) - (kSizeSmall / 2.f),
                 kSizeSmall,
                 kSizeSmall));
         } else if (spawn_type == 2) {
             collectables_.emplace_back(std::make_unique<Collectable>(
                 ECollectableType::BIG,
                 kScoreBig,
-                cell.x + (cell_size / 2) - (kSizeBig / 2),
-                cell.y + (cell_size / 2) - (kSizeBig / 2),
+                cell.position.x + (cell_size / 2.f) - (kSizeBig / 2.f),
+                cell.position.y + (cell_size / 2.f) - (kSizeBig / 2.f),
                 kSizeBig,
                 kSizeBig));
         }
@@ -63,10 +65,10 @@ void CollectableManager::RemoveCollectablesMarkedForDestroy() {
     );
 }
 
-void CollectableManager::Render(SDL_Renderer& renderer) {
+void CollectableManager::Render() {
     const SDL_Rect src_r {2, 182, 8, 8};
     for (const auto& c : collectables_) {
-        SDL_RenderCopyEx(&renderer, texture_, &src_r, &c->hitbox, 0, nullptr, SDL_RendererFlip::SDL_FLIP_NONE);
+        renderer_.RenderTexture(texture_, src_r, c->hitbox);
     }
 }
 

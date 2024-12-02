@@ -4,15 +4,17 @@
 
 #include <algorithm>
 
-GameMap::GameMap(int width, int height, int padding_x, int padding_y, std::size_t cell_size) 
+GameMap::GameMap(float width, float height, Vec2<float> padding, std::size_t cell_size) 
     : width_(width)
     , height_(height)
-    , padding_x_(padding_x)
-    , padding_y_(padding_y)
-    , cells_size_(cell_size)
-    , cell_size_int_(static_cast<int>(cells_size_))
+    , padding_(padding)
+    , cell_size_(cell_size)
+    , cell_size_int_(static_cast<int>(cell_size_))
+    , cell_size_float_(static_cast<float>(cell_size_))
     , rows_count_(kRowsCount)
     , cols_count_(kColsCount)
+    , rows_count_int_(static_cast<int>(rows_count_))
+    , cols_count_int_(static_cast<int>(cols_count_))
     , cells_count_(rows_count_ * cols_count_) {
     Init();
 }
@@ -20,20 +22,20 @@ GameMap::GameMap(int width, int height, int padding_x, int padding_y, std::size_
 void GameMap::Init() {
     std::size_t i = 0;
     std::size_t row_num = 0;
-    int y = padding_y_;
+    Vec2<float> pos {0.f, padding_.y};
     cells_.reserve(cells_count_);
     for (const auto& row : kMapTiles) {
         std::size_t col_num = 0;
-        int x = padding_x_;
+        pos.x = padding_.x;
         for (const auto value : row) {
             const auto is_walkable = (value == 0);
-            cells_.emplace_back(i, x, y, row_num, col_num, is_walkable);
-            x += cell_size_int_;
+            cells_.emplace_back(i, pos, row_num, col_num, is_walkable);
+            pos.x += cell_size_float_;
             ++i;
             ++col_num;
         }
         ++row_num;
-        y += cell_size_int_;
+        pos.y += cell_size_float_;
     }
 }
 
@@ -46,37 +48,37 @@ void GameMap::Render(SDL_Renderer& renderer) {
     for (auto& cell : cells_) {
         if (cell.is_walkable) continue;
 
-        SDL_Rect cell_rect {
-            cell.x,
-            cell.y,
-            cell_size_int_,
-            cell_size_int_}; 
-        SDL_RenderFillRect(&renderer, &cell_rect);
+        SDL_FRect cell_rect {
+            cell.position.x,
+            cell.position.y,
+            cell_size_float_,
+            cell_size_float_}; 
+        SDL_RenderFillRectF(&renderer, &cell_rect);
     }
 
-    SDL_Rect limits_r {padding_x_, padding_y_, width_, height_};
-    SDL_RenderDrawRect(&renderer, &limits_r);
+    SDL_FRect limits_r {padding_.x, padding_.y, width_, height_};
+    SDL_RenderDrawRectF(&renderer, &limits_r);
 }
 
-void GameMap::SetIsWalkable(int row, int col, bool is_walkable) {
-    if (!AreRowColInsideBoundaries(row, col)) return;
+void GameMap::SetIsWalkable(Vec2<int> col_row, bool is_walkable) {
+    if (!AreColRowInsideBoundaries(col_row)) return;
 
-    const auto index = FromRowColToIndex(row, col);
+    const auto index = FromColRowToIndex(col_row);
     cells_[index].is_walkable = is_walkable;
 }
 
-bool GameMap::AreCoordsWalkable(int x, int y) const {
-    if (!AreCoordsInsideBoundaries(x, y)) return false;
+bool GameMap::AreCoordsWalkable(Vec2<float> coords) const {
+    if (!AreCoordsInsideBoundaries(coords)) return false;
     
-    const auto [row, col] = FromCoordsToRowCol(x, y);
-    const auto index = FromRowColToIndex(row, col);
+    const auto col_row = FromCoordsToColRow(coords);
+    const auto index = FromColRowToIndex(col_row);
     return cells_[index].is_walkable;
 }
 
-bool GameMap::AreRowColWalkable(int row, int col) const {
-    if (!AreRowColInsideBoundaries(row, col)) return false;
+bool GameMap::AreColRowWalkable(Vec2<int> col_row) const {
+    if (!AreColRowInsideBoundaries(col_row)) return false;
 
-    const auto index = FromRowColToIndex(row, col);
+    const auto index = FromColRowToIndex(col_row);
     return cells_[index].is_walkable;
 }
 
@@ -84,47 +86,38 @@ bool GameMap::IsWalkable(std::size_t index) const {
     return (index < cells_count_ && cells_[index].is_walkable);
 }
 
-bool GameMap::AreRowColInsideBoundaries(int row, int col) const {
-    return (row >= 0 && row < rows_count_ && col >= 0 && col < cols_count_);
+bool GameMap::AreColRowInsideBoundaries(Vec2<int> col_row) const {
+    return (col_row.y >= 0 && col_row.y < rows_count_int_ &&
+            col_row.x >= 0 && col_row.x < cols_count_int_);
 }
 
-void GameMap::ClampRowColIntoMapDimensions(Vec2& row_col) const {
-    row_col.x = std::clamp(row_col.x, 0, static_cast<int>(GetColumnsCount()) - 1);
-    row_col.y = std::clamp(row_col.y, 0, static_cast<int>(GetRowsCount()) - 1);
+void GameMap::ClampColRowIntoMapDimensions(Vec2<int>& col_row) const {
+    col_row.x = std::clamp(col_row.x, 0, static_cast<int>(GetColumnsCount()) - 1);
+    col_row.y = std::clamp(col_row.y, 0, static_cast<int>(GetRowsCount()) - 1);
 }
 
-GameMap::CoordsPair GameMap::FromRowColToCoords(int row, int col) const {
-    const auto index = FromRowColToIndex(row, col);
-    return std::make_pair(cells_[index].x, cells_[index].y);
+Vec2<float> GameMap::FromColRowToCoords(Vec2<int> col_row) const {
+    const auto index = FromColRowToIndex(col_row);
+    return cells_[index].position;
 }
 
-bool GameMap::AreCoordsInsideBoundaries(int x, int y) const {
-    return (x >= padding_x_ && x < (width_ + padding_x_) &&
-            y >= padding_y_ && y < (height_ + padding_y_));
+bool GameMap::AreCoordsInsideBoundaries(Vec2<float> coords) const {
+    return (coords.x >= padding_.x && coords.x < (width_ + padding_.x) &&
+            coords.y >= padding_.y && coords.y < (height_ + padding_.y));
 }
 
-std::size_t GameMap::FromRowColToIndex(int row, int col) const {
-    return (row * cols_count_ + col);
+std::size_t GameMap::FromColRowToIndex(Vec2<int> col_row) const {
+    return (col_row.y * cols_count_ + col_row.x);
 }
 
-GameMap::RowColPair GameMap::FromIndexToRowCol(std::size_t index) const {
-    return std::make_pair(index / cols_count_, index % cols_count_);
+Vec2<int> GameMap::FromIndexToColRow(std::size_t index) const {
+    return {static_cast<int>(index / cols_count_),
+            static_cast<int>(index % cols_count_)};
 }
 
-GameMap::RowColPair GameMap::FromCoordsToRowCol(int coord_x, int coord_y) const {
-    return std::make_pair((coord_y - padding_x_) / cell_size_int_, 
-                          (coord_x  - padding_y_) / cell_size_int_) ;
-}
-
-GameMap::RowColPair GameMap::GetCloserWalkableRowCol(Vec2 row_col, int cells_distance, Vec2 direction) const {
-    Vec2 closer_row_col {row_col.x, row_col.y};
-    closer_row_col.x += direction.x * cells_distance;
-    closer_row_col.y += direction.y * cells_distance;
-    while (!AreRowColWalkable(closer_row_col.y, closer_row_col.x)) {
-        closer_row_col.x -= direction.x;
-        closer_row_col.y -= direction.y;
-    }
-    return {closer_row_col.y, closer_row_col.x};
+Vec2<int> GameMap::FromCoordsToColRow(Vec2<float> coords) const {
+    return {static_cast<int>(coords.x - padding_.x) / cell_size_int_,
+            static_cast<int>(coords.y - padding_.y) / cell_size_int_};
 }
 
 bool GameMap::IsInsideBoundaries(std::size_t index) const {
@@ -143,8 +136,8 @@ std::size_t GameMap::GetCellsCount() const {
     return cells_count_;
 }
 
-const GameMap::Cell& GameMap::GetCell(int row, int col) const {
-    const auto index = FromRowColToIndex(row, col);
+const GameMap::Cell& GameMap::GetCell(Vec2<int> col_row) const {
+    const auto index = FromColRowToIndex(col_row);
     return cells_[index];
 }
 
@@ -153,9 +146,13 @@ const std::vector<GameMap::Cell>& GameMap::GetCells() const {
 }
 
 std::size_t GameMap::GetCellSize() const {
-    return cells_size_;
+    return cell_size_;
 }
 
 int GameMap::GetCellSizeInt() const {
     return cell_size_int_;
+}
+
+float GameMap::GetCellSizeFloat() const {
+    return cell_size_float_;
 }
