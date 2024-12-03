@@ -9,10 +9,10 @@
 
 // Order matters because it helps to rotate the asset while moving.
 enum class EDirection {
-    LEFT = 0,
-    UP = 1,
-    RIGHT = 2,
-    DOWN = 3
+    RIGHT = 0,
+    DOWN = 1,
+    LEFT = 2,
+    UP = 3
 };
 
 class EntityMovable : public Entity {

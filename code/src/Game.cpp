@@ -101,12 +101,12 @@ void Game::Update(float dt) {
     }
 
     player_.Update(dt);
-    for (auto& ghost : ghosts_) {
+    /*for (auto& ghost : ghosts_) {
         ghost->Update(dt); // TODO: LO METEMOS AQUI
         if (ghost->IsInStateChasing()) {
             ghost->FindPath(*this);
         }
-    }
+    }*/
 
     collision_manager_.CheckCollisions();
 

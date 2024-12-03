@@ -29,7 +29,8 @@ void GameMap::Init() {
         pos.x = padding_.x;
         for (const auto value : row) {
             const auto is_walkable = (value == 0);
-            cells_.emplace_back(i, pos, row_num, col_num, is_walkable);
+            const auto center = pos + Vec2{cell_size_float_ / 2.f, cell_size_float_ / 2.f};
+            cells_.emplace_back(i, pos, center, row_num, col_num, is_walkable);
             pos.x += cell_size_float_;
             ++i;
             ++col_num;
@@ -46,14 +47,15 @@ void GameMap::Update() {
 void GameMap::Render(SDL_Renderer& renderer) {
     SDL_SetRenderDrawColor(&renderer, 0, 100, 225, 100);
     for (auto& cell : cells_) {
-        if (cell.is_walkable) continue;
+        //if (cell.is_walkable) continue;
 
         SDL_FRect cell_rect {
             cell.position.x,
             cell.position.y,
             cell_size_float_,
             cell_size_float_}; 
-        SDL_RenderFillRectF(&renderer, &cell_rect);
+        //SDL_RenderDrawRectF(&renderer, &cell_rect);            
+        if (!cell.is_walkable) SDL_RenderFillRectF(&renderer, &cell_rect);
     }
 
     SDL_FRect limits_r {padding_.x, padding_.y, width_, height_};
@@ -120,6 +122,11 @@ Vec2<int> GameMap::FromCoordsToColRow(Vec2<float> coords) const {
             static_cast<int>(coords.y - padding_.y) / cell_size_int_};
 }
 
+Vec2<float> GameMap::FromCoordsToCenterCellCoords(Vec2<float> coords) const {
+    const auto& cell = GetCell(coords);
+    return cell.center;
+}
+
 bool GameMap::IsInsideBoundaries(std::size_t index) const {
     return (index < cells_count_);
 }
@@ -137,6 +144,12 @@ std::size_t GameMap::GetCellsCount() const {
 }
 
 const GameMap::Cell& GameMap::GetCell(Vec2<int> col_row) const {
+    const auto index = FromColRowToIndex(col_row);
+    return cells_[index];
+}
+
+const GameMap::Cell& GameMap::GetCell(Vec2<float> coords) const {
+    const auto col_row = FromCoordsToColRow(coords);
     const auto index = FromColRowToIndex(col_row);
     return cells_[index];
 }

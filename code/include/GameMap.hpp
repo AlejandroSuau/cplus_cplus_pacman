@@ -12,11 +12,12 @@ public:
     struct Cell {
         std::size_t cell_index;
         Vec2<float> position;
+        Vec2<float> center;
         std::size_t row;
         std::size_t col;
         bool is_walkable;
-        Cell(std::size_t cell_index_, Vec2<float> position_, std::size_t row_, std::size_t col_, bool is_walkable_)
-            : cell_index(cell_index_), position(position_), row(row_), col(col_), is_walkable(is_walkable_) {}
+        Cell(std::size_t cell_index_, Vec2<float> position_, Vec2<float> center_, std::size_t row_, std::size_t col_, bool is_walkable_)
+            : cell_index(cell_index_), position(position_), center(center_), row(row_), col(col_), is_walkable(is_walkable_) {}
     };
 
     GameMap(
@@ -40,6 +41,7 @@ public:
 
     Vec2<int> FromIndexToColRow(std::size_t index) const;
     Vec2<int> FromCoordsToColRow(Vec2<float> coords) const;
+    Vec2<float> FromCoordsToCenterCellCoords(Vec2<float> coords) const;
 
     std::size_t GetRowsCount() const;
     std::size_t GetColumnsCount() const;
@@ -52,6 +54,7 @@ public:
     bool AreCoordsInsideBoundaries(Vec2<float> coords) const;
 
     const Cell& GetCell(Vec2<int> col_row) const;
+    const Cell& GetCell(Vec2<float> coords) const;
     const std::vector<Cell>& GetCells() const;
 
 private:
@@ -61,10 +64,10 @@ private:
     std::size_t cell_size_;
     int cell_size_int_;
     float cell_size_float_;
-    int rows_count_int_;
-    int cols_count_int_;
     std::size_t rows_count_;
     std::size_t cols_count_;
+    int rows_count_int_;
+    int cols_count_int_;
     std::size_t cells_count_;
 
     std::vector<Cell> cells_;

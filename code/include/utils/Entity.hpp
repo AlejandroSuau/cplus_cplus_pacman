@@ -14,10 +14,12 @@ public:
     virtual void Render() = 0;
 
     void ResetHitBox();
+    void UpdatePosition(Vec2<float> new_coords);
+
     const SDL_FRect& GetRendererRect() const;
     const SDL_FRect& GetHitBox() const;
     Vec2<float> GetPosition() const;
-    void UpdatePosition(Vec2<float> new_coords);
+    Vec2<float> GetCenterPosition() const;
 
 protected:
     Renderer& renderer_;

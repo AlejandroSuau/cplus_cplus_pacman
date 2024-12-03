@@ -64,8 +64,8 @@ void EntityMovable::StepToTarget(float dt, Vec2<float> target_coords) {
 }
 
 bool EntityMovable::Step(float dt) {
-    SDL_FRect hitbox = GetHitBox();
-    const bool did_step =  StepHitBox(dt, hitbox, direction_);
+    SDL_FRect hitbox = GetRendererRect();//GetHitBox();
+    const bool did_step = StepHitBox(dt, hitbox, direction_);
     UpdatePosition({hitbox.x, hitbox.y});
     return did_step;
 }
@@ -101,7 +101,7 @@ Vec2<int> EntityMovable::GetDirectionVector() const {
 
 bool EntityMovable::TryToStep(float dt, EDirection direction) {
     SDL_FRect next_hitbox = GetHitBox();
-    StepHitBox(dt, next_hitbox, direction); // SI CAMBIAMOS ESTO SE MUEVE BIEN PERO LAS COLISIONES MAL
+    StepHitBox(dt, next_hitbox, direction);
     if (IsMovementAllowed(next_hitbox)) {
         direction_ = direction;
         UpdatePosition({next_hitbox.x, next_hitbox.y});

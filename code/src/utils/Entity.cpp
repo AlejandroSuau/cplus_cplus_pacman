@@ -23,6 +23,11 @@ Vec2<float> Entity::GetPosition() const {
     return {hitbox_.x, hitbox_.y};
 }
 
+Vec2<float> Entity::GetCenterPosition() const {
+    return {renderer_rect_.w / 2.f + renderer_rect_.x,
+            renderer_rect_.h / 2.f + renderer_rect_.y};
+}
+
 void Entity::UpdatePosition(Vec2<float> new_coords) {
     renderer_rect_.x = new_coords.x;
     renderer_rect_.y = new_coords.y;
