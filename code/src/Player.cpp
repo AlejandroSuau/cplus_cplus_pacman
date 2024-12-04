@@ -23,6 +23,8 @@ void Player::Reset() {
     Entity::Reset();
     state_ = EState::READY;
     direction_ = EDirection::RIGHT;
+    CenterAxis();
+    
     dying_animation_timer_.Restart();
     dying_animation_sprite_index_ = 0;
     moving_animation_timer_.Restart();

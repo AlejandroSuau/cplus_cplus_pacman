@@ -14,7 +14,7 @@ Ghost::Ghost(
     float velocity,
     EDirection direction,
     PathfindingPattern pathfinding_pattern)
-    : EntityMovable(renderer, renderer_rect, game_map, velocity, direction, 1.f)
+    : EntityMovable(renderer, renderer_rect, game_map, 40.f, direction, .6f)
     , texture_manager_(texture_manager)
     , pathfinder_(pathfinder)
     , name_(name)
@@ -39,11 +39,12 @@ void Ghost::Reset() {
     path_.clear();
 }
 
+// Should about finding path when is moving between tiles.
 void Ghost::FindPath(Game& game) {
     if (is_moving_between_tiles_) return;
 
-    const auto& hitbox = GetHitBox();
-    const auto col_row = game_map_.FromCoordsToColRow({hitbox.x, hitbox.y});
+    const auto& center_pos = GetCenterPosition();
+    const auto col_row = game_map_.FromCoordsToColRow(center_pos);
     path_index_ = 1;
     path_ = patfinder_pattern_(col_row, game);
 }
@@ -85,15 +86,18 @@ void Ghost::UpdateStateChasing(float dt) {
 
 void Ghost::StepPath(float dt) {
     is_moving_between_tiles_ = true;
-    const auto target_coords = game_map_.FromColRowToCoords(path_[path_index_]);
+
+    const auto& target_cell = game_map_.GetCell(path_[path_index_]); 
+    const auto target_coords = target_cell.center;
 
     SetDirectionByTarget(target_coords);
-    StepToTarget(dt, target_coords);
+    Step(dt);
 
-    const auto& hitbox = GetHitBox();
-    if (Vec2{hitbox.x, hitbox.y} == target_coords) {
-        ++path_index_;
+    constexpr float threshold = 1.f; // Tolerancia.
+    auto tr = (GetCenterPosition() - target_coords).Length();
+    if (tr <= threshold) {
         is_moving_between_tiles_ = false;
+        path_index_++;
     }
 }
 
@@ -126,16 +130,25 @@ void Ghost::UpdateStateEyes(float dt) {
 void Ghost::Render() {
     RenderPath();
     const auto src_r = GetSourceRect();
-    renderer_.RenderTexture(sprite_sheet_, src_r, GetRendererRect());
+    renderer_.SetRenderingColor({0, 100, 150, 255});
+    renderer_.RenderRectFilled(GetHitBox());
+    // renderer_.RenderRectFilled(GetRendererRect());
+    // renderer_.RenderTexture(sprite_sheet_, src_r, GetRendererRect());
 }
 
 void Ghost::RenderPath() {
     renderer_.SetRenderingColor({200, 200, 200, 50});
     const auto cell_size = game_map_.GetCellSizeFloat();
+    std::size_t i = 0;
     for (const auto& col_row : path_) {
         const auto& cell = game_map_.GetCell(col_row);
         SDL_FRect r {cell.position.x, cell.position.y, cell_size, cell_size};
         renderer_.RenderRectFilled(r);
+        if (i == path_index_) {
+            renderer_.SetRenderingColor({255, 50, 50, 50});
+            renderer_.RenderRectFilled(r);
+        }
+        ++i;
     }
 }
 

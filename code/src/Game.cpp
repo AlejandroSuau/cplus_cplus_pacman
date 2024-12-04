@@ -85,7 +85,9 @@ void Game::Run() {
     }
 }
 
-void Game::Init() {}
+void Game::Init() {
+    ghosts_[0]->FindPath(*this);
+}
 
 void Game::Update(float dt) {
     if (state_ == EGameState::READY_TO_PLAY) {
@@ -101,12 +103,12 @@ void Game::Update(float dt) {
     }
 
     player_.Update(dt);
-    /*for (auto& ghost : ghosts_) {
+    for (auto& ghost : ghosts_) {
         ghost->Update(dt); // TODO: LO METEMOS AQUI
         if (ghost->IsInStateChasing()) {
             ghost->FindPath(*this);
         }
-    }*/
+    }
 
     collision_manager_.CheckCollisions();
 

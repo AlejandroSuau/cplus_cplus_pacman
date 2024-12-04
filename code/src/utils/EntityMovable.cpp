@@ -19,15 +19,12 @@ EntityMovable::EntityMovable(
     , is_moving_between_tiles_(false) {}
 
 void EntityMovable::SetDirectionByTarget(Vec2<float> target_coords) {
-    const auto& hitbox = GetHitBox();
-    if (hitbox.x < target_coords.x) {
-        direction_ = EDirection::RIGHT;
-    } else if (hitbox.x > target_coords.x) {
-        direction_ = EDirection::LEFT;
-    } else if (hitbox.y < target_coords.y) {
-        direction_ = EDirection::DOWN;
-    } else if (hitbox.y > target_coords.y) {
-        direction_ = EDirection::UP;
+    const auto center_position = GetCenterPosition();
+    Vec2<float> diff = target_coords - center_position;
+    if (std::abs(diff.x) > std::abs(diff.y)) {
+        direction_ = (diff.x > 0) ? EDirection::RIGHT : EDirection::LEFT;
+    } else {
+        direction_ = (diff.y > 0) ? EDirection::DOWN : EDirection::UP;
     }
 }
 
@@ -60,7 +57,7 @@ void EntityMovable::StepIntoAllowedRandomDirection(float dt) {
 
 void EntityMovable::StepToTarget(float dt, Vec2<float> target_coords) {
     Step(dt);
-    AdjustPosition(target_coords);
+    //AdjustPosition(target_coords);
 }
 
 void EntityMovable::Step(float dt) {
@@ -130,19 +127,19 @@ void EntityMovable::CenterAxis(bool center_x, bool center_y) {
 }
 
 void EntityMovable::AdjustPosition(Vec2<float> target_coords) {
-    /*SDL_FRect new_hitbox = GetHitBox();
+    auto adjusted_rect = GetRendererRect();
     const auto dir_vector = GetDirectionVector();
-    if ((dir_vector.x > 0 && new_hitbox.x >= target_coords.x) ||
-        (dir_vector.x < 0 && new_hitbox.x <= target_coords.x)) {
-        new_hitbox.x = target_coords.x;
+    if ((dir_vector.x > 0 && adjusted_rect.x >= target_coords.x) ||
+        (dir_vector.x < 0 && adjusted_rect.x <= target_coords.x)) {
+        adjusted_rect.x = target_coords.x;
     }
     
-    if ((dir_vector.y > 0 && new_hitbox.y >= target_coords.y) ||
-        (dir_vector.y < 0 && new_hitbox.y <= target_coords.y)) {
-        new_hitbox.y = target_coords.y;
+    if ((dir_vector.y > 0 && adjusted_rect.y >= target_coords.y) ||
+        (dir_vector.y < 0 && adjusted_rect.y <= target_coords.y)) {
+        adjusted_rect.y = target_coords.y;
     }
 
-    UpdatePosition({new_hitbox.x, new_hitbox.y});*/
+    UpdatePosition({adjusted_rect.x, adjusted_rect.y});
 }
 
 Vec2<int> EntityMovable::GetDirectionVector() const {

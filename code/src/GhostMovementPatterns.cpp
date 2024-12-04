@@ -11,7 +11,7 @@
 Pathfinder::Path FindPathPatternBlinky(const Vec2<int>& col_row_ghost, Game& game) {
     auto& pathfinder = game.GetPathfinder();
     const auto& game_map = game.GetMap();
-    const auto player_position = game.GetPlayer().GetPosition();
+    const auto player_position = game.GetPlayer().GetCenterPosition();
     const auto col_row_player = game_map.FromCoordsToColRow(player_position);
     
     return pathfinder.FindPath(col_row_ghost, col_row_player);
@@ -23,7 +23,7 @@ Pathfinder::Path FindPathPatternBlinky(const Vec2<int>& col_row_ghost, Game& gam
 Pathfinder::Path FindPathPatternInky(const Vec2<int>& col_row_ghost, Game& game) {
     auto& pathfinder = game.GetPathfinder();
     const auto& game_map = game.GetMap();
-    const auto player_position = game.GetPlayer().GetPosition();
+    const auto player_position = game.GetPlayer().GetCenterPosition();
     const auto row_col_player = game_map.FromCoordsToColRow(player_position);
     const auto player_direction = game.GetPlayer().GetDirectionVector();
     
@@ -36,7 +36,7 @@ Pathfinder::Path FindPathPatternInky(const Vec2<int>& col_row_ghost, Game& game)
     
     // Blinky position doubles that imaginary point diff.
     auto ghost_blinky = game.GetGhost("Blinky");
-    const auto blinky_position = ghost_blinky->get().GetPosition();
+    const auto blinky_position = ghost_blinky->get().GetCenterPosition();
     const auto col_row_blinky = game_map.FromCoordsToColRow(blinky_position);
     Vec2<int> col_row_target {
         2 * row_col_imaginary.x - col_row_blinky.x,
@@ -51,7 +51,7 @@ Pathfinder::Path FindPathPatternInky(const Vec2<int>& col_row_ghost, Game& game)
 Pathfinder::Path FindPathPatternPinky(const Vec2<int>& col_row_ghost, Game& game) {
     auto& pathfinder = game.GetPathfinder();
     const auto& game_map = game.GetMap();
-    const auto player_position = game.GetPlayer().GetPosition();
+    const auto player_position = game.GetPlayer().GetCenterPosition();
     auto col_row_player = game_map.FromCoordsToColRow(player_position);
     const auto player_direction = game.GetPlayer().GetDirectionVector();
 
@@ -71,7 +71,7 @@ Pathfinder::Path FindPathPatternPinky(const Vec2<int>& col_row_ghost, Game& game
 Pathfinder::Path FindPathPatternClyde(const Vec2<int>& col_row_ghost, Game& game) {
     auto& pathfinder = game.GetPathfinder();
     const auto& game_map = game.GetMap();
-    const auto player_position = game.GetPlayer().GetPosition();
+    const auto player_position = game.GetPlayer().GetCenterPosition();
     const auto col_row_player = game_map.FromCoordsToColRow(player_position);
     
     static const double kLimitDistance = 8.0;
