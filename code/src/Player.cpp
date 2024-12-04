@@ -5,15 +5,11 @@
 #include <stdexcept>
 #include <algorithm>
 
-namespace {
-    static const SDL_FRect kRendererRect {356.f, 516.f, 30.f, 32.f};
-}
-
 Player::Player(
     Renderer& renderer,
     TextureManager& texture_manager,
     const GameMap& game_map)
-    : EntityMovable(renderer, {356.f, 516.f, 24.f, 24.f}, game_map, 125.f, EDirection::RIGHT, .5f)
+    : EntityMovable(renderer, {356.f, 516.f, 26.f, 26.f}, game_map, 125.f, EDirection::RIGHT, .6f)
     , texture_manager_(texture_manager)
     , next_direction_(direction_)
     , state_(EState::READY)
@@ -81,65 +77,54 @@ void Player::Update(float dt) {
     }
 }
 
-bool Player::Step(float dt) {
-    auto did_reach_cell_center = [&]() {
-        const auto center_rect = GetCenterPosition();
-        const auto center_cell = game_map_.FromCoordsToCenterCellCoords(center_rect);
-        const auto tolerance = 4.f;
-        return (fabs(center_rect.x - center_cell.x) <= tolerance &&
-                fabs(center_rect.y - center_cell.y) <= tolerance);
-    };
-    
-    auto is_valid_direction = [&](EDirection dir) -> bool {
-        const auto center_rect = GetCenterPosition();
-        const auto center_cell = game_map_.FromCoordsToCenterCellCoords(center_rect);
-        auto col_row = game_map_.FromCoordsToColRow(center_rect);
-        const auto dir_vector = GetDirectionVector(dir);
-        
-        bool has_passed_center = false;
-        const auto tolerance = 4.f;
-        if (dir_vector.x != 0 && fabs(center_rect.x - center_cell.x) < tolerance) {
-            has_passed_center = true;
-        } else if (dir_vector.y != 0 && fabs(center_rect.y - center_cell.y) < tolerance) {
-            has_passed_center = true;
-        }
-
-        if (has_passed_center) {
-            col_row += dir_vector;
-        }
-
-        return game_map_.AreColRowWalkable(col_row);
-    };
-
-    // CHANGE DIR ONLY ON MIDDLE OF CELL
-    if (did_reach_cell_center() && is_valid_direction(next_direction_)) {
+bool Player::Step(float dt) {    
+    bool did_move = false;
+    if (DidReachCellCenter() && IsMovableDirection(next_direction_)) {
         direction_ = next_direction_;
+        did_move = EntityMovable::Step(dt);
+    } else if (IsMovableDirection(direction_)) {
+        did_move = EntityMovable::Step(dt);
     }
 
-    bool r = false;
-    if (is_valid_direction(direction_)) {
-        r = EntityMovable::Step(dt);
+    if (!did_move) {
+        // Center both axis
+        auto rect = GetRendererRect();
+        Vec2<float> pos {rect.x, rect.y};
+        const auto center_rect = GetCenterPosition();
+        const auto cell = game_map_.GetCell(center_rect);
+        const auto center_cell = game_map_.FromCoordsToCenterCellCoords(center_rect);
+        const auto cell_size = game_map_.GetCellSizeFloat();
+        pos.x = center_cell.x - rect.w / 2.f; + (cell_size - rect.w);
+        pos.y = center_cell.y - rect.h / 2.f; + (cell_size - rect.h);
+        UpdatePosition(pos);
     }
 
-    // CENTER IT
+
+    // Center axis depend on dir
     auto rect = GetRendererRect();
-    Vec2 pos_rect {rect.x, rect.y};
-    auto cell = game_map_.GetCell(pos_rect);
-    auto cell_size = game_map_.GetCellSizeFloat();
-    if (direction_ == EDirection::DOWN || direction_ == EDirection::UP) {
-        pos_rect.x = cell.position.x + 4.f;//(cell_size - rect.w);
-    } else if (direction_ == EDirection::LEFT || direction_ == EDirection::RIGHT) {
-        pos_rect.y = cell.position.y + 4.f;//(cell_size - rect.h);
+    Vec2<float> pos {rect.x, rect.y};
+    const auto center_rect = GetCenterPosition();
+    const auto cell = game_map_.GetCell(center_rect);
+    const auto center_cell = game_map_.FromCoordsToCenterCellCoords(center_rect);
+    const auto cell_size = game_map_.GetCellSizeFloat();
+    const auto dir_vector = GetDirectionVector();
+    if (dir_vector.y != 0) {
+        //pos.x = cell.position.x;
+        pos.x = center_cell.x - rect.w / 2.f; + (cell_size - rect.w);
+    } else if (dir_vector.x != 0) {
+        //pos.y = cell.position.y;
+        pos.y = center_cell.y - rect.h / 2.f; + (cell_size - rect.h);
     }
+    UpdatePosition(pos);
 
-    UpdatePosition(pos_rect);
-    return r;
+    return did_move;
 }
 
 void Player::Render() {
     renderer_.SetRenderingColor({255, 0, 0, 255});
-    renderer_.RenderRect(GetHitBox());
+    renderer_.RenderRect(GetRendererRect());
 
+    /*renderer_.RenderRect(GetHitBox());
     if (state_ == EState::MOVING || state_ == EState::READY) {
         const auto src_r = GetSourceRectMoving();
         const double angle = 90.0 * static_cast<double>(direction_);
@@ -148,7 +133,7 @@ void Player::Render() {
         const auto src_r = GetSourceRectDying();
         const double angle = 90.0 * static_cast<double>(direction_);
         renderer_.RenderTexture(sprite_sheet_, src_r, GetRendererRect(), angle);
-    }
+    }*/
 }
 
 SDL_Rect Player::GetSourceRectMoving() const {

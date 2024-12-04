@@ -127,7 +127,7 @@ void Game::Render() {
     //SDL_RenderCopy(renderer, background_texture_, nullptr, &kTextureRectBackground);
 
     map_.Render(*renderer);
-    collectable_manager_.Render();
+    //collectable_manager_.Render();
     player_.Render();
     for (auto& ghost : ghosts_) {
         ghost->Render();

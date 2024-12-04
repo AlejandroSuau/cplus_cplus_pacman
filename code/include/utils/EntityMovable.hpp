@@ -27,7 +27,7 @@ public:
     ~EntityMovable() = default;
 
     virtual bool Step(float dt);
-    bool StepHitBox(float dt, SDL_FRect& hitbox, EDirection direction) const;
+    bool StepRect(float dt, SDL_FRect& rect, EDirection direction) const;
     void StepIntoAllowedRandomDirection(float dt);
     void StepToTarget(float dt, Vec2<float> target_coords);
     bool TryToStep(float dt, EDirection direction);
@@ -47,4 +47,7 @@ protected:
     bool is_moving_between_tiles_;
 
     bool IsMovementAllowed(const SDL_FRect& moved_rect) const;
+    bool DidReachCellCenter() const;
+    float GetCellCenterTolerance() const;
+    bool IsMovableDirection(EDirection direction) const;
 };

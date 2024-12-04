@@ -54,8 +54,16 @@ void GameMap::Render(SDL_Renderer& renderer) {
             cell.position.y,
             cell_size_float_,
             cell_size_float_}; 
-        //SDL_RenderDrawRectF(&renderer, &cell_rect);            
+        
+        SDL_RenderDrawRectF(&renderer, &cell_rect);      
         if (!cell.is_walkable) SDL_RenderFillRectF(&renderer, &cell_rect);
+
+        SDL_FRect r {
+            cell.center.x,
+            cell.center.y,
+            2,
+            2}; 
+        SDL_RenderFillRectF(&renderer, &r);
     }
 
     SDL_FRect limits_r {padding_.x, padding_.y, width_, height_};
