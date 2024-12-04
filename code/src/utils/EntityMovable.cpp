@@ -63,20 +63,17 @@ void EntityMovable::StepToTarget(float dt, Vec2<float> target_coords) {
     AdjustPosition(target_coords);
 }
 
-bool EntityMovable::Step(float dt) {
+void EntityMovable::Step(float dt) {
     SDL_FRect renderer_rect = GetRendererRect();
-    const bool did_step = StepRect(dt, renderer_rect, direction_);
+    StepRect(dt, renderer_rect, direction_);
     UpdatePosition({renderer_rect.x, renderer_rect.y});
-    return did_step;
 }
 
-bool EntityMovable::StepRect(float dt, SDL_FRect& rect, EDirection direction) const {
+void EntityMovable::StepRect(float dt, SDL_FRect& rect, EDirection direction) const {
     const auto delta = velocity_ * dt;
     const auto dir_vector = GetDirectionVector(direction);
     rect.x += delta * dir_vector.x;
     rect.y += delta * dir_vector.y;
-    
-    return true;
 }
 
 bool EntityMovable::DidReachCellCenter() const {
@@ -88,7 +85,8 @@ bool EntityMovable::DidReachCellCenter() const {
 }
 
 float EntityMovable::GetCellCenterTolerance() const {
-    return (game_map_.GetCellSizeFloat() / 8.f);
+    // If velocity increases it will need a higher number of tolerancy.
+    return (game_map_.GetCellSizeFloat() / 16.f);
 }
 
 bool EntityMovable::IsMovableDirection(EDirection direction) const {
@@ -111,6 +109,26 @@ bool EntityMovable::IsMovableDirection(EDirection direction) const {
     return game_map_.AreColRowWalkable(col_row);
 }
 
+void EntityMovable::CenterAxisX() {
+    CenterAxis(true, false);
+}
+
+void EntityMovable::CenterAxisY() {
+    CenterAxis(false, true);
+}
+
+void EntityMovable::CenterAxis(bool center_x, bool center_y) {
+    const auto center_rect = GetCenterPosition();
+    const auto center_cell = game_map_.FromCoordsToCenterCellCoords(center_rect);
+    
+    const auto rect = GetRendererRect();
+    Vec2<float> pos {rect.x, rect.y};
+    if (center_x) pos.x = center_cell.x - rect.w / 2.f;
+    if (center_y) pos.y = center_cell.y - rect.h / 2.f;
+
+    UpdatePosition(pos);
+}
+
 void EntityMovable::AdjustPosition(Vec2<float> target_coords) {
     /*SDL_FRect new_hitbox = GetHitBox();
     const auto dir_vector = GetDirectionVector();
@@ -129,18 +147,6 @@ void EntityMovable::AdjustPosition(Vec2<float> target_coords) {
 
 Vec2<int> EntityMovable::GetDirectionVector() const {
     return GetDirectionVector(direction_);
-}
-
-bool EntityMovable::TryToStep(float dt, EDirection direction) {
-    SDL_FRect renderer_rect = GetRendererRect();
-    StepRect(dt, renderer_rect, direction);
-    if (IsMovementAllowed(renderer_rect)) {
-        direction_ = direction;
-        UpdatePosition({renderer_rect.x, renderer_rect.y});
-        return true;
-    }
-
-    return false;
 }
 
 Vec2<int> EntityMovable::GetDirectionVector(EDirection direction) const {

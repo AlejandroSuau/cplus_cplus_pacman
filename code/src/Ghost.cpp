@@ -30,7 +30,7 @@ Ghost::Ghost(
 }
 
 void Ghost::Reset() {
-    ResetHitBox();
+    Entity::Reset();
     direction_ = starting_direction_;
     state_ = EState::HOUSING;
     is_moving_between_tiles_ = false;
@@ -181,7 +181,8 @@ void Ghost::Die() {
     UpdatePosition(fixed_coords);
     
     path_index_ = 0;
-    const auto col_row_to = game_map_.FromCoordsToColRow({starting_hitbox_.x, starting_hitbox_.y});
+    const auto col_row_to = game_map_.FromCoordsToColRow(
+        Vec2<float>{starting_renderer_rect_.x, starting_renderer_rect_.y});
     path_ = pathfinder_.FindPath(col_row_from, col_row_to);
 }
 

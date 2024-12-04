@@ -25,7 +25,7 @@ public:
     void Render() override;
     
     // EntityMovable
-    bool Step(float dt) override;
+    void Step(float dt) override;
 
     void HandleKeyPressed(SDL_Scancode scancode);
     
@@ -62,4 +62,5 @@ private:
 
     SDL_Rect GetSourceRectMoving() const;
     SDL_Rect GetSourceRectDying() const;
+    bool IsOrthogonalTurn() const;
 };

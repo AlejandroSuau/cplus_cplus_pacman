@@ -2,12 +2,15 @@
 
 
 Entity::Entity(Renderer& renderer, SDL_FRect renderer_rect, float hitbox_scale)
-    : renderer_(renderer), renderer_rect_(renderer_rect), starting_hitbox_(renderer_rect), hitbox_scale_(hitbox_scale) {
+    : renderer_(renderer)
+    , renderer_rect_(renderer_rect)
+    , starting_renderer_rect_(renderer_rect)
+    , hitbox_scale_(hitbox_scale) {
     UpdateHitBox();
 }
 
-void Entity::ResetHitBox() {
-    renderer_rect_ = starting_hitbox_;
+void Entity::Reset() {
+    renderer_rect_ = starting_renderer_rect_;
     UpdateHitBox();
 }
 

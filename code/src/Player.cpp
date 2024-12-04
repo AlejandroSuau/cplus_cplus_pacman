@@ -15,11 +15,12 @@ Player::Player(
     , state_(EState::READY)
     , lifes_(PlayerParameters::kLifes)
     , score_(0) {
+    CenterAxis();
     sprite_sheet_ = texture_manager_.LoadTexture(kAssetsFolderImages + "spritesheet.png");
 }
 
 void Player::Reset() {
-    ResetHitBox();
+    Entity::Reset();
     state_ = EState::READY;
     direction_ = EDirection::RIGHT;
     dying_animation_timer_.Restart();
@@ -77,55 +78,40 @@ void Player::Update(float dt) {
     }
 }
 
-bool Player::Step(float dt) {    
+void Player::Step(float dt) {   
     bool did_move = false;
-    if (DidReachCellCenter() && IsMovableDirection(next_direction_)) {
-        direction_ = next_direction_;
-        did_move = EntityMovable::Step(dt);
-    } else if (IsMovableDirection(direction_)) {
-        did_move = EntityMovable::Step(dt);
+    if (IsMovableDirection(next_direction_)) {
+        did_move = IsOrthogonalTurn() ? DidReachCellCenter() : true;
+        if (did_move) direction_ = next_direction_;
     }
-
-    if (!did_move) {
-        // Center both axis
-        auto rect = GetRendererRect();
-        Vec2<float> pos {rect.x, rect.y};
-        const auto center_rect = GetCenterPosition();
-        const auto cell = game_map_.GetCell(center_rect);
-        const auto center_cell = game_map_.FromCoordsToCenterCellCoords(center_rect);
-        const auto cell_size = game_map_.GetCellSizeFloat();
-        pos.x = center_cell.x - rect.w / 2.f; + (cell_size - rect.w);
-        pos.y = center_cell.y - rect.h / 2.f; + (cell_size - rect.h);
-        UpdatePosition(pos);
+    
+    if (did_move || IsMovableDirection(direction_)) {
+        EntityMovable::Step(dt);        
+        
+        const auto dir_vector = GetDirectionVector();
+        if (dir_vector.y != 0) {
+            CenterAxisX();
+        } else if (dir_vector.x != 0) {
+            CenterAxisY();
+        }
+    } else {
+        CenterAxis();
     }
+}
 
-
-    // Center axis depend on dir
-    auto rect = GetRendererRect();
-    Vec2<float> pos {rect.x, rect.y};
-    const auto center_rect = GetCenterPosition();
-    const auto cell = game_map_.GetCell(center_rect);
-    const auto center_cell = game_map_.FromCoordsToCenterCellCoords(center_rect);
-    const auto cell_size = game_map_.GetCellSizeFloat();
-    const auto dir_vector = GetDirectionVector();
-    if (dir_vector.y != 0) {
-        //pos.x = cell.position.x;
-        pos.x = center_cell.x - rect.w / 2.f; + (cell_size - rect.w);
-    } else if (dir_vector.x != 0) {
-        //pos.y = cell.position.y;
-        pos.y = center_cell.y - rect.h / 2.f; + (cell_size - rect.h);
-    }
-    UpdatePosition(pos);
-
-    return did_move;
+bool Player::IsOrthogonalTurn() const {
+    return (direction_ == EDirection::UP || direction_ == EDirection::DOWN) &&
+           (next_direction_ == EDirection::LEFT || next_direction_ == EDirection::RIGHT) || 
+           (direction_ == EDirection::LEFT || direction_ == EDirection::RIGHT) && 
+           (next_direction_ == EDirection::UP || next_direction_ == EDirection::DOWN);
 }
 
 void Player::Render() {
     renderer_.SetRenderingColor({255, 0, 0, 255});
-    renderer_.RenderRect(GetRendererRect());
+    //renderer_.RenderRect(GetRendererRect());
 
-    /*renderer_.RenderRect(GetHitBox());
-    if (state_ == EState::MOVING || state_ == EState::READY) {
+    renderer_.RenderRect(GetHitBox());
+    /*if (state_ == EState::MOVING || state_ == EState::READY) {
         const auto src_r = GetSourceRectMoving();
         const double angle = 90.0 * static_cast<double>(direction_);
         renderer_.RenderTexture(sprite_sheet_, src_r, GetRendererRect(), angle);

@@ -13,7 +13,7 @@ public:
     virtual void Update(float dt) = 0;
     virtual void Render() = 0;
 
-    void ResetHitBox();
+    void Reset();
     void UpdatePosition(Vec2<float> new_coords);
 
     const SDL_FRect& GetRendererRect() const;
@@ -24,7 +24,7 @@ public:
 protected:
     Renderer& renderer_;
     const float hitbox_scale_;
-    const SDL_FRect starting_hitbox_;
+    const SDL_FRect starting_renderer_rect_;
 
 private:
     SDL_FRect renderer_rect_;
