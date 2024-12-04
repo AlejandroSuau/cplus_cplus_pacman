@@ -14,7 +14,7 @@ Ghost::Ghost(
     float velocity,
     EDirection direction,
     PathfindingPattern pathfinding_pattern)
-    : EntityMovable(renderer, renderer_rect, game_map, 40.f, direction, .6f)
+    : EntityMovable(renderer, renderer_rect, game_map, 120.f, direction, .6f)
     , texture_manager_(texture_manager)
     , pathfinder_(pathfinder)
     , name_(name)
@@ -92,8 +92,15 @@ void Ghost::StepPath(float dt) {
 
     SetDirectionByTarget(target_coords);
     Step(dt);
+    
+    const auto dir_vector = GetDirectionVector();
+    if (dir_vector.y != 0) {
+        CenterAxisX();
+    } else if (dir_vector.x != 0) {
+        CenterAxisY();
+    }
 
-    constexpr float threshold = 1.f; // Tolerancia.
+    constexpr float threshold = 4.f; // Tolerancia.
     auto tr = (GetCenterPosition() - target_coords).Length();
     if (tr <= threshold) {
         is_moving_between_tiles_ = false;
