@@ -83,7 +83,10 @@ void Ghost::UpdateStateHouse(float dt) {
 }
 
 void Ghost::UpdateStateChasing(float dt) {
-    if (path_index_ >= path_.size()) return;
+    if (path_index_ >= path_.size()) {
+        CenterAxis();
+        return;
+    }
 
     StepPath(dt);
 }
