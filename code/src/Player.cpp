@@ -127,6 +127,11 @@ void Player::Die() {
     DecreaseOneLife();
 }
 
+void Player::IncreaseOneLife() {
+    constexpr unsigned int kMaxLifes = 6;
+    lifes_ = std::clamp(lifes_, lifes_ + 1, kMaxLifes);
+}
+
 void Player::DecreaseOneLife() {
     if (lifes_ == 0) {
         throw std::runtime_error("Trying to decrease lifes on already died player!");

@@ -98,8 +98,8 @@ void Ghost::StepPath(float dt) {
     Step(dt);
 
     constexpr float threshold = 4.f;
-    auto tr = (GetCenterPosition() - target_coords).Length();
-    if (tr <= threshold) {
+    auto diff_length = (GetCenterPosition() - target_coords).Length();
+    if (diff_length <= threshold) {
         is_moving_between_tiles_ = false;
         path_index_++;
     }

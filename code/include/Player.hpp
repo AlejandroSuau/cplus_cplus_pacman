@@ -27,6 +27,7 @@ public:
     void HandleKeyPressed(SDL_Scancode scancode);
     
     void IncreaseScore(unsigned int value);
+    void IncreaseOneLife();
     void DecreaseOneLife();
     unsigned int GetLifes() const;
     unsigned int GetScore() const;

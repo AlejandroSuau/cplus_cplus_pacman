@@ -104,11 +104,10 @@ void Game::Update(float dt) {
 
     player_.Update(dt);
     for (auto& ghost : ghosts_) {
-        ghost->Update(dt, *this); // TODO: LO METEMOS AQUI
+        ghost->Update(dt);
         if (ghost->IsInStateChasing()) {
             ghost->FindPath(*this);
         }
-        return;
     }
 
     collision_manager_.CheckCollisions();
@@ -164,6 +163,11 @@ void Game::HandleEvents() {
             if (event.key.keysym.scancode == SDL_SCANCODE_D) {
                 is_key_hack_able_ = false;
                 for (auto& g : ghosts_) g->Die();
+            }
+            // Extra life
+            if (event.key.keysym.scancode == SDL_SCANCODE_L) {
+                is_key_hack_able_ = false;
+                player_.IncreaseOneLife();
             }
         }
     }
