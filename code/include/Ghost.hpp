@@ -94,7 +94,9 @@ private:
     void UpdateStateHouse(float dt);
     void UpdateStateChasing(float dt);
     void UpdateStateFrightened(float dt);
+    bool UpdateFrightenedTimer(float dt);
     void UpdateStateEyes(float dt);
 
     void SetHousingState();
+    EDirection ChooseRandomDirection();
 };

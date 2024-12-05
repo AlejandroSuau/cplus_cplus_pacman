@@ -109,7 +109,27 @@ void Ghost::StepPath(float dt) {
 }
 
 void Ghost::UpdateStateFrightened(float dt) {
+    if (UpdateFrightenedTimer(dt)) return;
+
+    const auto& cell = game_map_.GetCell(GetCenterPosition());
+    if (DidReachCellCenter() && cell.cell_index != last_visited_cell_index_) {
+        const auto dir = ChooseRandomDirection();
+        if (IsOrthogonalTurn(dir)) {
+            direction_ = dir;
+        }
+        last_visited_cell_index_ = cell.cell_index;
+    }
+
+    Step(dt);
+}
+
+bool Ghost::UpdateFrightenedTimer(float dt) {
     timer_mode_frightened_.Update(dt);
+    if (timer_mode_frightened_.DidFinish()) {
+        state_ = EState::CHASING;
+        return true;
+    }
+    
     if (timer_mode_frightened_.GetSecondsToFinish() <= intermittent_time_last_seconds_) {
         timer_frightened_intermittent_.Update(dt);
         if (timer_frightened_intermittent_.DidFinish()) {
@@ -117,11 +137,10 @@ void Ghost::UpdateStateFrightened(float dt) {
         }
     }
 
-    if (timer_mode_frightened_.DidFinish()) {
-        state_ = EState::CHASING;
-        return;
-    }
+    return false;
+}
 
+EDirection Ghost::ChooseRandomDirection() {
     std::array directions {
         EDirection::LEFT,
         EDirection::UP,
@@ -137,17 +156,8 @@ void Ghost::UpdateStateFrightened(float dt) {
         static thread_local std::mt19937 rng{std::random_device{}()};
         std::ranges::shuffle(directions.begin(), directions_end, rng);
     }
-
-    const auto& cell = game_map_.GetCell(GetCenterPosition());
-    if (DidReachCellCenter() && cell.cell_index != last_visited_cell_index_) {
-        const auto dir = *directions.begin();
-        if (IsOrthogonalTurn(dir)) {
-            direction_ = dir;
-        }
-        last_visited_cell_index_ = cell.cell_index;
-    }
-
-    Step(dt);
+    
+    return *directions.begin();
 }
 
 void Ghost::UpdateStateEyes(float dt) {
