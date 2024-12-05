@@ -3,6 +3,10 @@
 #include "Constants.hpp"
 #include "Game.hpp"
 
+#include <algorithm>
+#include <array>
+#include <random>
+
 Ghost::Ghost(
     Renderer& renderer,
     TextureManager& texture_manager,
@@ -14,7 +18,7 @@ Ghost::Ghost(
     float velocity,
     EDirection direction,
     PathfindingPattern pathfinding_pattern)
-    : EntityMovable(renderer, renderer_rect, game_map, 120.f, direction, .6f)
+    : EntityMovable(renderer, renderer_rect, game_map, 100.f, direction, .6f)
     , texture_manager_(texture_manager)
     , pathfinder_(pathfinder)
     , name_(name)
@@ -39,7 +43,7 @@ void Ghost::Reset() {
     path_.clear();
 }
 
-// Should about finding path when is moving between tiles.
+// Should avoid finding path when is moving between tiles.
 void Ghost::FindPath(Game& game) {
     if (is_moving_between_tiles_) return;
 
@@ -92,15 +96,8 @@ void Ghost::StepPath(float dt) {
 
     SetDirectionByTarget(target_coords);
     Step(dt);
-    
-    const auto dir_vector = GetDirectionVector();
-    if (dir_vector.y != 0) {
-        CenterAxisX();
-    } else if (dir_vector.x != 0) {
-        CenterAxisY();
-    }
 
-    constexpr float threshold = 4.f; // Tolerancia.
+    constexpr float threshold = 4.f;
     auto tr = (GetCenterPosition() - target_coords).Length();
     if (tr <= threshold) {
         is_moving_between_tiles_ = false;
@@ -122,7 +119,32 @@ void Ghost::UpdateStateFrightened(float dt) {
         return;
     }
 
-    StepIntoAllowedRandomDirection(dt);
+    std::array directions {
+        EDirection::LEFT,
+        EDirection::UP,
+        EDirection::DOWN,
+        EDirection::RIGHT
+    };
+
+    auto is_unwanted_direction = [&](EDirection d) {
+        return (!IsMovableDirection(d) || d == GetOppositeDirection());
+    };
+    auto directions_end = std::remove_if(directions.begin(), directions.end(), is_unwanted_direction);
+    if (std::distance(directions.begin(), directions_end) > 1) {
+        static thread_local std::mt19937 rng{std::random_device{}()};
+        std::ranges::shuffle(directions.begin(), directions_end, rng);
+    }
+
+    const auto& cell = game_map_.GetCell(GetCenterPosition());
+    if (DidReachCellCenter() && cell.cell_index != last_visited_cell_index_) {
+        const auto dir = *directions.begin();
+        if (IsOrthogonalTurn(dir)) {
+            direction_ = dir;
+        }
+        last_visited_cell_index_ = cell.cell_index;
+    }
+
+    Step(dt);
 }
 
 void Ghost::UpdateStateEyes(float dt) {
@@ -132,6 +154,12 @@ void Ghost::UpdateStateEyes(float dt) {
     }
 
     StepPath(dt);
+    const auto dir_vector = GetDirectionVector();
+    if (dir_vector.y != 0) {
+        CenterAxisX();
+    } else if (dir_vector.x != 0) {
+        CenterAxisY();
+    }
 }
 
 void Ghost::Render() {

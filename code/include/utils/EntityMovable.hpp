@@ -26,11 +26,8 @@ public:
         float hitbox_scale = 1.f);
     ~EntityMovable() = default;
 
-    virtual void Step(float dt);
-    void StepRect(float dt, SDL_FRect& rect, EDirection direction) const;
+    void Step(float dt);
     void StepIntoAllowedRandomDirection(float dt);
-    void StepToTarget(float dt, Vec2<float> target_coords);
-    void AdjustPosition(Vec2<float> target_coords);
     void SetDirectionByTarget(Vec2<float> target_coords);
 
     void ReverseDirection();
@@ -49,6 +46,7 @@ protected:
     bool DidReachCellCenter() const;
     float GetCellCenterTolerance() const;
     bool IsMovableDirection(EDirection direction) const;
+    bool IsOrthogonalTurn(EDirection next_direction) const;
     void CenterAxisX();
     void CenterAxisY();
     void CenterAxis(bool center_x = true, bool center_y = true);

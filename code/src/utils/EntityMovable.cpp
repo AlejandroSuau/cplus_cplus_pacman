@@ -40,9 +40,8 @@ void EntityMovable::StepIntoAllowedRandomDirection(float dt) {
         directions.begin(), directions.end(), GetOppositeDirection());
     
     auto is_prohibited_movement = [&](EDirection dir) {
-        SDL_FRect renderer_rect = GetRendererRect();
-        StepRect(dt, renderer_rect, dir);
-        return !IsMovementAllowed(renderer_rect);
+        bool is_movable = IsMovableDirection(dir); // y si es ortogonal, tambien did reach cell center
+        return !is_movable; 
     };
 
     directions_end = std::remove_if(directions.begin(), directions_end, is_prohibited_movement);
@@ -51,26 +50,42 @@ void EntityMovable::StepIntoAllowedRandomDirection(float dt) {
         std::ranges::shuffle(directions.begin(), directions_end, rng);
     }
 
-    direction_ = *directions.begin();
+    // PROBLEMa: cambia mas de una vez en la misma intersecc
+    const auto dir = *directions.begin();
+    if (IsOrthogonalTurn(dir) && DidReachCellCenter()) {
+        SDL_Log("------------------------------------------------------");
+        SDL_Log("Was going direction: %d", static_cast<int>(direction_));
+        direction_ = dir;
+        SDL_Log("NEW DIRECTION: %d", static_cast<int>(direction_));
+        SDL_Log("------------------------------------------------------");
+    } else {
+        SDL_Log("No changing");
+    }
     Step(dt);
 }
 
-void EntityMovable::StepToTarget(float dt, Vec2<float> target_coords) {
-    Step(dt);
-    //AdjustPosition(target_coords);
+bool EntityMovable::IsOrthogonalTurn(EDirection next_direction) const {
+    return (direction_ == EDirection::UP || direction_ == EDirection::DOWN) &&
+           (next_direction == EDirection::LEFT || next_direction == EDirection::RIGHT) || 
+           (direction_ == EDirection::LEFT || direction_ == EDirection::RIGHT) && 
+           (next_direction == EDirection::UP || next_direction == EDirection::DOWN);
 }
 
 void EntityMovable::Step(float dt) {
-    SDL_FRect renderer_rect = GetRendererRect();
-    StepRect(dt, renderer_rect, direction_);
-    UpdatePosition({renderer_rect.x, renderer_rect.y});
-}
-
-void EntityMovable::StepRect(float dt, SDL_FRect& rect, EDirection direction) const {
+    const SDL_FRect renderer_rect = GetRendererRect();
     const auto delta = velocity_ * dt;
-    const auto dir_vector = GetDirectionVector(direction);
-    rect.x += delta * dir_vector.x;
-    rect.y += delta * dir_vector.y;
+
+    const auto dir_vector = GetDirectionVector();
+    Vec2<float> new_position {renderer_rect.x, renderer_rect.y};
+    new_position.x += delta * dir_vector.x;
+    new_position.y += delta * dir_vector.y;
+    UpdatePosition(new_position);
+
+    if (dir_vector.y != 0) {
+        CenterAxisX();
+    } else if (dir_vector.x != 0) {
+        CenterAxisY();
+    }
 }
 
 bool EntityMovable::DidReachCellCenter() const {
@@ -124,22 +139,6 @@ void EntityMovable::CenterAxis(bool center_x, bool center_y) {
     if (center_y) pos.y = center_cell.y - rect.h / 2.f;
 
     UpdatePosition(pos);
-}
-
-void EntityMovable::AdjustPosition(Vec2<float> target_coords) {
-    auto adjusted_rect = GetRendererRect();
-    const auto dir_vector = GetDirectionVector();
-    if ((dir_vector.x > 0 && adjusted_rect.x >= target_coords.x) ||
-        (dir_vector.x < 0 && adjusted_rect.x <= target_coords.x)) {
-        adjusted_rect.x = target_coords.x;
-    }
-    
-    if ((dir_vector.y > 0 && adjusted_rect.y >= target_coords.y) ||
-        (dir_vector.y < 0 && adjusted_rect.y <= target_coords.y)) {
-        adjusted_rect.y = target_coords.y;
-    }
-
-    UpdatePosition({adjusted_rect.x, adjusted_rect.y});
 }
 
 Vec2<int> EntityMovable::GetDirectionVector() const {

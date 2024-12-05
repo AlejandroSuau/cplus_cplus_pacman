@@ -12,6 +12,9 @@
 - Create animations class.
 - On win the game. Stop all ghosts / player. Reproduce sounds. Remove ghosts. Blinky background blues. Start again (without resetting score).
 - Add text renderer to the renderer?
+- Center ghosts on stop (as player) -> CenterAxis();
+- If player is on ghost's house's door can't take down direct. Same for ghost in frightened mode.
+- In the random choice direction from frightened mode, we can add also to "is_unwated_direction", the direction where the player is. (but what if it is the only one?)
 
 ## Technology
 Compilation:

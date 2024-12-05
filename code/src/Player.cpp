@@ -75,44 +75,28 @@ void Player::Update(float dt) {
         }
 
         if (state_ == EState::MOVING) {
-            Step(dt);
+            UpdateStateMoving(dt);
         }
     }
 }
 
-void Player::Step(float dt) {   
-    bool did_move = false;
+void Player::UpdateStateMoving(float dt) {   
+    bool should_move = false;
     if (IsMovableDirection(next_direction_)) {
-        did_move = IsOrthogonalTurn() ? DidReachCellCenter() : true;
-        if (did_move) direction_ = next_direction_;
+        should_move = IsOrthogonalTurn(next_direction_) ? DidReachCellCenter() : true;
+        if (should_move) direction_ = next_direction_;
     }
     
-    if (did_move || IsMovableDirection(direction_)) {
-        EntityMovable::Step(dt);        
-        
-        const auto dir_vector = GetDirectionVector();
-        if (dir_vector.y != 0) {
-            CenterAxisX();
-        } else if (dir_vector.x != 0) {
-            CenterAxisY();
-        }
-    } else {
-        CenterAxis();
+    if (should_move || IsMovableDirection(direction_)) {
+        Step(dt);        
     }
-}
-
-bool Player::IsOrthogonalTurn() const {
-    return (direction_ == EDirection::UP || direction_ == EDirection::DOWN) &&
-           (next_direction_ == EDirection::LEFT || next_direction_ == EDirection::RIGHT) || 
-           (direction_ == EDirection::LEFT || direction_ == EDirection::RIGHT) && 
-           (next_direction_ == EDirection::UP || next_direction_ == EDirection::DOWN);
 }
 
 void Player::Render() {
     renderer_.SetRenderingColor({255, 0, 0, 255});
-    //renderer_.RenderRect(GetRendererRect());
+    renderer_.RenderRect(GetRendererRect());
 
-    renderer_.RenderRect(GetHitBox());
+    //renderer_.RenderRect(GetHitBox());
     /*if (state_ == EState::MOVING || state_ == EState::READY) {
         const auto src_r = GetSourceRectMoving();
         const double angle = 90.0 * static_cast<double>(direction_);

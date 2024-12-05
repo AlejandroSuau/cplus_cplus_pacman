@@ -81,6 +81,7 @@ private:
     bool is_moving_between_tiles_;
     Pathfinder::Path path_;
     std::size_t path_index_;
+    std::size_t last_visited_cell_index_ {0};
     
     CountdownTimer animation_timer_;
     int sprite_index_;
