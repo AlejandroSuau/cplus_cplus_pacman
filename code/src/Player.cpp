@@ -93,11 +93,11 @@ void Player::UpdateStateMoving(float dt) {
 }
 
 void Player::Render() {
-    renderer_.SetRenderingColor({255, 0, 0, 255});
-    renderer_.RenderRect(GetRendererRect());
+    //renderer_.SetRenderingColor({255, 0, 0, 255});
+    //renderer_.RenderRect(GetRendererRect());
 
     //renderer_.RenderRect(GetHitBox());
-    /*if (state_ == EState::MOVING || state_ == EState::READY) {
+    if (state_ == EState::MOVING || state_ == EState::READY) {
         const auto src_r = GetSourceRectMoving();
         const double angle = 90.0 * static_cast<double>(direction_);
         renderer_.RenderTexture(sprite_sheet_, src_r, GetRendererRect(), angle);
@@ -105,7 +105,7 @@ void Player::Render() {
         const auto src_r = GetSourceRectDying();
         const double angle = 90.0 * static_cast<double>(direction_);
         renderer_.RenderTexture(sprite_sheet_, src_r, GetRendererRect(), angle);
-    }*/
+    }
 }
 
 SDL_Rect Player::GetSourceRectMoving() const {

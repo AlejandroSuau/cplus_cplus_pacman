@@ -47,7 +47,7 @@ void GameMap::Update() {
 void GameMap::Render(SDL_Renderer& renderer) {
     SDL_SetRenderDrawColor(&renderer, 0, 100, 225, 100);
     for (auto& cell : cells_) {
-        //if (cell.is_walkable) continue;
+        if (cell.is_walkable) continue;
 
         SDL_FRect cell_rect {
             cell.position.x,
@@ -55,15 +55,15 @@ void GameMap::Render(SDL_Renderer& renderer) {
             cell_size_float_,
             cell_size_float_}; 
         
-        SDL_RenderDrawRectF(&renderer, &cell_rect);      
-        if (!cell.is_walkable) SDL_RenderFillRectF(&renderer, &cell_rect);
+        SDL_RenderFillRectF(&renderer, &cell_rect);      
+        /*if (!cell.is_walkable) SDL_RenderFillRectF(&renderer, &cell_rect);
 
         SDL_FRect r {
             cell.center.x,
             cell.center.y,
             2,
             2}; 
-        SDL_RenderFillRectF(&renderer, &r);
+        SDL_RenderFillRectF(&renderer, &r);*/
     }
 
     SDL_FRect limits_r {padding_.x, padding_.y, width_, height_};

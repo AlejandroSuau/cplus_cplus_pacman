@@ -18,7 +18,7 @@ Ghost::Ghost(
     float velocity,
     EDirection direction,
     PathfindingPattern pathfinding_pattern)
-    : EntityMovable(renderer, renderer_rect, game_map, 100.f, direction, .6f)
+    : EntityMovable(renderer, renderer_rect, game_map, 100.f, direction, .8f)
     , texture_manager_(texture_manager)
     , pathfinder_(pathfinder)
     , name_(name)
@@ -180,12 +180,12 @@ void Ghost::UpdateStateEyes(float dt) {
 }
 
 void Ghost::Render() {
-    RenderPath();
+    //RenderPath();
     const auto src_r = GetSourceRect();
-    renderer_.SetRenderingColor({0, 100, 150, 255});
-    renderer_.RenderRectFilled(GetHitBox());
+    //renderer_.SetRenderingColor({0, 100, 150, 255});
+    //renderer_.RenderRectFilled(GetHitBox());
     // renderer_.RenderRectFilled(GetRendererRect());
-    // renderer_.RenderTexture(sprite_sheet_, src_r, GetRendererRect());
+    renderer_.RenderTexture(sprite_sheet_, src_r, GetRendererRect());
 }
 
 void Ghost::RenderPath() {
