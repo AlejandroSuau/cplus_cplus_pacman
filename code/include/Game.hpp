@@ -17,6 +17,7 @@
 #include "CollectableManager.hpp"
 #include "Types.hpp"
 #include "CollisionManager.hpp"
+#include "Level.hpp"
 
 #include "pathfinder/Pathfinder.hpp"
 
@@ -64,6 +65,7 @@ private:
     TextManager text_manager_;
     UIManager ui_manager_;
     EGameState state_;
+    Level level_;
     
     CountdownTimer timer_to_start_{2.f};
     CountdownTimer timer_to_restart_{1.f};

@@ -34,7 +34,7 @@ Game::Game()
     , map_(kGameWidth, kGameHeight, Vec2{static_cast<float>(kGamePaddingX), static_cast<float>(kGamePaddingY)}, kCellSize)
     , pathfinder_(map_)
     , player_(renderer_, texture_manager_, map_)
-    , ui_manager_(text_manager_, texture_manager_, player_)
+    , ui_manager_(renderer_, text_manager_, texture_manager_, player_, level_)
     , ghost_factory_(renderer_, texture_manager_, map_, pathfinder_)
     , ghosts_{{
         ghost_factory_.CreateGhostBlinky(),
