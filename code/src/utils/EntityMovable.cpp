@@ -103,17 +103,23 @@ float EntityMovable::GetCellCenterTolerance() const {
 
 bool EntityMovable::IsMovableDirection(EDirection direction) const {
     const auto center_rect = GetCenterPosition();
-    if (!game_map_.AreCoordsInsideBoundaries(center_rect)) return false;
+    if (!game_map_.AreCoordsInsideBoundaries(center_rect)) {
+        return false;
+    }
 
-    const auto center_cell = game_map_.FromCoordsToCenterCellCoords(center_rect);
+    static const Vec2<int> kHousesDoorColRow {8, 6};
+    const auto& cell = game_map_.GetCell(center_rect);
+    auto col_row = game_map_.FromCoordsToColRow(cell.center);    
+    if (kHousesDoorColRow == col_row && direction == EDirection::DOWN) {
+        return false;
+    }
+
     const auto dir_vector = GetDirectionVector(direction);       
     const auto tolerance = GetCellCenterTolerance();
     
     bool did_pass_cell_center = (
-        (dir_vector.x != 0 && fabs(center_rect.x - center_cell.x) < tolerance) ||
-        (dir_vector.y != 0 && fabs(center_rect.y - center_cell.y) < tolerance));
-
-    auto col_row = game_map_.FromCoordsToColRow(center_rect);
+        (dir_vector.x != 0 && fabs(center_rect.x - cell.center.x) < tolerance) ||
+        (dir_vector.y != 0 && fabs(center_rect.y - cell.center.y) < tolerance));
     if (did_pass_cell_center) {
         col_row += dir_vector;
     }
@@ -155,18 +161,6 @@ Vec2<int> EntityMovable::GetDirectionVector(EDirection direction) const {
     }
 }
 
-bool EntityMovable::IsMovementAllowed(const SDL_FRect& moved_rect) const {
-    const std::array<Vec2<float>, 4> rect_points {{
-        {moved_rect.x, moved_rect.y},
-        {moved_rect.x, moved_rect.y + moved_rect.h},
-        {moved_rect.x + moved_rect.w, moved_rect.y},
-        {moved_rect.x + moved_rect.w, moved_rect.y + moved_rect.h}}};
-    auto is_coord_walkable = [&](const auto& coords) {
-        return game_map_.AreCoordsWalkable(coords);
-    };
-    return std::all_of(rect_points.cbegin(), rect_points.cend(), is_coord_walkable);
-}
-
 void EntityMovable::ReverseDirection() {
     direction_ = GetOppositeDirection();
 }
@@ -179,4 +173,11 @@ EDirection EntityMovable::GetOppositeDirection() {
         case EDirection::RIGHT: return EDirection::LEFT;
         case EDirection::LEFT:  return EDirection::RIGHT;
     }
+}
+
+bool EntityMovable::IsAtHousesDoorCell() const {
+    static const Vec2<int> kHousesDoorColRow {8, 6};
+    const auto& center_position = GetCenterPosition();
+    const auto col_row = game_map_.FromCoordsToColRow(center_position);
+    return (kHousesDoorColRow == col_row);
 }

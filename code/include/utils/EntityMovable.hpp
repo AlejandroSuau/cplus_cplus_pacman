@@ -42,7 +42,8 @@ protected:
     EDirection direction_;
     bool is_moving_between_tiles_;
 
-    bool IsMovementAllowed(const SDL_FRect& moved_rect) const;
+    bool IsAtHousesDoorCell() const;
+
     bool DidReachCellCenter() const;
     float GetCellCenterTolerance() const;
     bool IsMovableDirection(EDirection direction) const;

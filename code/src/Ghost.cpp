@@ -129,7 +129,7 @@ bool Ghost::UpdateFrightenedTimer(float dt) {
         state_ = EState::CHASING;
         return true;
     }
-    
+
     if (timer_mode_frightened_.GetSecondsToFinish() <= intermittent_time_last_seconds_) {
         timer_frightened_intermittent_.Update(dt);
         if (timer_frightened_intermittent_.DidFinish()) {
@@ -152,6 +152,10 @@ EDirection Ghost::ChooseRandomDirection() {
         return (!IsMovableDirection(d) || d == GetOppositeDirection());
     };
     auto directions_end = std::remove_if(directions.begin(), directions.end(), is_unwanted_direction);
+    /*if (IsAtHousesDoorCell()) {
+        directions_end = std::remove(directions.begin(), directions_end, EDirection::DOWN);
+    }*/
+
     if (std::distance(directions.begin(), directions_end) > 1) {
         static thread_local std::mt19937 rng{std::random_device{}()};
         std::ranges::shuffle(directions.begin(), directions_end, rng);
