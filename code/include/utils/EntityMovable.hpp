@@ -27,7 +27,6 @@ public:
     ~EntityMovable() = default;
 
     void Step(float dt);
-    void StepIntoAllowedRandomDirection(float dt);
     void SetDirectionByTarget(Vec2<float> target_coords);
 
     void ReverseDirection();

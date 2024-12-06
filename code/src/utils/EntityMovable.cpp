@@ -28,42 +28,6 @@ void EntityMovable::SetDirectionByTarget(Vec2<float> target_coords) {
     }
 }
 
-void EntityMovable::StepIntoAllowedRandomDirection(float dt) {
-    std::array directions {
-        EDirection::LEFT,
-        EDirection::UP,
-        EDirection::DOWN,
-        EDirection::RIGHT
-    };
-
-    auto directions_end = std::remove(
-        directions.begin(), directions.end(), GetOppositeDirection());
-    
-    auto is_prohibited_movement = [&](EDirection dir) {
-        bool is_movable = IsMovableDirection(dir); // y si es ortogonal, tambien did reach cell center
-        return !is_movable; 
-    };
-
-    directions_end = std::remove_if(directions.begin(), directions_end, is_prohibited_movement);
-    if (std::distance(directions.begin(), directions_end) > 1) {
-        static thread_local std::mt19937 rng{std::random_device{}()};
-        std::ranges::shuffle(directions.begin(), directions_end, rng);
-    }
-
-    // PROBLEMa: cambia mas de una vez en la misma intersecc
-    const auto dir = *directions.begin();
-    if (IsOrthogonalTurn(dir) && DidReachCellCenter()) {
-        SDL_Log("------------------------------------------------------");
-        SDL_Log("Was going direction: %d", static_cast<int>(direction_));
-        direction_ = dir;
-        SDL_Log("NEW DIRECTION: %d", static_cast<int>(direction_));
-        SDL_Log("------------------------------------------------------");
-    } else {
-        SDL_Log("No changing");
-    }
-    Step(dt);
-}
-
 bool EntityMovable::IsOrthogonalTurn(EDirection next_direction) const {
     return (direction_ == EDirection::UP || direction_ == EDirection::DOWN) &&
            (next_direction == EDirection::LEFT || next_direction == EDirection::RIGHT) || 
