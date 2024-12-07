@@ -18,6 +18,7 @@
 #include "Types.hpp"
 #include "CollisionManager.hpp"
 #include "Level.hpp"
+#include "scenes/IScene.hpp"
 
 #include "pathfinder/Pathfinder.hpp"
 
@@ -66,6 +67,7 @@ private:
     UIManager ui_manager_;
     EGameState state_;
     Level level_;
+    std::unique_ptr<IScene> scene_;
     
     CountdownTimer timer_to_start_{2.f};
     CountdownTimer timer_to_restart_{1.f};

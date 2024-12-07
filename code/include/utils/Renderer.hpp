@@ -2,6 +2,9 @@
 
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
+#include <SDL2/SDL_ttf.h>
+
+#include <string>
 
 class Renderer {
 public:
@@ -15,6 +18,13 @@ public:
         const SDL_Rect& src_rect,
         const SDL_FRect& dst_rect,
         double angle = 0);
+    void RenderText(
+        TTF_Font& font,
+        const std::string& text,
+        SDL_Color color,
+        int x,
+        int y,
+        bool centered = true);
 
 private:
     SDL_Renderer* renderer_;

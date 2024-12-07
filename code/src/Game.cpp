@@ -3,6 +3,9 @@
 #include "Constants.hpp"
 #include "Player.hpp"
 #include "Ghost.hpp"
+
+#include "scenes/MainMenuScene.hpp"
+
 #include "utils/Collisions.hpp"
 
 #include <ranges>
@@ -31,6 +34,7 @@ Game::Game()
     , renderer_(*sdl_renderer_.get())
     , texture_manager_(*sdl_renderer_.get())
     , state_(EGameState::READY_TO_PLAY)
+    , scene_(std::make_unique<MainMenuScene>(renderer_, text_manager_, texture_manager_))
     , map_(kGameWidth, kGameHeight, Vec2{static_cast<float>(kGamePaddingX), static_cast<float>(kGamePaddingY)}, kCellSize)
     , pathfinder_(map_)
     , player_(renderer_, texture_manager_, map_)
@@ -90,6 +94,8 @@ void Game::Init() {
 }
 
 void Game::Update(float dt) {
+    scene_->Update(dt);
+
     if (state_ == EGameState::READY_TO_PLAY) {
         timer_to_start_.Update(dt);
         if (timer_to_start_.DidFinish()) {
@@ -128,14 +134,16 @@ void Game::Render() {
     
     //SDL_RenderCopy(renderer, background_texture_, nullptr, &kTextureRectBackground);
 
-    map_.Render(*renderer);
+    scene_->Render();
+
+    /*map_.Render(*renderer);
     collectable_manager_.Render();
     for (auto& ghost : ghosts_) {
         ghost->Render();
     }
     player_.Render();
 
-    ui_manager_.Render(*renderer, *this);
+    ui_manager_.Render(*renderer, *this);*/
 
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
     SDL_RenderPresent(renderer);
