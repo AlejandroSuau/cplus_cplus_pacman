@@ -4,7 +4,7 @@
 
 #include <algorithm>
 
-GameMap::GameMap(float width, float height, Vec2<float> padding, std::size_t cell_size) 
+GameMap::GameMap(Renderer& renderer, float width, float height, Vec2<float> padding, std::size_t cell_size) 
     : width_(width)
     , height_(height)
     , padding_(padding)

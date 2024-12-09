@@ -5,6 +5,7 @@
 #include "Ghost.hpp"
 
 #include "scenes/MainMenuScene.hpp"
+#include "scenes/GameScene.hpp"
 
 #include "utils/Collisions.hpp"
 
@@ -34,8 +35,8 @@ Game::Game()
     , renderer_(*sdl_renderer_.get())
     , texture_manager_(*sdl_renderer_.get())
     , state_(EGameState::READY_TO_PLAY)
-    , scene_(std::make_unique<MainMenuScene>(renderer_, text_manager_, texture_manager_))
-    , map_(kGameWidth, kGameHeight, Vec2{static_cast<float>(kGamePaddingX), static_cast<float>(kGamePaddingY)}, kCellSize)
+    , scene_(std::make_unique<GameScene>(renderer_, sounds_manager_, texture_manager_, text_manager_))
+    , map_(renderer_, kGameWidth, kGameHeight, Vec2{static_cast<float>(kGamePaddingX), static_cast<float>(kGamePaddingY)}, kCellSize)
     , pathfinder_(map_)
     , player_(renderer_, texture_manager_, map_)
     , ui_manager_(renderer_, text_manager_, texture_manager_, player_, level_)
@@ -96,7 +97,7 @@ void Game::Init() {
 void Game::Update(float dt) {
     scene_->Update(dt);
 
-    if (state_ == EGameState::READY_TO_PLAY) {
+    /*if (state_ == EGameState::READY_TO_PLAY) {
         timer_to_start_.Update(dt);
         if (timer_to_start_.DidFinish()) {
             state_ = EGameState::PLAYING;
@@ -125,7 +126,7 @@ void Game::Update(float dt) {
     } else if (player_.IsDead() && player_.GetLifes() > 0) {
         timer_to_restart_.Update(dt);
         if (timer_to_restart_.DidFinish()) Reset();
-    }
+    }*/
 }
 
 void Game::Render() {
@@ -158,7 +159,8 @@ void Game::HandleEvents() {
 
         const auto is_key_down = (event.type == SDL_KEYDOWN);
         if (is_key_down) {
-            player_.HandleKeyPressed(event.key.keysym.scancode);
+            scene_->OnKeyEvent(event);
+            //player_.HandleKeyPressed(event.key.keysym.scancode);
 
             // HACK commands
             if (!is_key_hack_able_) return;

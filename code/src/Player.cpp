@@ -12,7 +12,7 @@ Player::Player(
     : EntityMovable(renderer, {356.f, 516.f, 26.f, 26.f}, game_map, 125.f, EDirection::RIGHT, .6f)
     , texture_manager_(texture_manager)
     , next_direction_(direction_)
-    , state_(EState::READY)
+    , state_(EState::MOVING)
     , lifes_(PlayerParameters::kLifes)
     , score_(0) {
     CenterAxis();

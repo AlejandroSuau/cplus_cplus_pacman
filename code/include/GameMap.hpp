@@ -3,6 +3,7 @@
 #include <SDL2/SDL.h>
 
 #include "utils/Vec2.hpp"
+#include "utils/Renderer.hpp"
 
 #include <vector>
 #include <utility>
@@ -21,6 +22,7 @@ public:
     };
 
     GameMap(
+        Renderer& renderer,
         float width,
         float height,
         Vec2<float> padding,
