@@ -11,7 +11,7 @@
 #include "Player.hpp"
 #include "Level.hpp"
 
-class Game;
+class GameScene;
 
 class UIManager {
 public:
@@ -22,7 +22,7 @@ public:
         const Player& player,
         const Level& level);
     
-    void Render(SDL_Renderer& renderer, const Game& game);
+    void Render(const GameScene& game_scene);
 
 private:
     Renderer& renderer_;

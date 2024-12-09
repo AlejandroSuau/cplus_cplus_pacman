@@ -16,6 +16,8 @@
 #include <array>
 #include <memory>
 
+class GameScene;
+
 class Ghost : public EntityMovable {
 public:
     enum class EState {
@@ -45,7 +47,7 @@ public:
         EDirection direction,
         PathfindingPattern pathfinding_pattern);
 
-    void FindPath(Game& game);
+    void FindPath(GameScene& game);
 
     void Reset();
     void Update(float dt) override;

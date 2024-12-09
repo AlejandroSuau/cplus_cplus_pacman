@@ -4,8 +4,14 @@
 
 #include <algorithm>
 
-GameMap::GameMap(float width, float height, Vec2<float> padding, std::size_t cell_size) 
-    : width_(width)
+GameMap::GameMap(
+    Renderer& renderer,
+    float width,
+    float height,
+    Vec2<float> padding,
+    std::size_t cell_size) 
+    : renderer_(renderer)
+    , width_(width)
     , height_(height)
     , padding_(padding)
     , cell_size_(cell_size)
@@ -40,34 +46,21 @@ void GameMap::Init() {
     }
 }
 
-void GameMap::Update() {
-    
-}
-
-void GameMap::Render(SDL_Renderer& renderer) {
-    SDL_SetRenderDrawColor(&renderer, 0, 100, 225, 100);
+void GameMap::Render() {
+    renderer_.SetRenderingColor({0, 100, 225, 100});
     for (auto& cell : cells_) {
         if (cell.is_walkable) continue;
 
-        SDL_FRect cell_rect {
+        const SDL_FRect cell_rect {
             cell.position.x,
             cell.position.y,
             cell_size_float_,
             cell_size_float_}; 
-        
-        SDL_RenderFillRectF(&renderer, &cell_rect);      
-        /*if (!cell.is_walkable) SDL_RenderFillRectF(&renderer, &cell_rect);
-
-        SDL_FRect r {
-            cell.center.x,
-            cell.center.y,
-            2,
-            2}; 
-        SDL_RenderFillRectF(&renderer, &r);*/
+        renderer_.RenderRectFilled(cell_rect);
     }
 
-    SDL_FRect limits_r {padding_.x, padding_.y, width_, height_};
-    SDL_RenderDrawRectF(&renderer, &limits_r);
+    const SDL_FRect limits_rect {padding_.x, padding_.y, width_, height_};
+    renderer_.RenderRect(limits_rect);
 }
 
 void GameMap::SetIsWalkable(Vec2<int> col_row, bool is_walkable) {

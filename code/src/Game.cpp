@@ -5,6 +5,7 @@
 #include "Ghost.hpp"
 
 #include "scenes/MainMenuScene.hpp"
+#include "scenes/GameScene.hpp"
 
 #include "utils/Collisions.hpp"
 
@@ -31,24 +32,10 @@ Game::Game()
         SDL_CreateRenderer(window_.get(), -1, SDL_RENDERER_ACCELERATED),
         SDL_DestroyRenderer)
     , is_running_(false)
-    , renderer_(*sdl_renderer_.get())
+    , renderer_(*sdl_renderer_)
     , texture_manager_(*sdl_renderer_.get())
-    , state_(EGameState::READY_TO_PLAY)
-    , scene_(std::make_unique<MainMenuScene>(renderer_, text_manager_, texture_manager_))
-    , map_(kGameWidth, kGameHeight, Vec2{static_cast<float>(kGamePaddingX), static_cast<float>(kGamePaddingY)}, kCellSize)
-    , pathfinder_(map_)
-    , player_(renderer_, texture_manager_, map_)
-    , ui_manager_(renderer_, text_manager_, texture_manager_, player_, level_)
-    , ghost_factory_(renderer_, texture_manager_, map_, pathfinder_)
-    , ghosts_{{
-        ghost_factory_.CreateGhostBlinky(),
-        ghost_factory_.CreateGhostInky(),
-        ghost_factory_.CreateGhostPinky(),
-        ghost_factory_.CreateGhostClyde()
-    }}
-    , collectable_manager_(renderer_, texture_manager_, map_)
-    , collision_manager_(player_, ghosts_, collectable_manager_) {
-
+    , scene_(nullptr)
+    , swap_to_game_scene_(false) {
     if (!window_ || !sdl_renderer_) {
         throw std::runtime_error(
             std::string("Error creating the game") + SDL_GetError());
@@ -75,7 +62,7 @@ void Game::Run() {
 
         // Fixed Update Loop
         while (accumulated_time >= kFixedTimeStep) {
-            Update(kFixedTimeStep / 1000.0f); // Pass in seconds as a float
+            Update(kFixedTimeStep / 1000.f); // Pass in seconds as a float
             accumulated_time -= kFixedTimeStep;
         }
 
@@ -90,146 +77,73 @@ void Game::Run() {
 }
 
 void Game::Init() {
-    ghosts_[0]->FindPath(*this);
+    // SetSceneGame();
+    SetSceneMainMenu();
 }
 
 void Game::Update(float dt) {
     scene_->Update(dt);
-
-    if (state_ == EGameState::READY_TO_PLAY) {
-        timer_to_start_.Update(dt);
-        if (timer_to_start_.DidFinish()) {
-            state_ = EGameState::PLAYING;
-        }
-    }
-
-    if (!is_key_hack_able_) {
-        key_spam_prevent_timer_.Update(dt);
-        if (key_spam_prevent_timer_.DidFinish()) is_key_hack_able_ = true;
-    }
-
-    player_.Update(dt);
-    for (auto& ghost : ghosts_) {
-        ghost->Update(dt);
-        if (ghost->IsInStateChasing()) {
-            ghost->FindPath(*this);
-        }
-    }
-
-    collision_manager_.CheckCollisions();
-
-    collectable_manager_.RemoveCollectablesMarkedForDestroy();
-
-    if (player_.IsDying()) {
-        state_ = EGameState::GAMEOVER;
-    } else if (player_.IsDead() && player_.GetLifes() > 0) {
-        timer_to_restart_.Update(dt);
-        if (timer_to_restart_.DidFinish()) Reset();
+    
+    if (swap_to_game_scene_) {
+        SetSceneGame();
     }
 }
 
 void Game::Render() {
     auto* renderer = sdl_renderer_.get();
     SDL_RenderClear(renderer);
-    
-    //SDL_RenderCopy(renderer, background_texture_, nullptr, &kTextureRectBackground);
 
     scene_->Render();
-
-    /*map_.Render(*renderer);
-    collectable_manager_.Render();
-    for (auto& ghost : ghosts_) {
-        ghost->Render();
-    }
-    player_.Render();
-
-    ui_manager_.Render(*renderer, *this);*/
 
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
     SDL_RenderPresent(renderer);
 }
 
 void Game::HandleEvents() {
-     SDL_Event event;
+    SDL_Event event;
     while(SDL_PollEvent(&event)) {
         if (event.type == SDL_QUIT) {
-            is_running_ = false;
+            Shutdown();
+            return;
         }
 
-        const auto is_key_down = (event.type == SDL_KEYDOWN);
-        if (is_key_down) {
-            player_.HandleKeyPressed(event.key.keysym.scancode);
-
-            // HACK commands
-            if (!is_key_hack_able_) return;
-            // Activate Frightened mode
-            if (event.key.keysym.scancode == SDL_SCANCODE_F) {
-                is_key_hack_able_ = false;
-                for (auto& g : ghosts_) g->SetStateFrightened();
-            }
-            // Kill all ghosts
-            if (event.key.keysym.scancode == SDL_SCANCODE_D) {
-                is_key_hack_able_ = false;
-                for (auto& g : ghosts_) g->Die();
-            }
-            // Extra life
-            if (event.key.keysym.scancode == SDL_SCANCODE_L) {
-                is_key_hack_able_ = false;
-                player_.IncreaseOneLife();
-            }
+        const bool is_key_up = event.type == SDL_KEYDOWN;
+        const bool is_key_down = event.type == SDL_KEYUP;
+        if (is_key_down || is_key_up) {
+            EEventKeyboard event_keyboard = is_key_down ? EEventKeyboard::DOWN : EEventKeyboard::UP;
+            scene_->OnEventKeyboard(event_keyboard, event.key.keysym.scancode, *this);
+        }
+        
+        const bool is_mouse_down = event.type == SDL_MOUSEBUTTONDOWN;
+        const bool is_mouse_up = event.type == SDL_MOUSEBUTTONUP;
+        const bool is_mouse_motion = event.type == SDL_MOUSEMOTION;
+        if (is_mouse_down || is_mouse_up || is_mouse_motion) {
+            EEventMouse event_mouse;
+            if (is_mouse_down)    { event_mouse = EEventMouse::DOWN;   }
+            else if (is_mouse_up) { event_mouse = EEventMouse::UP;     }
+            else                  { event_mouse = EEventMouse::MOTION; }
+            const Vec2<float> coords {
+                static_cast<float>(event.button.x), static_cast<float>(event.button.y)};
+            scene_->OnEventMouse(event_mouse, coords, *this);
         }
     }
 }
 
-bool Game::IsReadyToPlay() const {
-    return (state_ == EGameState::READY_TO_PLAY);
+void Game::SwapToGameScene() {
+    swap_to_game_scene_ = true;
 }
 
-bool Game::IsPlaying() const {
-    return (state_ == EGameState::PLAYING);
+void Game::SetSceneGame() {
+    scene_ = std::make_unique<GameScene>(
+        renderer_, sound_manager_, texture_manager_, text_manager_);
+    swap_to_game_scene_ = false;
 }
 
-bool Game::IsGameOver() const {
-    return (state_ == EGameState::GAMEOVER);
+void Game::SetSceneMainMenu() {
+    scene_ = std::make_unique<MainMenuScene>(
+        renderer_, sound_manager_, text_manager_, texture_manager_);
 }
 
-void Game::HandlePressedKeySpace() {
-    /*switch(state_) {
-        case EGameState::FINISHED:
-            Reset();
-        break;
-        case EGameState::READY_TO_PLAY:
-            state_ = EGameState::PLAYING;
-        case EGameState::PLAYING:
-
-        break;
-    }*/
-}
-
-OptionalGhostReference Game::GetGhost(std::string_view name) const {
-    auto it = std::ranges::find_if(ghosts_, [&name](const auto& ghost) {
-        return (ghost && ghost->GetName() == name);
-    });
-
-    return (it == ghosts_.end()) ? std::nullopt : OptionalGhostReference(**it);
-}
-
-void Game::Reset() {
-    state_ = EGameState::READY_TO_PLAY;
-    player_.Reset();
-    for (auto& ghost : ghosts_) {
-        ghost->Reset();
-    }
-}
-
-Pathfinder& Game::GetPathfinder() {
-    return pathfinder_;
-}
-
-const GameMap& Game::GetMap() const {
-    return map_;
-}
-
-const Player& Game::GetPlayer() const { 
-    return player_;
+void Game::Shutdown() {
+    is_running_ = false;
 }

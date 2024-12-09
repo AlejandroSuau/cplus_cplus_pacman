@@ -1,6 +1,6 @@
 #include "GhostMovementPatterns.hpp"
 
-#include "Game.hpp"
+#include "scenes/GameScene.hpp"
 
 #include <iostream>
 #include <cmath>
@@ -8,7 +8,7 @@
 
 // Rules:
 // Always try to chase the player.
-Pathfinder::Path FindPathPatternBlinky(const Vec2<int>& col_row_ghost, Game& game) {
+Pathfinder::Path FindPathPatternBlinky(const Vec2<int>& col_row_ghost, GameScene& game) {
     auto& pathfinder = game.GetPathfinder();
     const auto& game_map = game.GetMap();
     const auto player_position = game.GetPlayer().GetCenterPosition();
@@ -20,7 +20,7 @@ Pathfinder::Path FindPathPatternBlinky(const Vec2<int>& col_row_ghost, Game& gam
 // Rules:
 // 1. Imaginary point 2 cells through player's direction.
 // 2. Then: Target = (2 * Imaginary Point) - Blinky's position)
-Pathfinder::Path FindPathPatternInky(const Vec2<int>& col_row_ghost, Game& game) {
+Pathfinder::Path FindPathPatternInky(const Vec2<int>& col_row_ghost, GameScene& game) {
     auto& pathfinder = game.GetPathfinder();
     const auto& game_map = game.GetMap();
     const auto player_position = game.GetPlayer().GetCenterPosition();
@@ -48,7 +48,7 @@ Pathfinder::Path FindPathPatternInky(const Vec2<int>& col_row_ghost, Game& game)
 
 // Rules:
 // 4 tiles facing player's direction.
-Pathfinder::Path FindPathPatternPinky(const Vec2<int>& col_row_ghost, Game& game) {
+Pathfinder::Path FindPathPatternPinky(const Vec2<int>& col_row_ghost, GameScene& game) {
     auto& pathfinder = game.GetPathfinder();
     const auto& game_map = game.GetMap();
     const auto player_position = game.GetPlayer().GetCenterPosition();
@@ -68,7 +68,7 @@ Pathfinder::Path FindPathPatternPinky(const Vec2<int>& col_row_ghost, Game& game
 // Rules:
 // If player is farder or equal to a euclidean distance of kLimitDistance, then try to chase player.
 // Otherwise, go to the bottom left corner.
-Pathfinder::Path FindPathPatternClyde(const Vec2<int>& col_row_ghost, Game& game) {
+Pathfinder::Path FindPathPatternClyde(const Vec2<int>& col_row_ghost, GameScene& game) {
     auto& pathfinder = game.GetPathfinder();
     const auto& game_map = game.GetMap();
     const auto player_position = game.GetPlayer().GetCenterPosition();

@@ -7,6 +7,11 @@
 #include <string>
 #include <array>
 
+// Colors
+static const SDL_Color kColorWhite {255, 255, 255, 255};
+static const SDL_Color kColorGray {96, 97, 97, 255};
+static const SDL_Color kColorYellow {255, 250, 1, 255};
+
 // Update
 static const Uint64 kTargetFPS = 60;
 static const Uint64 kFixedTimeStep = 1000 / kTargetFPS;

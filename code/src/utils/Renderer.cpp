@@ -10,7 +10,7 @@ void Renderer::SetRenderingColor(const SDL_Color& color) {
 }
 
 void Renderer::RenderRect(const SDL_FRect& rect) {
-    SDL_RenderFillRectF(renderer_, &rect);
+    SDL_RenderDrawRectF(renderer_, &rect);
 }
 
 void Renderer::RenderRectFilled(const SDL_FRect& rect) {

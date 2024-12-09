@@ -44,7 +44,7 @@ void Ghost::Reset() {
 }
 
 // Should avoid finding path when is moving between tiles.
-void Ghost::FindPath(Game& game) {
+void Ghost::FindPath(GameScene& game) {
     if (is_moving_between_tiles_) return;
 
     const auto& center_pos = GetCenterPosition();

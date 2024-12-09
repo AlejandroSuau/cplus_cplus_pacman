@@ -9,9 +9,9 @@
 
 class TextManager {
 public:
-    TTF_Font* LoadFont(const std::string& file_path, int font_size);
+    TTF_Font* LoadFont(const std::string& file_path, int font_size, std::string custom_id = "");
     
-    void RemoveFont(const std::string& file_path);
+    void RemoveFont(const std::string& font_id);
     void RenderText(SDL_Renderer& renderer, TTF_Font& font, const std::string& text, SDL_Color color, int x, int y, bool centered = true);
 
 private:

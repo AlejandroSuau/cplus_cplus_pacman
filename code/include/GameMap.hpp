@@ -1,8 +1,7 @@
 #pragma once
 
-#include <SDL2/SDL.h>
-
 #include "utils/Vec2.hpp"
+#include "utils/Renderer.hpp"
 
 #include <vector>
 #include <utility>
@@ -21,14 +20,14 @@ public:
     };
 
     GameMap(
+        Renderer& renderer,
         float width,
         float height,
         Vec2<float> padding,
         std::size_t cell_size);
 
     void Init();
-    void Update();
-    void Render(SDL_Renderer& renderer);
+    void Render();
 
     void SetIsWalkable(Vec2<int> col_row, bool is_walkable);
     bool AreColRowWalkable(Vec2<int> col_row) const;
@@ -58,6 +57,7 @@ public:
     const std::vector<Cell>& GetCells() const;
 
 private:
+    Renderer& renderer_;
     float width_;
     float height_;
     Vec2<float> padding_;

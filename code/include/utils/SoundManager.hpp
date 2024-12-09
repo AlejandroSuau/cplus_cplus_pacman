@@ -5,9 +5,9 @@
 #include <map>
 #include <string>
 
-class SoundsManager {
+class SoundManager {
 public:
-    ~SoundsManager();
+    ~SoundManager();
 
     Mix_Chunk* LoadSoundEffect(const std::string& file_path);
     Mix_Music* LoadMusic(const std::string& file_path);

@@ -1,12 +1,12 @@
-#include "utils/SoundsManager.hpp"
+#include "utils/SoundManager.hpp"
 
 #include <SDL2/SDL.h>
 
-SoundsManager::~SoundsManager() {
+SoundManager::~SoundManager() {
     ClearAllSounds();
 }
 
-Mix_Chunk* SoundsManager::LoadSoundEffect(const std::string& file_path) {
+Mix_Chunk* SoundManager::LoadSoundEffect(const std::string& file_path) {
     if (sound_effects_.count(file_path) == 0) {
         Mix_Chunk* sound = Mix_LoadWAV(file_path.c_str());
         if (!sound) {
@@ -18,7 +18,7 @@ Mix_Chunk* SoundsManager::LoadSoundEffect(const std::string& file_path) {
     return sound_effects_[file_path];
 }
 
-Mix_Music* SoundsManager::LoadMusic(const std::string& file_path) {
+Mix_Music* SoundManager::LoadMusic(const std::string& file_path) {
     if (music_.count(file_path) == 0) {
         Mix_Music* music = Mix_LoadMUS(file_path.c_str());
         if (!music) {
@@ -30,7 +30,7 @@ Mix_Music* SoundsManager::LoadMusic(const std::string& file_path) {
     return music_[file_path];
 }
 
-void SoundsManager::RemoveSoundEffect(const std::string& file_path) {
+void SoundManager::RemoveSoundEffect(const std::string& file_path) {
     auto it = sound_effects_.find(file_path);
     if (it != sound_effects_.end()) {
         Mix_FreeChunk(it->second);
@@ -38,7 +38,7 @@ void SoundsManager::RemoveSoundEffect(const std::string& file_path) {
     }
 }
 
-void SoundsManager::RemoveMusic(const std::string& file_path) {
+void SoundManager::RemoveMusic(const std::string& file_path) {
     auto it = music_.find(file_path);
     if (it != music_.end()) {
         Mix_FreeMusic(it->second);
@@ -46,7 +46,7 @@ void SoundsManager::RemoveMusic(const std::string& file_path) {
     }
 }
 
-void SoundsManager::ClearAllSounds() {
+void SoundManager::ClearAllSounds() {
     for (auto& sound_pair : sound_effects_) {
         Mix_FreeChunk(sound_pair.second);
     }

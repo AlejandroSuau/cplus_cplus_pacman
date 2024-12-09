@@ -1,20 +1,21 @@
 #include "utils/TextManager.hpp"
 
-TTF_Font* TextManager::LoadFont(const std::string& file_path, int font_size) {
-    if (fonts_.count(file_path.c_str()) == 0) {
+TTF_Font* TextManager::LoadFont(const std::string& file_path, int font_size, std::string custom_id) {
+    const std::string& font_id = custom_id.empty() ? file_path : custom_id;
+    if (fonts_.count(font_id.c_str()) == 0) {
         TTF_Font* font = TTF_OpenFont(file_path.c_str(), font_size);
         if (!font) {
             SDL_Log("Failed to load font: %s. SDL Error: %s", file_path.c_str(), SDL_GetError());
             return nullptr;
         }
-        fonts_[file_path.c_str()] = font;
+        fonts_[font_id.c_str()] = font;
     }
 
-    return fonts_[file_path.c_str()];
+    return fonts_[font_id.c_str()];
 }
 
-void TextManager::RemoveFont(const std::string& file_path) {
-    auto it = fonts_.find(file_path.c_str());
+void TextManager::RemoveFont(const std::string& font_id) {
+    auto it = fonts_.find(font_id.c_str());
     if (it != fonts_.end()) {
         TTF_CloseFont(it->second);
         fonts_.erase(it);
