@@ -31,7 +31,7 @@ void Player::Reset() {
     moving_animation_sprite_index_ = 0;
 }
 
-void Player::HandleKeyPressed(SDL_Scancode scancode) {
+void Player::HandleKeyPressed(const SDL_Scancode& scancode) {
     if (IsDying() || IsDead()) return;
 
     switch(scancode) {

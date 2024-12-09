@@ -56,8 +56,7 @@ public:
 
     void Update(float dt) override;
     void Render() override;
-    void OnEventKeyboard(EEventKeyboard event, SDL_Scancode scancode, Game& game) override;
-    void OnEventMouse(EEventMouse event, const Vec2<float> coords, Game& game) override;
+    void OnEvent(const SDL_Event& event, Game* game);
 
 private:
     Renderer& renderer_;

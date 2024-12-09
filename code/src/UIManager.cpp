@@ -29,13 +29,13 @@ void UIManager::LoadTextures() {
 }
 
 void UIManager::Render(const GameScene& game_scene) {
-    renderer_.RenderText(*font_, "Score", kWhiteColor, 140, 45);
+    renderer_.RenderText(*font_, "Score", kWhiteColor, 145, 45);
     const auto score_string = std::to_string(player_.GetScore());
-    renderer_.RenderText(*font_, score_string, kWhiteColor, 138, 75);
+    renderer_.RenderText(*font_, score_string, kWhiteColor, 143, 75);
 
-    renderer_.RenderText(*font_, "Level", kWhiteColor, 350, 45);
+    renderer_.RenderText(*font_, "Level", kWhiteColor, 372, 45);
     const auto level_string = std::to_string(level_.GetNumber());
-    renderer_.RenderText(*font_, level_string, kWhiteColor, 350, 75);
+    renderer_.RenderText(*font_, level_string, kWhiteColor, 372, 75);
 
     // Game Status
     // GAME READY

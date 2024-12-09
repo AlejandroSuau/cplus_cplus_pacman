@@ -3,6 +3,7 @@
 #include "Constants.hpp"
 #include "Player.hpp"
 #include "Ghost.hpp"
+#include "Game.hpp"
 
 #include "scenes/MainMenuScene.hpp"
 #include "scenes/GameScene.hpp"
@@ -77,7 +78,7 @@ void Game::Run() {
 }
 
 void Game::Init() {
-    // SetSceneGame();
+    //SetSceneGame();
     SetSceneMainMenu();
 }
 
@@ -107,25 +108,7 @@ void Game::HandleEvents() {
             return;
         }
 
-        const bool is_key_up = event.type == SDL_KEYDOWN;
-        const bool is_key_down = event.type == SDL_KEYUP;
-        if (is_key_down || is_key_up) {
-            EEventKeyboard event_keyboard = is_key_down ? EEventKeyboard::DOWN : EEventKeyboard::UP;
-            scene_->OnEventKeyboard(event_keyboard, event.key.keysym.scancode, *this);
-        }
-        
-        const bool is_mouse_down = event.type == SDL_MOUSEBUTTONDOWN;
-        const bool is_mouse_up = event.type == SDL_MOUSEBUTTONUP;
-        const bool is_mouse_motion = event.type == SDL_MOUSEMOTION;
-        if (is_mouse_down || is_mouse_up || is_mouse_motion) {
-            EEventMouse event_mouse;
-            if (is_mouse_down)    { event_mouse = EEventMouse::DOWN;   }
-            else if (is_mouse_up) { event_mouse = EEventMouse::UP;     }
-            else                  { event_mouse = EEventMouse::MOTION; }
-            const Vec2<float> coords {
-                static_cast<float>(event.button.x), static_cast<float>(event.button.y)};
-            scene_->OnEventMouse(event_mouse, coords, *this);
-        }
+        scene_->OnEvent(event, this);
     }
 }
 

@@ -77,24 +77,13 @@ void GameScene::Update(float dt) {
     }
 }
 
-void GameScene::Render() {   
-    map_.Render();
-    collectable_manager_.Render();
-    for (auto& ghost : ghosts_) {
-        ghost->Render();
-    }
-    player_.Render();
-    ui_manager_.Render(*this);
-}
+void GameScene::OnEvent(const SDL_Event& event, Game* game) {
+    if (event.type != SDL_KEYDOWN) return;
 
-void GameScene::OnEventKeyboard(EEventKeyboard event, SDL_Scancode scancode, Game& /*game*/) {
-    if (event != EEventKeyboard::DOWN) return;
-
-    player_.HandleKeyPressed(scancode);
+    player_.HandleKeyPressed(event.key.keysym.scancode);
     
-    // TODO: Create a class for handling commands.
     if (!is_key_hack_able_) return;
-    switch(scancode) {
+    switch(event.key.keysym.scancode) {
         case SDL_SCANCODE_F:
             for (auto& g : ghosts_) g->SetStateFrightened();
             is_key_hack_able_ = false;
@@ -110,8 +99,14 @@ void GameScene::OnEventKeyboard(EEventKeyboard event, SDL_Scancode scancode, Gam
     }
 }
 
-void GameScene::OnEventMouse(EEventMouse event, const Vec2<float> coords, Game& game) {
-
+void GameScene::Render() {   
+    map_.Render();
+    collectable_manager_.Render();
+    for (auto& ghost : ghosts_) {
+        ghost->Render();
+    }
+    player_.Render();
+    ui_manager_.Render(*this);
 }
 
 bool GameScene::IsReadyToPlay() const {

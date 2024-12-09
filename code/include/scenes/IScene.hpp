@@ -22,7 +22,5 @@ public:
     
     virtual void Update(float dt) = 0;
     virtual void Render() = 0;
-
-    virtual void OnEventKeyboard(EEventKeyboard event, SDL_Scancode scancode, Game& game) = 0;
-    virtual void OnEventMouse(EEventMouse event, const Vec2<float> coords, Game& game) = 0;
+    virtual void OnEvent(const SDL_Event& event, Game* game) = 0;
 };

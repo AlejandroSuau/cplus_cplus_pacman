@@ -94,13 +94,13 @@ void MainMenuScene::RenderDots() {
     }
 }
 
-void MainMenuScene::OnEventKeyboard(EEventKeyboard event, SDL_Scancode scancode, Game& game) {}
-
-void MainMenuScene::OnEventMouse(EEventMouse event, const Vec2<float> coords, Game& game) {
-    switch(event) {
-        case EEventMouse::DOWN:   HandleMouseDown(coords);      break;
-        case EEventMouse::UP:     HandleMouseUp(coords, game);  break;
-        case EEventMouse::MOTION: HandleMouseMotion(coords);    break;
+void MainMenuScene::OnEvent(const SDL_Event& event, Game* game) {
+    Vec2<float> coords {
+        static_cast<float>(event.button.x), static_cast<float>(event.button.y)};
+    switch(event.type) {
+        case SDL_MOUSEBUTTONDOWN: HandleMouseDown(coords);      break;
+        case SDL_MOUSEBUTTONUP:   HandleMouseUp(coords, *game); break;
+        case SDL_MOUSEMOTION:     HandleMouseMotion(coords);    break;
     }
 }
 

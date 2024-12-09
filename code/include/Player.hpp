@@ -24,7 +24,7 @@ public:
     void Update(float dt) override;
     void Render() override;
 
-    void HandleKeyPressed(SDL_Scancode scancode);
+    void HandleKeyPressed(const SDL_Scancode& scancode);
     
     void IncreaseScore(unsigned int value);
     void IncreaseOneLife();
@@ -55,7 +55,7 @@ private:
     CountdownTimer moving_animation_timer_{0.1f};
     int moving_animation_sprite_index_{0};
 
-    CountdownTimer dying_animation_timer_{0.15f};
+    CountdownTimer dying_animation_timer_{0.08f};
     int dying_animation_sprite_index_{0};
 
     SDL_Rect GetSourceRectMoving() const;
