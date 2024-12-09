@@ -68,6 +68,19 @@ void GameScene::Update(float dt) {
     collision_manager_.CheckCollisions();
 
     collectable_manager_.RemoveCollectablesMarkedForDestroy();
+    
+    if (DidPlayerWin()) {
+        timer_to_restart_.Update(dt);
+        if (timer_to_restart_.DidFinish()) {
+            collectable_manager_.Init();
+            Reset();
+        }
+    } else if (collectable_manager_.DidCollectAll()) {
+        state_ = EGameState::PLAYER_WIN;
+        for (auto& ghost : ghosts_) ghost->SetStateStop();
+        player_.Stop();
+        level_.IncreaseLevel();
+    }
 
     if (player_.IsDying()) {
         state_ = EGameState::GAMEOVER;
@@ -75,6 +88,10 @@ void GameScene::Update(float dt) {
         timer_to_restart_.Update(dt);
         if (timer_to_restart_.DidFinish()) Reset();
     }
+}
+
+bool GameScene::DidPlayerWin() const {
+    return (state_ == EGameState::PLAYER_WIN);
 }
 
 void GameScene::OnEvent(const SDL_Event& event, Game* game) {
@@ -94,6 +111,10 @@ void GameScene::OnEvent(const SDL_Event& event, Game* game) {
         break;
         case SDL_SCANCODE_L:
             player_.IncreaseOneLife();
+            is_key_hack_able_ = false;
+        break;
+        case SDL_SCANCODE_C:
+            collectable_manager_.MarkAllForDestroy();
             is_key_hack_able_ = false;
         break;
     }

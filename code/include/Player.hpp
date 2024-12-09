@@ -31,6 +31,7 @@ public:
     void DecreaseOneLife();
     unsigned int GetLifes() const;
     unsigned int GetScore() const;
+    void Stop();
 
     bool IsDying() const;
     bool IsDead() const;
@@ -38,6 +39,7 @@ public:
 
 private:
     enum class EState {
+        STOP,
         READY,
         MOVING,
         DYING,

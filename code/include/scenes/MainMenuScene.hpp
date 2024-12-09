@@ -16,6 +16,7 @@
 
 #include <array>
 
+// TODO: Move & Create a proper class
 struct Button {
     std::string text_;
     Vec2<int> text_coords_;
@@ -43,8 +44,6 @@ struct Button {
         renderer.RenderText(font, text_, color, text_coords_.x, text_coords_.y);
     }
 };
-
-
 
 class MainMenuScene : public IScene {
 public:

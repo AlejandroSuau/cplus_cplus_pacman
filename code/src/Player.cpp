@@ -97,7 +97,7 @@ void Player::Render() {
     //renderer_.RenderRect(GetRendererRect());
 
     //renderer_.RenderRect(GetHitBox());
-    if (state_ == EState::MOVING || state_ == EState::READY) {
+    if (state_ == EState::STOP || state_ == EState::MOVING || state_ == EState::READY) {
         const auto src_r = GetSourceRectMoving();
         const double angle = 90.0 * static_cast<double>(direction_);
         renderer_.RenderTexture(sprite_sheet_, src_r, GetRendererRect(), angle);
@@ -120,6 +120,10 @@ SDL_Rect Player::GetSourceRectDying() const {
     using namespace SpriteSheet;
     const int x = kStartingX + (kPadding + kWidth) * dying_animation_sprite_index_;
     return {x, 245, kWidth, kHeight};
+}
+
+void Player::Stop() {
+    state_ = EState::STOP;
 }
 
 void Player::Die() {

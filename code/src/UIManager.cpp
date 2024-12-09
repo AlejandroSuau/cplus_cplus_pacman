@@ -37,43 +37,16 @@ void UIManager::Render(const GameScene& game_scene) {
     const auto level_string = std::to_string(level_.GetNumber());
     renderer_.RenderText(*font_, level_string, kWhiteColor, 372, 75);
 
-    // Game Status
-    // GAME READY
     if (game_scene.IsReadyToPlay()) {
-        const SDL_Rect src_r_ready {203, 2, 46, 7};
-        const SDL_FRect dst_r_ready {
-            kGamePaddingX + kGameWidth / 2 - 40,
-            kGamePaddingY + kGameHeight / 2 + 40,
-            src_r_ready.w * 2.f,
-            src_r_ready.h * 2.f};
-        renderer_.RenderTexture(sprite_sheet_, src_r_ready, dst_r_ready);
+        renderer_.RenderTexture(sprite_sheet_, {203, 2, 46, 7}, {332.f, 460.f, 92.f, 14.f});
+    } else if(game_scene.IsGameOver()) {
+        renderer_.RenderTexture(sprite_sheet_, {13, 192, 79, 7}, {295.f, 460.f, 158.f, 14.f});
     }
 
-    // GAME OVER
-    if (game_scene.IsGameOver()) {
-        const SDL_Rect src_r_gameover {13, 192, 79, 7};
-        const SDL_FRect dst_r_gameover {
-            kGamePaddingX + kGameWidth / 2 - 77,
-            kGamePaddingY + kGameHeight / 2 + 40,
-            src_r_gameover.w * 2.f,
-            src_r_gameover.h * 2.f};
-        renderer_.RenderTexture(sprite_sheet_, src_r_gameover, dst_r_gameover);
-    }
-
-    // Player lifes.
-    const SDL_Rect src_r_lifes {85, 164, 10, 11};
     const auto lifes = game_scene.GetPlayer().GetLifes();
-    static const int life_width = 10 * 2;
-    static const int life_height = 11 * 2;
-    static const int life_padding = 10;
-    int current_x = kGamePaddingX + 15;
+    float current_x = 115.f;
     for (unsigned int i = 0; i < lifes; ++i) {
-        const SDL_FRect dst_r {
-            current_x,
-            kGameHeight + kGamePaddingY + 15,
-            life_width,
-            life_width};
-        renderer_.RenderTexture(sprite_sheet_, src_r_lifes, dst_r);
-        current_x += life_width + life_padding;
+        renderer_.RenderTexture(sprite_sheet_, {85, 164, 10, 11}, {current_x, 755.f, 20.f, 20.f});
+        current_x += 35.f;
     }
 }

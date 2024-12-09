@@ -78,7 +78,6 @@ void Game::Run() {
 }
 
 void Game::Init() {
-    //SetSceneGame();
     SetSceneMainMenu();
 }
 

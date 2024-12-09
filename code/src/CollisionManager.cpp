@@ -22,7 +22,6 @@ void CollisionManager::CheckCollisions() {
 
     // Player - Ghost
     for (auto& ghost : ghosts_) {
-        // TODO: Consider lower the hitbox for not colliding on intersections.
         if (AreColliding(player_hitbox, ghost->GetHitBox())) {
             OnCollisionWithGhost(*ghost);
         }

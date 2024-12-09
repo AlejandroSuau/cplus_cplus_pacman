@@ -36,10 +36,11 @@ public:
 
     void Init();
     void RemoveCollectablesMarkedForDestroy();
-
     void Render();
-
+    void MarkAllForDestroy();
+    bool DidCollectAll() const;
     CollectableList& GetCollectableList();
+    
 private:
     Renderer& renderer_;
     TextureManager& texture_manager_;

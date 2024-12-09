@@ -29,7 +29,8 @@ public:
     enum class EGameState {
         READY_TO_PLAY,
         PLAYING,
-        GAMEOVER
+        GAMEOVER,
+        PLAYER_WIN
     };
     
     GameScene(
@@ -79,4 +80,5 @@ private:
  
     void Init();
     void Reset();
+    bool DidPlayerWin() const;
 };

@@ -29,7 +29,8 @@ CollectableManager::CollectableManager(
 
 void CollectableManager::Init() {
     texture_ = texture_manager_.LoadTexture(kAssetsFolderImages + "spritesheet.png");
-
+    
+    collectables_.clear();
     const auto& cells = game_map_.GetCells();
     const auto cell_size = static_cast<float>(game_map_.GetCellSize());
     for (const auto& cell : cells) {
@@ -51,6 +52,16 @@ void CollectableManager::Init() {
                 kSizeBig,
                 kSizeBig));
         }
+    }
+}
+
+bool CollectableManager::DidCollectAll() const {
+    return collectables_.empty();
+}
+
+void CollectableManager::MarkAllForDestroy() {
+    for (auto& c : collectables_) {
+        c->is_marked_for_destroy = true;
     }
 }
 
