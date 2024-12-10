@@ -21,10 +21,7 @@ struct Collectable {
     ECollectableType type;
     unsigned int score;
     const SDL_FRect hitbox;
-    bool is_marked_for_destroy;
-    
-    Collectable(ECollectableType type_, unsigned int score_, float x_, float y_, float w_, float h_)
-        : type(type_), score(score_), hitbox{x_, y_, w_, h_}, is_marked_for_destroy(false) {}
+    bool is_marked_for_destroy {false};
 };
 
 class CollectableManager {
@@ -34,7 +31,7 @@ public:
         TextureManager& texture_manager,
         const GameMap& game_map);
 
-    void Init();
+    void CreateCollectables();
     void RemoveCollectablesMarkedForDestroy();
     void Render();
     void MarkAllForDestroy();

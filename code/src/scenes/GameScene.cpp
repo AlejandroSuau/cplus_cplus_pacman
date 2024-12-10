@@ -72,7 +72,7 @@ void GameScene::Update(float dt) {
     if (DidPlayerWin()) {
         timer_to_restart_.Update(dt);
         if (timer_to_restart_.DidFinish()) {
-            collectable_manager_.Init();
+            collectable_manager_.CreateCollectables();
             Reset();
         }
     } else if (collectable_manager_.DidCollectAll()) {
