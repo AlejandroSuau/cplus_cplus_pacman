@@ -139,6 +139,10 @@ EDirection EntityMovable::GetOppositeDirection() {
     }
 }
 
+void EntityMovable::SetVelocity(float velocity) {
+    velocity_ = velocity;
+}
+
 bool EntityMovable::IsAtHousesDoorCell() const {
     static const Vec2<int> kHousesDoorColRow {8, 6};
     const auto& center_position = GetCenterPosition();

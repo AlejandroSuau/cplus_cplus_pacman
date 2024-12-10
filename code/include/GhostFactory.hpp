@@ -6,6 +6,7 @@
 
 #include "Ghost.hpp"
 #include "GameMap.hpp"
+#include "Level.hpp"
 
 #include <memory>
 
@@ -15,7 +16,8 @@ public:
         Renderer& renderer,
         TextureManager& texture_manager,
         const GameMap& game_map,
-        Pathfinder& pathfinder);
+        Pathfinder& pathfinder,
+        const Level& level);
 
     std::unique_ptr<Ghost> CreateGhostBlinky();
     std::unique_ptr<Ghost> CreateGhostInky();
@@ -25,6 +27,7 @@ public:
 private:
     Renderer& renderer_;
     TextureManager& texture_manager_;
-    Pathfinder& pathfinder_;
     const GameMap& game_map_;
+    Pathfinder& pathfinder_;
+    const Level& level_;
 };

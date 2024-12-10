@@ -19,6 +19,11 @@ void CountdownTimer::Update(float dt) {
     }
 }
 
+void CountdownTimer::SetIntervalSeconds(float interval_seconds) {
+    interval_seconds_ = interval_seconds;
+    Restart();
+}
+
 float CountdownTimer::GetSecondsToFinish() const {
     return (interval_seconds_ - elapsed_seconds_);
 }

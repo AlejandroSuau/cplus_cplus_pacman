@@ -9,6 +9,8 @@
 #include "utils/EntityMovable.hpp"
 
 #include "GhostMovementPatterns.hpp"
+#include "Level.hpp"
+
 #include "pathfinder/Pathfinder.hpp"
 
 #include <string>
@@ -40,10 +42,10 @@ public:
         TextureManager& texture_manager,
         const GameMap& game_map,
         Pathfinder& pathfinder,
+        const Level& level,
         std::string name,
         EType type,
         SDL_FRect hitbox,
-        float velocity,
         EDirection direction,
         PathfindingPattern pathfinding_pattern);
 
@@ -67,10 +69,14 @@ public:
 private:
     TextureManager& texture_manager_;
     Pathfinder& pathfinder_;
+    const Level& level_;
     const std::string name_;
     EType type_;
     PathfindingPattern patfinder_pattern_;
     EState state_;
+
+    static const float kSpeedHousing;
+    static const float kSpeedEyes;
 
     CountdownTimer timer_mode_house_ {2.f};
     CountdownTimer timer_mode_house_swap_direction_ {.25f};
@@ -99,6 +105,7 @@ private:
     bool UpdateFrightenedTimer(float dt);
     void UpdateStateEyes(float dt);
 
-    void SetHousingState();
+    void SetStateChasing();
+    void SetStateHousing();
     EDirection ChooseRandomDirection();
 };

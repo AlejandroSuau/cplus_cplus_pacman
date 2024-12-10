@@ -30,6 +30,7 @@ public:
     void SetDirectionByTarget(Vec2<float> target_coords);
 
     void ReverseDirection();
+    void SetVelocity(float velocity);
     EDirection GetOppositeDirection();
     Vec2<int> GetDirectionVector() const;
     Vec2<int> GetDirectionVector(EDirection direction) const;

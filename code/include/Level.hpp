@@ -13,29 +13,20 @@
 
 class Level {
 public:
-    Level() {
-        SetNumber(1);
-    }
+    Level();
 
-    void IncreaseLevel() {
-        SetNumber(++number_);
-    }
-
-    void SetNumber(unsigned int number) {
-        number_ = number;
-        
-        const auto number_float = static_cast<float>(number);
-        speed_percentage_player_ = std::min(80.f + number_float, 100.f);
-        speed_percentage_ghost_ = std::min(75.f + number_float, 110.f);
-        speed_percentage_ghost_frightened_ = std::min(50.f + number_float / 2.f, 70.f);
-        seconds_duration_ghost_frightened_ = std::max(6.f - number_float / 10.f, 0.5f); 
-    }
-
-    unsigned int GetNumber() const {
-        return number_;
-    }
+    void IncreaseLevel();
+    void SetNumber(unsigned int number);
+    
+    unsigned int GetNumber() const;
+    float GetSpeedGhost() const;
+    float GetSpeedGhostFrightened() const;
+    float GetSpeedPlayer() const;
+    float GetSecondsDurationGhostFrightened() const;
 
 private:
+    static const float kMaxSpeed;
+
     unsigned int number_;
     float speed_percentage_player_;
     float speed_percentage_ghost_;

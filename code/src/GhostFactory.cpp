@@ -7,11 +7,13 @@ GhostFactory::GhostFactory(
     Renderer& renderer,
     TextureManager& texture_manager,
     const GameMap& game_map, 
-    Pathfinder& pathfinder)
+    Pathfinder& pathfinder,
+    const Level& level)
     : renderer_(renderer)
     , texture_manager_(texture_manager)
     , pathfinder_(pathfinder)
-    , game_map_(game_map) {}
+    , game_map_(game_map)
+    , level_(level) {}
 
 std::unique_ptr<Ghost> GhostFactory::CreateGhostBlinky() {
     const auto coords = game_map_.FromColRowToCoords(Vec2<int>{8, 6});
@@ -20,10 +22,10 @@ std::unique_ptr<Ghost> GhostFactory::CreateGhostBlinky() {
         texture_manager_,
         game_map_,
         pathfinder_,
+        level_,
         "Blinky",
         Ghost::EType::RED,
         SDL_FRect{coords.x, coords.y, 30.f, 30.f},
-        110.f,
         EDirection::RIGHT,
         FindPathPatternBlinky);
 }
@@ -35,10 +37,10 @@ std::unique_ptr<Ghost> GhostFactory::CreateGhostInky() {
         texture_manager_,
         game_map_,
         pathfinder_,
+        level_,
         "Inky",
         Ghost::EType::BLUE,
         SDL_FRect{coords.x, coords.y, 30.f, 30.f},
-        120.f,
         EDirection::DOWN,
         FindPathPatternInky);
 }
@@ -50,10 +52,10 @@ std::unique_ptr<Ghost> GhostFactory::CreateGhostPinky() {
         texture_manager_,
         game_map_,
         pathfinder_,
+        level_,
         "Pinky",
         Ghost::EType::PINK,
         SDL_FRect{coords.x, coords.y, 30.f, 30.f},
-        100.f,
         EDirection::UP,
         FindPathPatternPinky);
 }
@@ -65,10 +67,10 @@ std::unique_ptr<Ghost> GhostFactory::CreateGhostClyde() {
         texture_manager_,
         game_map_,
         pathfinder_,
+        level_,
         "Clyde",
         Ghost::EType::YELLOW,
         SDL_FRect{coords.x, coords.y, 30.f, 30.f},
-        140.f,
         EDirection::DOWN,
         FindPathPatternClyde);
 }

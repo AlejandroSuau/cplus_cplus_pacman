@@ -32,7 +32,7 @@ GameScene::GameScene(
         kCellSize)
     , pathfinder_(map_)
     , player_(renderer_, texture_manager_, map_)
-    , ghost_factory_(renderer_, texture_manager_, map_, pathfinder_)
+    , ghost_factory_(renderer_, texture_manager_, map_, pathfinder_, level_)
     , ghosts_{{
         ghost_factory_.CreateGhostBlinky(),
         ghost_factory_.CreateGhostInky(),

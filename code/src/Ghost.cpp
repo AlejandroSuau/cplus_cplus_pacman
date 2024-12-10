@@ -7,20 +7,24 @@
 #include <array>
 #include <random>
 
+const float Ghost::kSpeedHousing = 125.f;
+const float Ghost::kSpeedEyes = 150.f;
+
 Ghost::Ghost(
     Renderer& renderer,
     TextureManager& texture_manager,
     const GameMap& game_map,
     Pathfinder& pathfinder,
+    const Level& level,
     std::string name,
     EType type,
     SDL_FRect renderer_rect,
-    float velocity,
     EDirection direction,
     PathfindingPattern pathfinding_pattern)
-    : EntityMovable(renderer, renderer_rect, game_map, 100.f, direction, .8f)
+    : EntityMovable(renderer, renderer_rect, game_map, level.GetSpeedGhost(), direction, .8f)
     , texture_manager_(texture_manager)
     , pathfinder_(pathfinder)
+    , level_(level)
     , name_(name)
     , type_(type)
     , patfinder_pattern_(pathfinding_pattern)
@@ -31,15 +35,12 @@ Ghost::Ghost(
     , sprite_index_(0)
     , sprites_count_(2) {
     sprite_sheet_ = texture_manager_.LoadTexture(kAssetsFolderImages + "spritesheet.png");
+    SetStateHousing();
 }
 
 void Ghost::Reset() {
     Entity::Reset();
-    direction_ = starting_direction_;
-    state_ = EState::HOUSING;
-    is_moving_between_tiles_ = false;
-    timer_mode_house_.Restart();
-    timer_mode_house_swap_direction_.Restart();
+    SetStateHousing();
     path_.clear();
 }
 
@@ -78,7 +79,7 @@ void Ghost::UpdateStateHouse(float dt) {
 
     Step(dt);
     if (timer_mode_house_.DidFinish()) {
-        state_ = EState::CHASING;
+        SetStateChasing();
     }
 }
 
@@ -126,7 +127,7 @@ void Ghost::UpdateStateFrightened(float dt) {
 bool Ghost::UpdateFrightenedTimer(float dt) {
     timer_mode_frightened_.Update(dt);
     if (timer_mode_frightened_.DidFinish()) {
-        state_ = EState::CHASING;
+        SetStateChasing();
         return true;
     }
 
@@ -166,7 +167,7 @@ EDirection Ghost::ChooseRandomDirection() {
 
 void Ghost::UpdateStateEyes(float dt) {
     if (path_index_ >= path_.size()) {
-        SetHousingState();
+        SetStateHousing();
         return;
     }
 
@@ -240,6 +241,7 @@ const std::string_view Ghost::GetName() const {
 void Ghost::Die() {
     // TODO: Spawn score
     state_ = EState::EYES;
+    velocity_ = kSpeedEyes;
     const auto& hitbox = GetHitBox();
     const auto col_row_from = game_map_.FromCoordsToColRow({hitbox.x, hitbox.y});
     const auto fixed_coords = game_map_.FromColRowToCoords(col_row_from);
@@ -251,15 +253,24 @@ void Ghost::Die() {
     path_ = pathfinder_.FindPath(col_row_from, col_row_to);
 }
 
-void Ghost::SetHousingState() {
+void Ghost::SetStateChasing() {
+    state_ = EState::CHASING;
+    velocity_ = level_.GetSpeedGhost();
+}
+
+void Ghost::SetStateHousing() {
     state_ = EState::HOUSING;
+    velocity_ = kSpeedHousing;
     direction_ = starting_direction_;
     timer_mode_house_.Restart();
     timer_mode_house_swap_direction_.Restart();
+    is_moving_between_tiles_ = false;
 }
 
 void Ghost::SetStateFrightened() {
     state_ = EState::FRIGHTENED;
+    velocity_ = level_.GetSpeedGhostFrightened();
+    timer_mode_frightened_.SetIntervalSeconds(level_.GetSecondsDurationGhostFrightened());
     timer_mode_frightened_.Restart();
     timer_frightened_intermittent_.Restart();
     frightened_animation_index = 0;
