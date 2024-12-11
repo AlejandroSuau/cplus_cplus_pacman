@@ -36,3 +36,4 @@ make
 - Add maze assets (removing the color rects).
 - Add ghosts score animation.
 - Create animations class.
+- Create functions for timers.
