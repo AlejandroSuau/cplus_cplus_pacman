@@ -49,7 +49,7 @@ void CollectableManager::CreateCollectables() {
         } else if (spawn_type == 2) {
             collectables_.emplace_back(std::make_unique<Collectable>(
                 ECollectableType::BIG,
-                kScoreSmall,
+                kScoreBig,
                 SDL_FRect{x - kSizeBigHalf, y - kSizeBigHalf, kSizeBig, kSizeBig}));
         }
     }

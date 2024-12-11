@@ -21,7 +21,9 @@ struct Collectable {
     ECollectableType type;
     unsigned int score;
     const SDL_FRect hitbox;
-    bool is_marked_for_destroy {false};
+    bool is_marked_for_destroy;
+    Collectable(ECollectableType type_, unsigned int score_, SDL_FRect hitbox_)
+        : type(type_), score(score_), hitbox(hitbox_), is_marked_for_destroy(false) {}
 };
 
 class CollectableManager {
