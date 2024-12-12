@@ -83,6 +83,14 @@ void CollectableManager::Render() {
     }
 }
 
+unsigned int CollectableManager::GetAllCollectableScores() const {
+    unsigned int total_score = 0;
+    for (const auto& c : collectables_) {
+        total_score += c->score;
+    }
+    return total_score;
+}
+
 CollectableList& CollectableManager::GetCollectableList() {
     return collectables_;
 }

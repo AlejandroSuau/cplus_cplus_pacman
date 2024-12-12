@@ -36,6 +36,7 @@ public:
     bool IsDying() const;
     bool IsDead() const;
     bool IsMoving() const;
+    bool HasLifes() const;
 
 private:
     enum class EState {

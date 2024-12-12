@@ -30,7 +30,9 @@ public:
         READY_TO_PLAY,
         PLAYING,
         GAMEOVER,
-        PLAYER_WIN
+        ON_PLAYER_DIE,
+        ON_PLAYER_WIN,
+        PLAYER_WON
     };
     
     GameScene(
@@ -63,7 +65,7 @@ private:
     Level level_;
     
     CountdownTimer timer_to_start_{2.f};
-    CountdownTimer timer_to_restart_{1.f};
+    CountdownTimer timer_to_restart_{2.f};
     CountdownTimer key_spam_prevent_timer_{.5f};
     bool is_key_hack_able_{true};
 
@@ -77,8 +79,12 @@ private:
     CollisionManager collision_manager_;
     
     UIManager ui_manager_;
+    bool did_player_win_;
  
     void Init();
     void Reset();
-    bool DidPlayerWin() const;
+    
+    void HandleStatePlaying(float dt);
+    void HandleStateOnPlayerWin();
+    void HandleStateGameOver(float dt);
 };

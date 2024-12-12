@@ -40,23 +40,45 @@ GameScene::GameScene(
         ghost_factory_.CreateGhostClyde()
     }}
     , collectable_manager_(renderer_, texture_manager_, map_)
-    , collision_manager_(player_, ghosts_, collectable_manager_) {}
+    , collision_manager_(player_, ghosts_, collectable_manager_)
+    , did_player_win_(false) {
+    Init();
+}
 
-void GameScene::Init() {}
+void GameScene::Init() {
+    timer_to_start_.SetOnFinishCallback([this]() { state_ = EGameState::PLAYING; });
+    key_spam_prevent_timer_.SetOnFinishCallback([this]() { is_key_hack_able_ = true; });
+    timer_to_restart_.SetOnFinishCallback([this]() { Reset();});
+}
+
+void GameScene::Reset() {
+    if (did_player_win_) {
+        collectable_manager_.CreateCollectables();
+    }
+
+    timer_to_start_.Restart();
+    timer_to_restart_.Restart();
+    did_player_win_ = false;
+    player_.Reset();
+    for (auto& ghost : ghosts_) { ghost->Reset(); }
+    
+    state_ = EGameState::READY_TO_PLAY;  
+}
 
 void GameScene::Update(float dt) {
-    if (state_ == EGameState::READY_TO_PLAY) {
-        timer_to_start_.Update(dt);
-        if (timer_to_start_.DidFinish()) {
-            state_ = EGameState::PLAYING;
-        }
-    }
+    if (!is_key_hack_able_) { key_spam_prevent_timer_.Update(dt); }
 
-    if (!is_key_hack_able_) {
-        key_spam_prevent_timer_.Update(dt);
-        if (key_spam_prevent_timer_.DidFinish()) is_key_hack_able_ = true;
+    switch(state_) {
+        case EGameState::READY_TO_PLAY: timer_to_start_.Update(dt);    break;
+        case EGameState::PLAYING:       HandleStatePlaying(dt);        break;
+        case EGameState::ON_PLAYER_DIE: state_ = EGameState::GAMEOVER; break;
+        case EGameState::GAMEOVER:      HandleStateGameOver(dt);       break;
+        case EGameState::ON_PLAYER_WIN: HandleStateOnPlayerWin();      break;
+        case EGameState::PLAYER_WON:    timer_to_restart_.Update(dt);  break;
     }
+}
 
+void GameScene::HandleStatePlaying(float dt) {
     player_.Update(dt);
     for (auto& ghost : ghosts_) {
         ghost->Update(dt);
@@ -66,32 +88,26 @@ void GameScene::Update(float dt) {
     }
 
     collision_manager_.CheckCollisions();
-
     collectable_manager_.RemoveCollectablesMarkedForDestroy();
-    
-    if (DidPlayerWin()) {
-        timer_to_restart_.Update(dt);
-        if (timer_to_restart_.DidFinish()) {
-            collectable_manager_.CreateCollectables();
-            Reset();
-        }
-    } else if (collectable_manager_.DidCollectAll()) {
-        state_ = EGameState::PLAYER_WIN;
-        for (auto& ghost : ghosts_) ghost->SetStateStop();
-        player_.Stop();
-        level_.IncreaseLevel();
-    }
-
-    if (player_.IsDying()) {
-        state_ = EGameState::GAMEOVER;
-    } else if (player_.IsDead() && player_.GetLifes() > 0) {
-        timer_to_restart_.Update(dt);
-        if (timer_to_restart_.DidFinish()) Reset();
-    }
+    if (collectable_manager_.DidCollectAll()) { state_ = EGameState::ON_PLAYER_WIN; }
+    else if (player_.IsDying()) { state_ = EGameState::ON_PLAYER_DIE; }
 }
 
-bool GameScene::DidPlayerWin() const {
-    return (state_ == EGameState::PLAYER_WIN);
+void GameScene::HandleStateOnPlayerWin() {
+    did_player_win_ = true; // do we need this?
+    for (auto& ghost : ghosts_) ghost->SetStateStop();
+    player_.Stop();
+    level_.IncreaseLevel();
+    state_ = EGameState::PLAYER_WON;
+}
+
+void GameScene::HandleStateGameOver(float dt) {
+    player_.Update(dt);
+    if (player_.HasLifes()) {
+        timer_to_restart_.Update(dt);
+    } else {
+        // TODO: Go back to menu i.e.
+    }
 }
 
 void GameScene::OnEvent(const SDL_Event& event, Game* game) {
@@ -114,6 +130,7 @@ void GameScene::OnEvent(const SDL_Event& event, Game* game) {
             is_key_hack_able_ = false;
         break;
         case SDL_SCANCODE_C:
+            player_.IncreaseScore(collectable_manager_.GetAllCollectableScores());
             collectable_manager_.MarkAllForDestroy();
             is_key_hack_able_ = false;
         break;
@@ -148,14 +165,6 @@ OptionalGhostReference GameScene::GetGhost(std::string_view name) const {
     });
 
     return (it == ghosts_.end()) ? std::nullopt : OptionalGhostReference(**it);
-}
-
-void GameScene::Reset() {
-    state_ = EGameState::READY_TO_PLAY;
-    player_.Reset();
-    for (auto& ghost : ghosts_) {
-        ghost->Reset();
-    }
 }
 
 Pathfinder& GameScene::GetPathfinder() {

@@ -39,6 +39,7 @@ public:
     void MarkAllForDestroy();
     bool DidCollectAll() const;
     CollectableList& GetCollectableList();
+    unsigned int GetAllCollectableScores() const;
     
 private:
     Renderer& renderer_;

@@ -148,6 +148,10 @@ unsigned int Player::GetLifes() const {
     return lifes_;
 }
 
+bool Player::HasLifes() const {
+    return lifes_ > 0;
+}
+
 void Player::IncreaseScore(unsigned int value) {
     score_ += value;
 }
