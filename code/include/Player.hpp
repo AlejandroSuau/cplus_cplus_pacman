@@ -8,6 +8,8 @@
 #include "utils/CountdownTimer.hpp"
 #include "utils/EntityMovable.hpp"
 
+#include "Level.hpp"
+
 class GameMap;
 
 class Player : public EntityMovable {
@@ -15,7 +17,8 @@ public:
     Player(
         Renderer& renderer,
         TextureManager& texture_manager,
-        const GameMap& game_map);
+        const GameMap& game_map,
+        const Level& level);
 
     void Die();
     void Reset();
@@ -35,7 +38,6 @@ public:
 
     bool IsDying() const;
     bool IsDead() const;
-    bool IsMoving() const;
     bool HasLifes() const;
 
     void SetStateReady();
@@ -50,6 +52,7 @@ private:
     };
 
     TextureManager& texture_manager_;
+    const Level& level_;
     CountdownTimer moving_timer_{0.3f};
     EDirection next_direction_;
     EState state_;
@@ -58,17 +61,15 @@ private:
 
     SDL_Texture* sprite_sheet_;
 
-    const static int kMovingSpritesCount {3};
-    CountdownTimer moving_animation_timer_{0.1f};
-    int moving_animation_sprite_index_{2};
+    CountdownTimer animation_timer_moving_{0.1f};
+    int sprite_index_moving_{2};
 
-    const static int kDyingSpritesCount {11};
-    CountdownTimer dying_animation_timer_{0.08f};
-    int dying_animation_sprite_index_{0};
+    CountdownTimer animation_timer_dying_{0.08f};
+    int sprite_index_dying_{0};
 
     void Init();
 
-    SDL_Rect GetSourceRectMoving() const;
-    SDL_Rect GetSourceRectDying() const;
     void UpdateStateMoving(float dt);
+
+    double GetDirectionAngle() const;
 };

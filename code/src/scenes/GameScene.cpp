@@ -31,7 +31,7 @@ GameScene::GameScene(
         Vec2{static_cast<float>(kGamePaddingX), static_cast<float>(kGamePaddingY)},
         kCellSize)
     , pathfinder_(map_)
-    , player_(renderer_, texture_manager_, map_)
+    , player_(renderer_, texture_manager_, map_, level_)
     , ghost_factory_(renderer_, texture_manager_, map_, pathfinder_, level_)
     , ghosts_{{
         ghost_factory_.CreateGhostBlinky(),

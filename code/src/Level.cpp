@@ -17,7 +17,7 @@ void Level::SetNumber(unsigned int number) {
     
     const auto number_float = static_cast<float>(number);
     speed_percentage_player_ = std::fmin(80.f + number_float, 100.f) / 100.f;
-    speed_percentage_ghost_ = std::fmin(75.f + number_float, 110.f) / 100.f;
+    speed_percentage_ghost_ = std::fmin(70.f + number_float, 110.f) / 100.f;
     speed_percentage_ghost_frightened_ = std::fmin(50.f + number_float / 2.f, 70.f) / 100.f;
     seconds_duration_ghost_frightened_ = std::fmax(6.f - number_float / 10.f, 0.5f); 
 }
