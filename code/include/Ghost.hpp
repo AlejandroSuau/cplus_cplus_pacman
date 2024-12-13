@@ -52,7 +52,7 @@ public:
     void FindPath(GameScene& game);
 
     void Reset();
-    void Update(float dt) override;
+    void Update(float dt, GameScene* game_scene = nullptr) override;
     void Render() override;
     void StepPath(float dt);
 
@@ -96,13 +96,13 @@ private:
     int sprites_count_;
     SDL_Texture* sprite_sheet_;
 
-    void RenderPath();
+    void Init();
+
     SDL_Rect GetSourceRect() const;
 
     void UpdateStateHouse(float dt);
-    void UpdateStateChasing(float dt);
+    void UpdateStateChasing(float dt, GameScene& game_scene);
     void UpdateStateFrightened(float dt);
-    bool UpdateFrightenedTimer(float dt);
     void UpdateStateEyes(float dt);
 
     void SetStateChasing();

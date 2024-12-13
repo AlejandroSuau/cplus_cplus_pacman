@@ -84,6 +84,7 @@ private:
     void Init();
     void Reset();
     
+    void HandleStateReadyToPlay(float dt);
     void HandleStatePlaying(float dt);
     void HandleStateOnPlayerWin();
     void HandleStateGameOver(float dt);

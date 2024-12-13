@@ -31,9 +31,8 @@ make
 ```
 
 ## Pending TODO:
-- Clean code in general.
 - Add sounds.
 - Add maze assets (removing the color rects).
-- Add ghosts score animation.
+- Add ghosts score and pops animation.
 - Create animations class.
 - Create functions for timers.

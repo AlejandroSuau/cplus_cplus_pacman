@@ -108,6 +108,4 @@ static const unsigned int kLifes = 3;
 static const float kVelocity = 125.f;
 static const int kWidth = 31;
 static const int kHeight = kWidth;
-static const int kMovingAnimationCount = 3;
-static const int kDyingAnimationCount = 11;
 }

@@ -5,12 +5,13 @@
 #include "utils/Vec2.hpp"
 #include "utils/Renderer.hpp"
 
+class GameScene;
 class Entity {
 public:
     Entity(Renderer& renderer, SDL_FRect renderer_rect, float hitbox_scale = 1.f);
     virtual ~Entity() = default;
 
-    virtual void Update(float dt) = 0;
+    virtual void Update(float dt, GameScene* game_scene = nullptr) = 0;
     virtual void Render() = 0;
 
     void Reset();

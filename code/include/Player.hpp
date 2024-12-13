@@ -21,7 +21,7 @@ public:
     void Reset();
 
     // Entity
-    void Update(float dt) override;
+    void Update(float dt, GameScene* game_scene = nullptr) override;
     void Render() override;
 
     void HandleKeyPressed(const SDL_Scancode& scancode);
@@ -55,11 +55,16 @@ private:
     unsigned int score_;
 
     SDL_Texture* sprite_sheet_;
-    CountdownTimer moving_animation_timer_{0.1f};
-    int moving_animation_sprite_index_{0};
 
+    const static int kMovingSpritesCount {3};
+    CountdownTimer moving_animation_timer_{0.1f};
+    int moving_animation_sprite_index_{2};
+
+    const static int kDyingSpritesCount {11};
     CountdownTimer dying_animation_timer_{0.08f};
     int dying_animation_sprite_index_{0};
+
+    void Init();
 
     SDL_Rect GetSourceRectMoving() const;
     SDL_Rect GetSourceRectDying() const;

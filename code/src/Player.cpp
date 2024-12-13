@@ -15,8 +15,23 @@ Player::Player(
     , state_(EState::READY)
     , lifes_(PlayerParameters::kLifes)
     , score_(0) {
-    CenterAxis();
+    Init();
+}
+
+void Player::Init() {
     sprite_sheet_ = texture_manager_.LoadTexture(kAssetsFolderImages + "spritesheet.png");
+    CenterAxis();
+
+    dying_animation_timer_.SetOnFinishCallback([this]() {
+        ++dying_animation_sprite_index_;
+        if (dying_animation_sprite_index_ == kDyingSpritesCount) {
+            state_ = EState::DEAD;
+        }
+    });
+
+    moving_animation_timer_.SetOnFinishCallback([this]() {
+        moving_animation_sprite_index_ =  (moving_animation_sprite_index_ + 1) % kMovingSpritesCount;
+    });
 }
 
 void Player::Reset() {
@@ -28,7 +43,7 @@ void Player::Reset() {
     dying_animation_timer_.Restart();
     dying_animation_sprite_index_ = 0;
     moving_animation_timer_.Restart();
-    moving_animation_sprite_index_ = 0;
+    moving_animation_sprite_index_ = 2;
 }
 
 void Player::HandleKeyPressed(const SDL_Scancode& scancode) {
@@ -54,33 +69,16 @@ void Player::HandleKeyPressed(const SDL_Scancode& scancode) {
     }
 }
 
-void Player::Update(float dt) {
-    if (state_ == EState::DEAD) return;
-
-    if (state_ == EState::DYING) {
-        dying_animation_timer_.Update(dt);
-        if (dying_animation_timer_.DidFinish()) {
-            ++dying_animation_sprite_index_;
-            if (dying_animation_sprite_index_ == PlayerParameters::kDyingAnimationCount) {
-                state_ = EState::DEAD;
-            }
-        }
-        return;
-    }
-
-    if (state_ == EState::READY || state_ == EState::MOVING) {
-        moving_animation_timer_.Update(dt);
-        if (moving_animation_timer_.DidFinish()) {
-            moving_animation_sprite_index_ = (moving_animation_sprite_index_ + 1) % PlayerParameters::kMovingAnimationCount;
-        }
-
-        if (state_ == EState::MOVING) {
-            UpdateStateMoving(dt);
-        }
+void Player::Update(float dt, GameScene* /*game*/) {
+    switch(state_) {
+        case EState::MOVING: UpdateStateMoving(dt);             break;
+        case EState::DYING:  dying_animation_timer_.Update(dt); break;
     }
 }
 
 void Player::UpdateStateMoving(float dt) {   
+    moving_animation_timer_.Update(dt);
+
     bool should_move = false;
     if (IsMovableDirection(next_direction_)) {
         should_move = IsOrthogonalTurn(next_direction_) ? DidReachCellCenter() : true;
@@ -118,6 +116,7 @@ SDL_Rect Player::GetSourceRectMoving() const {
 
 SDL_Rect Player::GetSourceRectDying() const {
     using namespace SpriteSheet;
+    // 3 + (6 + 14) * dying_anim_sprite
     const int x = kStartingX + (kPadding + kWidth) * dying_animation_sprite_index_;
     return {x, 245, kWidth, kHeight};
 }

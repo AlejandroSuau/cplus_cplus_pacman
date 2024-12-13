@@ -68,6 +68,11 @@ void GameScene::Reset() {
 void GameScene::Update(float dt) {
     if (!is_key_hack_able_) { key_spam_prevent_timer_.Update(dt); }
 
+    player_.Update(dt);
+    for (auto& ghost : ghosts_) {
+        ghost->Update(dt, this);
+    }
+
     switch(state_) {
         case EGameState::READY_TO_PLAY: timer_to_start_.Update(dt);    break;
         case EGameState::PLAYING:       HandleStatePlaying(dt);        break;
@@ -79,22 +84,17 @@ void GameScene::Update(float dt) {
 }
 
 void GameScene::HandleStatePlaying(float dt) {
-    player_.Update(dt);
-    for (auto& ghost : ghosts_) {
-        ghost->Update(dt);
-        if (ghost->IsInStateChasing()) {
-            ghost->FindPath(*this);
-        }
-    }
-
     collision_manager_.CheckCollisions();
     collectable_manager_.RemoveCollectablesMarkedForDestroy();
-    if (collectable_manager_.DidCollectAll()) { state_ = EGameState::ON_PLAYER_WIN; }
-    else if (player_.IsDying()) { state_ = EGameState::ON_PLAYER_DIE; }
+    if (collectable_manager_.DidCollectAll()) {
+        state_ = EGameState::ON_PLAYER_WIN;
+    } else if (player_.IsDying()) {
+        state_ = EGameState::ON_PLAYER_DIE;
+    }
 }
 
 void GameScene::HandleStateOnPlayerWin() {
-    did_player_win_ = true; // do we need this?
+    did_player_win_ = true;
     for (auto& ghost : ghosts_) ghost->SetStateStop();
     player_.Stop();
     level_.IncreaseLevel();
@@ -102,7 +102,6 @@ void GameScene::HandleStateOnPlayerWin() {
 }
 
 void GameScene::HandleStateGameOver(float dt) {
-    player_.Update(dt);
     if (player_.HasLifes()) {
         timer_to_restart_.Update(dt);
     } else {

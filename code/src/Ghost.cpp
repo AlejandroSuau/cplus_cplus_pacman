@@ -1,7 +1,8 @@
 #include "Ghost.hpp"
 
+#include "scenes/GameScene.hpp"
+
 #include "Constants.hpp"
-#include "Game.hpp"
 
 #include <algorithm>
 #include <array>
@@ -34,14 +35,60 @@ Ghost::Ghost(
     , animation_timer_(0.1f)
     , sprite_index_(0)
     , sprites_count_(2) {
+    Init();
+}
+
+void Ghost::Init() {
     sprite_sheet_ = texture_manager_.LoadTexture(kAssetsFolderImages + "spritesheet.png");
     SetStateHousing();
+    
+    animation_timer_.SetOnFinishCallback([this]() {
+        sprite_index_ = (sprite_index_ + 1) % sprites_count_;
+    });
+
+    timer_mode_house_.SetOnFinishCallback([this]() { SetStateChasing(); });
+    timer_mode_house_swap_direction_.SetOnFinishCallback([this]() { ReverseDirection(); });
+
+    timer_mode_frightened_.SetOnFinishCallback([this]() { SetStateChasing(); });
+    timer_frightened_intermittent_.SetOnFinishCallback([this]() {
+        frightened_animation_index = !frightened_animation_index;
+    });
 }
 
 void Ghost::Reset() {
     Entity::Reset();
     SetStateHousing();
     path_.clear();
+}
+
+void Ghost::Update(float dt, GameScene* game_scene) {
+    animation_timer_.Update(dt);
+
+    switch(state_) {
+        case EState::HOUSING:    UpdateStateHouse(dt);                break;
+        case EState::FRIGHTENED: UpdateStateFrightened(dt);           break;
+        case EState::CHASING:    UpdateStateChasing(dt, *game_scene); break;
+        case EState::EYES:       UpdateStateEyes(dt);                 break;
+    }
+}
+
+void Ghost::UpdateStateHouse(float dt) {
+    timer_mode_house_.Update(dt);
+    timer_mode_house_swap_direction_.Update(dt);
+    Step(dt);
+}
+
+void Ghost::UpdateStateChasing(float dt, GameScene& game_scene) {
+    if (!is_moving_between_tiles_) {
+        FindPath(game_scene);
+    }
+
+    if (path_index_ >= path_.size()) {
+        CenterAxis();
+        return;
+    }
+
+    StepPath(dt);
 }
 
 // Should avoid finding path when is moving between tiles.
@@ -52,44 +99,6 @@ void Ghost::FindPath(GameScene& game) {
     const auto col_row = game_map_.FromCoordsToColRow(center_pos);
     path_index_ = 1;
     path_ = patfinder_pattern_(col_row, game);
-}
-
-void Ghost::Update(float dt) {
-    animation_timer_.Update(dt);
-    if (animation_timer_.DidFinish()) {
-        sprite_index_ = (sprite_index_ + 1) % sprites_count_;
-    }
-
-    switch(state_) {
-        case EState::HOUSING:    UpdateStateHouse(dt);       break;
-        case EState::FRIGHTENED: UpdateStateFrightened(dt);  break;
-        case EState::CHASING:    UpdateStateChasing(dt);     break;
-        case EState::EYES:       UpdateStateEyes(dt);        break;
-        default:                                             
-        case EState::STOP:                                   break;
-    }
-}
-
-void Ghost::UpdateStateHouse(float dt) {
-    timer_mode_house_.Update(dt);
-    timer_mode_house_swap_direction_.Update(dt);
-    if (timer_mode_house_swap_direction_.DidFinish()) {
-        ReverseDirection();
-    }
-
-    Step(dt);
-    if (timer_mode_house_.DidFinish()) {
-        SetStateChasing();
-    }
-}
-
-void Ghost::UpdateStateChasing(float dt) {
-    if (path_index_ >= path_.size()) {
-        CenterAxis();
-        return;
-    }
-
-    StepPath(dt);
 }
 
 void Ghost::StepPath(float dt) {
@@ -110,7 +119,10 @@ void Ghost::StepPath(float dt) {
 }
 
 void Ghost::UpdateStateFrightened(float dt) {
-    if (UpdateFrightenedTimer(dt)) return;
+    timer_mode_frightened_.Update(dt);
+    if (timer_mode_frightened_.GetSecondsToFinish() <= intermittent_time_last_seconds_) {
+        timer_frightened_intermittent_.Update(dt);
+    }
 
     const auto& cell = game_map_.GetCell(GetCenterPosition());
     if (DidReachCellCenter() && cell.cell_index != last_visited_cell_index_) {
@@ -122,23 +134,6 @@ void Ghost::UpdateStateFrightened(float dt) {
     }
 
     Step(dt);
-}
-
-bool Ghost::UpdateFrightenedTimer(float dt) {
-    timer_mode_frightened_.Update(dt);
-    if (timer_mode_frightened_.DidFinish()) {
-        SetStateChasing();
-        return true;
-    }
-
-    if (timer_mode_frightened_.GetSecondsToFinish() <= intermittent_time_last_seconds_) {
-        timer_frightened_intermittent_.Update(dt);
-        if (timer_frightened_intermittent_.DidFinish()) {
-            frightened_animation_index = !frightened_animation_index;
-        }
-    }
-
-    return false;
 }
 
 EDirection Ghost::ChooseRandomDirection() {
@@ -153,10 +148,6 @@ EDirection Ghost::ChooseRandomDirection() {
         return (!IsMovableDirection(d) || d == GetOppositeDirection());
     };
     auto directions_end = std::remove_if(directions.begin(), directions.end(), is_unwanted_direction);
-    /*if (IsAtHousesDoorCell()) {
-        directions_end = std::remove(directions.begin(), directions_end, EDirection::DOWN);
-    }*/
-
     if (std::distance(directions.begin(), directions_end) > 1) {
         static thread_local std::mt19937 rng{std::random_device{}()};
         std::ranges::shuffle(directions.begin(), directions_end, rng);
@@ -181,28 +172,8 @@ void Ghost::UpdateStateEyes(float dt) {
 }
 
 void Ghost::Render() {
-    //RenderPath();
     const auto src_r = GetSourceRect();
-    //renderer_.SetRenderingColor({0, 100, 150, 255});
-    //renderer_.RenderRectFilled(GetHitBox());
-    // renderer_.RenderRectFilled(GetRendererRect());
     renderer_.RenderTexture(sprite_sheet_, src_r, GetRendererRect());
-}
-
-void Ghost::RenderPath() {
-    renderer_.SetRenderingColor({200, 200, 200, 50});
-    const auto cell_size = game_map_.GetCellSizeFloat();
-    std::size_t i = 0;
-    for (const auto& col_row : path_) {
-        const auto& cell = game_map_.GetCell(col_row);
-        SDL_FRect r {cell.position.x, cell.position.y, cell_size, cell_size};
-        renderer_.RenderRectFilled(r);
-        if (i == path_index_) {
-            renderer_.SetRenderingColor({255, 50, 50, 50});
-            renderer_.RenderRectFilled(r);
-        }
-        ++i;
-    }
 }
 
 SDL_Rect Ghost::GetSourceRect() const {
@@ -239,7 +210,6 @@ const std::string_view Ghost::GetName() const {
 }
 
 void Ghost::Die() {
-    // TODO: Spawn score
     state_ = EState::EYES;
     velocity_ = kSpeedEyes;
     const auto& hitbox = GetHitBox();
