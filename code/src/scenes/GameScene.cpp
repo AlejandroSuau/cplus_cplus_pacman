@@ -46,7 +46,10 @@ GameScene::GameScene(
 }
 
 void GameScene::Init() {
-    timer_to_start_.SetOnFinishCallback([this]() { state_ = EGameState::PLAYING; });
+    timer_to_start_.SetOnFinishCallback([this]() {
+        state_ = EGameState::PLAYING;
+        player_.SetStateReady();
+    });
     key_spam_prevent_timer_.SetOnFinishCallback([this]() { is_key_hack_able_ = true; });
     timer_to_restart_.SetOnFinishCallback([this]() { Reset();});
 }

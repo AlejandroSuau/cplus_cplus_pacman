@@ -12,7 +12,7 @@ Player::Player(
     : EntityMovable(renderer, {356.f, 516.f, 26.f, 26.f}, game_map, 125.f, EDirection::RIGHT, .6f)
     , texture_manager_(texture_manager)
     , next_direction_(direction_)
-    , state_(EState::READY)
+    , state_(EState::STOP)
     , lifes_(PlayerParameters::kLifes)
     , score_(0) {
     Init();
@@ -36,7 +36,7 @@ void Player::Init() {
 
 void Player::Reset() {
     Entity::Reset();
-    state_ = EState::READY;
+    state_ = EState::STOP;
     direction_ = EDirection::RIGHT;
     CenterAxis();
     
@@ -47,25 +47,14 @@ void Player::Reset() {
 }
 
 void Player::HandleKeyPressed(const SDL_Scancode& scancode) {
-    if (IsDying() || IsDead()) return;
-
+    if (state_ != EState::READY && state_ != EState::MOVING) return;
+    
+    state_ = EState::MOVING;
     switch(scancode) {
-        case SDL_SCANCODE_UP:
-            state_ = EState::MOVING;
-            next_direction_ = EDirection::UP;
-        break;
-        case SDL_SCANCODE_DOWN:
-            state_ = EState::MOVING;
-            next_direction_ = EDirection::DOWN;
-        break;
-        case SDL_SCANCODE_RIGHT:
-            state_ = EState::MOVING;
-            next_direction_ = EDirection::RIGHT;
-        break;
-        case SDL_SCANCODE_LEFT:
-            state_ = EState::MOVING;
-            next_direction_ = EDirection::LEFT;
-        break;
+        case SDL_SCANCODE_UP:    next_direction_ = EDirection::UP;    break;
+        case SDL_SCANCODE_DOWN:  next_direction_ = EDirection::DOWN;  break;
+        case SDL_SCANCODE_RIGHT: next_direction_ = EDirection::RIGHT; break;
+        case SDL_SCANCODE_LEFT:  next_direction_ = EDirection::LEFT;  break;
     }
 }
 
@@ -128,6 +117,10 @@ void Player::Stop() {
 void Player::Die() {
     state_ = EState::DYING;
     DecreaseOneLife();
+}
+
+void Player::SetStateReady() {
+    state_ = EState::READY;
 }
 
 void Player::IncreaseOneLife() {

@@ -38,6 +38,8 @@ public:
     bool IsMoving() const;
     bool HasLifes() const;
 
+    void SetStateReady();
+
 private:
     enum class EState {
         STOP,
