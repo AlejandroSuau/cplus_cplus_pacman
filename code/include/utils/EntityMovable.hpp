@@ -31,7 +31,7 @@ public:
 
     void ReverseDirection();
     void SetVelocity(float velocity);
-    EDirection GetOppositeDirection();
+    EDirection GetOppositeDirection() const;
     Vec2<int> GetDirectionVector() const;
     Vec2<int> GetDirectionVector(EDirection direction) const;
 

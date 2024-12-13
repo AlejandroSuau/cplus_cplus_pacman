@@ -76,36 +76,3 @@ static const std::array<std::array<unsigned int, kColsCount>, kRowsCount> kMapTi
     {0, 1, 1, 0, 1, 1, 1, 0, 1, 0, 1, 1, 1, 0, 1, 1, 0},
     {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
 }};
-
-static const SDL_Rect kTextureRectBackground {-16, -16, kGameWidth + kCellSizeInt, kGameHeight + kCellSize};
-
-// Sprite Sheet
-namespace SpriteSheet {
-static const int kPadding = 6;
-static const int kWidth = 14;
-static const int kHeight = kWidth;
-static const int kStartingX = 3;
-static const int kStartingY = 3;
-
-namespace GhostSprite {
-static const int kStartingY = 83;
-static const int kAnimationCountChasing = 2;
-static const int kAnimationCountEyes = 1;
-}
-
-}
-
-// Ghost
-namespace GhostParameters {
-static const float kVelocityStateEyes {350.f};
-static const float kVelocityStateHousing {150.f};
-static const float kVelocityStateChasing {125.f};
-}
-
-// Player
-namespace PlayerParameters {
-static const unsigned int kLifes = 3;
-static const float kVelocity = 125.f;
-static const int kWidth = 31;
-static const int kHeight = kWidth;
-}

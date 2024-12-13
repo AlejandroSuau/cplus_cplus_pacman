@@ -75,9 +75,6 @@ private:
     PathfindingPattern patfinder_pattern_;
     EState state_;
 
-    static const float kSpeedHousing;
-    static const float kSpeedEyes;
-
     CountdownTimer timer_mode_house_ {2.f};
     CountdownTimer timer_mode_house_swap_direction_ {.25f};
     
@@ -93,12 +90,9 @@ private:
     
     CountdownTimer animation_timer_;
     int sprite_index_;
-    int sprites_count_;
     SDL_Texture* sprite_sheet_;
 
     void Init();
-
-    SDL_Rect GetSourceRect() const;
 
     void UpdateStateHouse(float dt);
     void UpdateStateChasing(float dt, GameScene& game_scene);
@@ -107,5 +101,6 @@ private:
 
     void SetStateChasing();
     void SetStateHousing();
-    EDirection ChooseRandomDirection();
+    EDirection ChooseRandomDirection() const;
+    int GetSpriteIndexByDirection() const;
 };

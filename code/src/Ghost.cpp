@@ -8,8 +8,20 @@
 #include <array>
 #include <random>
 
-const float Ghost::kSpeedHousing = 125.f;
-const float Ghost::kSpeedEyes = 150.f;
+namespace {
+static const int kSourceWidth = 14;
+static const int kSourceHeight = kSourceWidth;
+
+static const int kSpritesCountMoving = 2;
+static const SDL_Rect kSourceAnimationMoving {3, 83, kSourceWidth, kSourceHeight};
+static const SDL_Rect kSourceAnimationEyes {3, 202, kSourceWidth, kSourceHeight};
+static const SDL_Rect kSourceAnimationFrightened {3, 163, kSourceWidth, kSourceHeight};
+
+static const float kSpeedHousing = 125.f;
+static const float kSpeedEyes = 150.f;
+
+static const float kHitboxScale = 0.6f;
+}
 
 Ghost::Ghost(
     Renderer& renderer,
@@ -33,8 +45,7 @@ Ghost::Ghost(
     , path_index_(0)
     , is_moving_between_tiles_(false)
     , animation_timer_(0.1f)
-    , sprite_index_(0)
-    , sprites_count_(2) {
+    , sprite_index_(0) {
     Init();
 }
 
@@ -43,7 +54,7 @@ void Ghost::Init() {
     SetStateHousing();
     
     animation_timer_.SetOnFinishCallback([this]() {
-        sprite_index_ = (sprite_index_ + 1) % sprites_count_;
+        sprite_index_ = (sprite_index_ + 1) % kSpritesCountMoving;
     });
 
     timer_mode_house_.SetOnFinishCallback([this]() { SetStateChasing(); });
@@ -136,7 +147,7 @@ void Ghost::UpdateStateFrightened(float dt) {
     Step(dt);
 }
 
-EDirection Ghost::ChooseRandomDirection() {
+EDirection Ghost::ChooseRandomDirection() const {
     std::array directions {
         EDirection::LEFT,
         EDirection::UP,
@@ -172,37 +183,38 @@ void Ghost::UpdateStateEyes(float dt) {
 }
 
 void Ghost::Render() {
-    const auto src_r = GetSourceRect();
+    
+    SDL_Rect src_r;
+    switch(state_) {
+        case EState::STOP:
+        case EState::HOUSING:
+        case EState::CHASING:
+            src_r = kSourceAnimationMoving;
+            src_r.x += (6 + src_r.w) * kSpritesCountMoving * GetSpriteIndexByDirection() +
+                       (6 + src_r.w) * sprite_index_;
+            src_r.y += (6 + src_r.h) * static_cast<int>(type_);
+        break;
+        case EState::EYES:
+            src_r = kSourceAnimationEyes;
+            src_r.x += (6 + src_r.w) * GetSpriteIndexByDirection();
+        break;
+        case EState::FRIGHTENED:
+            src_r = kSourceAnimationFrightened;
+            src_r.x += (6 + src_r.w) * sprite_index_ + (6 + src_r.w) * frightened_animation_index;
+        break;
+    }
+
     renderer_.RenderTexture(sprite_sheet_, src_r, GetRendererRect());
 }
 
-SDL_Rect Ghost::GetSourceRect() const {
-    using namespace SpriteSheet;
-    int asset_by_direction;
+int Ghost::GetSpriteIndexByDirection() const {
     switch(direction_) {
-        case EDirection::UP:    asset_by_direction = 0; break; 
-        case EDirection::DOWN:  asset_by_direction = 1; break;
-        case EDirection::LEFT:  asset_by_direction = 2; break;
-        case EDirection::RIGHT: asset_by_direction = 3; break;
+        default:
+        case EDirection::UP:    return 0;
+        case EDirection::DOWN:  return 1;
+        case EDirection::LEFT:  return 2;
+        case EDirection::RIGHT: return 3;
     }
-
-    int x = 0;
-    int y = 0;
-    if (IsInStateChasing() || state_ == EState::HOUSING || state_ == EState::STOP) {
-        x = kStartingX +
-            ((kPadding + kWidth) * GhostSprite::kAnimationCountChasing) * asset_by_direction +
-            ((kPadding + kWidth) * sprite_index_);
-        y = GhostSprite::kStartingY + (kPadding + kHeight) * static_cast<int>(type_);
-    } else if (state_ == EState::EYES) {
-        x = kStartingX +
-            ((kPadding + kWidth) * asset_by_direction);
-        y = 202;
-    } else if (state_ == EState::FRIGHTENED) {
-        x = kStartingX + ((kPadding + kWidth) * sprite_index_) +
-            (kPadding + kWidth) * (frightened_animation_index);
-        y = 163;
-    }
-    return SDL_Rect {x, y, kWidth, kHeight};
 }
 
 const std::string_view Ghost::GetName() const {

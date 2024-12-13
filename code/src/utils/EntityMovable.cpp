@@ -129,7 +129,7 @@ void EntityMovable::ReverseDirection() {
     direction_ = GetOppositeDirection();
 }
 
-EDirection EntityMovable::GetOppositeDirection() {
+EDirection EntityMovable::GetOppositeDirection() const {
     switch(direction_) {
         default:
         case EDirection::UP:    return EDirection::DOWN;

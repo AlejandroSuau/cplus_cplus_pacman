@@ -6,20 +6,21 @@
 #include <algorithm>
 
 namespace {
-    static const unsigned int kMaxLifes = 6;
+static const unsigned int kMaxLifes = 6;
+static const unsigned int kStartingLifes = 3;
 
-    static const float kStartingX = 356.f;
-    static const float kStartingY = 516.f;
-    static const float kWidth = 26.f;
-    static const float kHeight = kWidth;
+static const float kStartingX = 356.f;
+static const float kStartingY = 516.f;
+static const float kWidth = 26.f;
+static const float kHeight = kWidth;
 
-    static const float kHitboxScale = 0.6f;
+static const float kHitboxScale = 0.6f;
 
-    static const int kSpritesCountMoving {3};
-    static const SDL_Rect kSourceAnimationMoving {282, 2, 32, 32}; // next y: (8 + width) * sprite_index_moving_
-    
-    static const int kSpritesCountDying {11};
-    static const SDL_Rect kSourceAnimationDying {3, 245, 14, 14}; // next x: (6 + width) * sprite_index_dying_ 
+static const int kSpritesCountMoving {3};
+static const SDL_Rect kSourceAnimationMoving {282, 2, 32, 32}; // next y: (8 + width) * sprite_index_moving_
+
+static const int kSpritesCountDying {11};
+static const SDL_Rect kSourceAnimationDying {3, 245, 14, 14}; // next x: (6 + width) * sprite_index_dying_ 
 }
 
 Player::Player(
@@ -38,7 +39,7 @@ Player::Player(
     , level_(level)
     , next_direction_(direction_)
     , state_(EState::STOP)
-    , lifes_(PlayerParameters::kLifes)
+    , lifes_(kStartingLifes)
     , score_(0) {
     Init();
 }
