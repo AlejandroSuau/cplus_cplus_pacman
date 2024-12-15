@@ -61,15 +61,16 @@ private:
 
     SDL_Texture* sprite_sheet_;
 
-    CountdownTimer animation_timer_moving_{0.1f};
+    CountdownTimer animation_timer_moving_{0.06f};
     int sprite_index_moving_{2};
 
-    CountdownTimer animation_timer_dying_{0.08f};
+    CountdownTimer animation_timer_dying_{.2f};
     int sprite_index_dying_{0};
 
     void Init();
 
     void UpdateStateMoving(float dt);
 
-    double GetDirectionAngle() const;
+    double GetAssetAngleOnDying() const;
+    double GetAssetAngleOnMoving() const;
 };

@@ -90,8 +90,6 @@ void Player::Update(float dt, GameScene* /*game*/) {
 }
 
 void Player::UpdateStateMoving(float dt) {   
-    animation_timer_moving_.Update(dt);
-
     bool should_move = false;
     if (IsMovableDirection(next_direction_)) {
         should_move = IsOrthogonalTurn(next_direction_) ? DidReachCellCenter() : true;
@@ -99,6 +97,7 @@ void Player::UpdateStateMoving(float dt) {
     }
     
     if (should_move || IsMovableDirection(direction_)) {
+        animation_timer_moving_.Update(dt);
         Step(dt);        
     }
 }
@@ -107,18 +106,30 @@ void Player::Render() {
     if (IsDead()) return;
 
     SDL_Rect src_r;
+    double angle;
     if (IsDying()) {
         src_r = kSourceAnimationDying;
         src_r.x += (6 + src_r.w) * sprite_index_dying_;
+        angle = GetAssetAngleOnDying();
     } else {
         src_r = kSourceAnimationMoving;
         src_r.y += (8 + src_r.h) * sprite_index_moving_;
+        angle = GetAssetAngleOnMoving();
     }
 
-    renderer_.RenderTexture(sprite_sheet_, src_r, GetRendererRect(), GetDirectionAngle());
+    renderer_.RenderTexture(sprite_sheet_, src_r, GetRendererRect(), angle);
 }
 
-double Player::GetDirectionAngle() const {
+double Player::GetAssetAngleOnDying() const {
+    switch(direction_) {
+        case EDirection::UP:    return 0;
+        case EDirection::RIGHT: return 90;
+        case EDirection::DOWN:  return 180;
+        case EDirection::LEFT:  return 270;
+    }
+}
+
+double Player::GetAssetAngleOnMoving() const {
     return (90.0 * static_cast<double>(direction_));
 }
 
