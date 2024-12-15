@@ -1,6 +1,6 @@
 #include "utils/SoundManager.hpp"
 
-#include <SDL2/SDL.h>
+#include <iostream>
 
 SoundManager::~SoundManager() {
     ClearAllSounds();

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <SDL2/SDL.h>
 #include <SDL2/SDL_mixer.h>
 
 #include <map>
@@ -16,7 +17,7 @@ public:
 
 private:
     std::map<std::string, Mix_Chunk*> sound_effects_;
-    std::map<std::string, Mix_Music*> music_;
+    std::map<std::string, Mix_Music*> music_ {};
 
     void ClearAllSounds();
 };
