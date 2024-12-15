@@ -47,4 +47,6 @@ private:
     const GameMap& game_map_;
     CollectableList collectables_;
     SDL_Texture* texture_;
+
+    void AddCollectable(ECollectableType type, unsigned int score, float size, float x, float y);
 };

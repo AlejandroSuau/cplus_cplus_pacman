@@ -35,24 +35,45 @@ CollectableManager::CollectableManager(
 
 void CollectableManager::CreateCollectables() {    
     collectables_.clear();
+    const auto last_col = game_map_.GetColumnsCount() - 1;
+    const auto last_row = game_map_.GetRowsCount() - 1;
+
     const auto& cells = game_map_.GetCells();
     const auto half_cell_size = static_cast<float>(game_map_.GetCellSize()) / 2.f;
     for (const auto& cell : cells) {
         const auto spawn_type = kMapCollectables[cell.row][cell.col];
-        auto x = cell.center.x;
-        auto y = cell.center.y;
-        if (spawn_type == 1) {
-            collectables_.emplace_back(std::make_unique<Collectable>(
-                ECollectableType::SMALL,
-                kScoreSmall,
-                SDL_FRect{x - kSizeSmallHalf, y - kSizeSmallHalf, kSizeSmall, kSizeSmall}));
-        } else if (spawn_type == 2) {
-            collectables_.emplace_back(std::make_unique<Collectable>(
-                ECollectableType::BIG,
-                kScoreBig,
-                SDL_FRect{x - kSizeBigHalf, y - kSizeBigHalf, kSizeBig, kSizeBig}));
+        if (spawn_type == 0) continue;
+
+        const auto x = cell.center.x;
+        const auto y = cell.center.y;
+        switch(spawn_type) {
+            case 1: AddCollectable(ECollectableType::SMALL, kScoreSmall, kSizeSmall, x, y); break;
+            case 2: AddCollectable(ECollectableType::BIG, kScoreBig, kSizeBig, x, y);       break;
+        }
+
+        // Adding more half right and half down if posible.
+        bool add_coollectable_right = (
+            cell.col != last_col && 
+            (cell.col + 1) <= last_col && 
+            kMapCollectables[cell.row][cell.col + 1]);
+        if (add_coollectable_right) {
+            AddCollectable(ECollectableType::SMALL, kScoreSmall, kSizeSmall, x + half_cell_size, y);
+        }
+
+        bool add_coollectable_down = (
+            cell.row != last_row && 
+            (cell.row + 1) <= last_row && 
+            kMapCollectables[cell.row + 1][cell.col]);
+        if (add_coollectable_down) {
+            AddCollectable(ECollectableType::SMALL, kScoreSmall, kSizeSmall, x, y + half_cell_size);
         }
     }
+}
+
+void CollectableManager::AddCollectable(ECollectableType type, unsigned int score, float size, float x, float y) {
+    collectables_.emplace_back(std::make_unique<Collectable>(
+        type, score, SDL_FRect{x - size/2.f, y - size / 2.f, size, size}
+    ));
 }
 
 bool CollectableManager::DidCollectAll() const {
