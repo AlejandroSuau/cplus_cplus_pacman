@@ -52,9 +52,17 @@ void GameScene::Init() {
     // On die => render score x200, etc
     // Count how many did die
 
-    // game start
-    // eyes sound
-    // fright sound
+    // On Die Ghost
+    // 1. Paramos la música
+        // Foreach ghost that is not in eyes, stop.
+        // not render player
+        // Mix_HaltChannel(-1); // Stop all the channels.
+    // 2. Reproducimos la muerte del ghost (desaparece y aparece score en su lugar)
+        // set EState::SHOWING_SCORE (index 0 1 2 3)
+        // timer_showing_score.Update(dt); // Set On Finish => state=eyes
+        // 
+    // 4. Reproducimos la música eyes en bucle.
+    // 5. Al llegar a estado Housing, si no hay ninguno más en eyes. Paramos.
     
     timer_to_start_.SetOnFinishCallback([this]() {
         state_ = EGameState::PLAYING;
