@@ -40,21 +40,34 @@ GameScene::GameScene(
         ghost_factory_.CreateGhostClyde()
     }}
     , collectable_manager_(renderer_, texture_manager_, map_)
-    , collision_manager_(player_, ghosts_, collectable_manager_)
+    , collision_manager_(sound_manager_, player_, ghosts_, collectable_manager_)
     , did_player_win_(false) {
     Init();
 }
 
 void GameScene::Init() {
+    sound_intro_ = sound_manager_.LoadSoundEffect(kAssetsFolderSounds + "start.wav");
+    sound_eyes_ = sound_manager_.LoadSoundEffect(kAssetsFolderSounds + "eyes_firstloop.wav");
+    sound_frightened_ = sound_manager_.LoadSoundEffect(kAssetsFolderSounds + "fright_firstloop.wav");
+    // On die => render score x200, etc
+    // Count how many did die
+
+    // game start
+    // eyes sound
+    // fright sound
+    
     timer_to_start_.SetOnFinishCallback([this]() {
         state_ = EGameState::PLAYING;
         player_.SetStateReady();
+        for (auto& ghost : ghosts_) { ghost->SetStateHousing(); }
     });
     key_spam_prevent_timer_.SetOnFinishCallback([this]() { is_key_hack_able_ = true; });
-    timer_to_restart_.SetOnFinishCallback([this]() { Reset();});
+    timer_to_restart_.SetOnFinishCallback([this]() { StartGame();});
+
+    StartGame();
 }
 
-void GameScene::Reset() {
+void GameScene::StartGame() {
     if (did_player_win_) {
         collectable_manager_.CreateCollectables();
     }
@@ -65,7 +78,8 @@ void GameScene::Reset() {
     player_.Reset();
     for (auto& ghost : ghosts_) { ghost->Reset(); }
     
-    state_ = EGameState::READY_TO_PLAY;  
+    state_ = EGameState::READY_TO_PLAY;
+    Mix_PlayChannel(-1, sound_intro_, 0);    
 }
 
 void GameScene::Update(float dt) {
@@ -79,7 +93,7 @@ void GameScene::Update(float dt) {
     switch(state_) {
         case EGameState::READY_TO_PLAY: timer_to_start_.Update(dt);    break;
         case EGameState::PLAYING:       HandleStatePlaying(dt);        break;
-        case EGameState::ON_PLAYER_DIE: state_ = EGameState::GAMEOVER; break;
+        case EGameState::ON_PLAYER_DIE: HandleOnPlayerDie(dt);           break;
         case EGameState::GAMEOVER:      HandleStateGameOver(dt);       break;
         case EGameState::ON_PLAYER_WIN: HandleStateOnPlayerWin();      break;
         case EGameState::PLAYER_WON:    timer_to_restart_.Update(dt);  break;
@@ -91,7 +105,7 @@ void GameScene::HandleStatePlaying(float dt) {
     collectable_manager_.RemoveCollectablesMarkedForDestroy();
     if (collectable_manager_.DidCollectAll()) {
         state_ = EGameState::ON_PLAYER_WIN;
-    } else if (player_.IsDying()) {
+    } else if (player_.IsDead()) {
         state_ = EGameState::ON_PLAYER_DIE;
     }
 }
@@ -104,12 +118,16 @@ void GameScene::HandleStateOnPlayerWin() {
     state_ = EGameState::PLAYER_WON;
 }
 
-void GameScene::HandleStateGameOver(float dt) {
+void GameScene::HandleOnPlayerDie(float dt) {
     if (player_.HasLifes()) {
         timer_to_restart_.Update(dt);
     } else {
-        // TODO: Go back to menu i.e.
+        state_ = EGameState::GAMEOVER;
     }
+}
+
+void GameScene::HandleStateGameOver(float dt) {
+    // TODO: Go back to menu i.e.
 }
 
 void GameScene::OnEvent(const SDL_Event& event, Game* game) {

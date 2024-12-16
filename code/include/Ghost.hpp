@@ -58,6 +58,7 @@ public:
 
     void Die();
 
+    void SetStateHousing();
     void SetStateStop();
     void SetStateFrightened();
     bool IsInStateEyes() const;
@@ -100,7 +101,6 @@ private:
     void UpdateStateEyes(float dt);
 
     void SetStateChasing();
-    void SetStateHousing();
     EDirection ChooseRandomDirection() const;
     int GetSpriteIndexByDirection() const;
 };

@@ -64,8 +64,8 @@ private:
     EGameState state_;
     Level level_;
     
-    CountdownTimer timer_to_start_{2.f};
-    CountdownTimer timer_to_restart_{2.f};
+    CountdownTimer timer_to_start_{4.5f};
+    CountdownTimer timer_to_restart_{1.f};
     CountdownTimer key_spam_prevent_timer_{.5f};
     bool is_key_hack_able_{true};
 
@@ -80,12 +80,16 @@ private:
     
     UIManager ui_manager_;
     bool did_player_win_;
+
+    Mix_Chunk* sound_intro_ {nullptr};
+    Mix_Chunk* sound_eyes_ {nullptr};
+    Mix_Chunk* sound_frightened_ {nullptr};
  
     void Init();
-    void Reset();
+    void StartGame();
     
-    void HandleStateReadyToPlay(float dt);
     void HandleStatePlaying(float dt);
+    void HandleOnPlayerDie(float dt);
     void HandleStateOnPlayerWin();
     void HandleStateGameOver(float dt);
 };

@@ -18,7 +18,7 @@ static const SDL_Rect kSourceAnimationEyes {3, 202, kSourceWidth, kSourceHeight}
 static const SDL_Rect kSourceAnimationFrightened {3, 163, kSourceWidth, kSourceHeight};
 
 static const float kSpeedHousing = 125.f;
-static const float kSpeedEyes = 150.f;
+static const float kSpeedEyes = 200.f;
 
 static const float kHitboxScale = 0.6f;
 }
@@ -51,7 +51,7 @@ Ghost::Ghost(
 
 void Ghost::Init() {
     sprite_sheet_ = texture_manager_.LoadTexture(kAssetsFolderImages + "spritesheet.png");
-    SetStateHousing();
+    SetStateStop();
     
     animation_timer_.SetOnFinishCallback([this]() {
         sprite_index_ = (sprite_index_ + 1) % kSpritesCountMoving;
@@ -68,13 +68,14 @@ void Ghost::Init() {
 
 void Ghost::Reset() {
     Entity::Reset();
-    SetStateHousing();
+    SetStateStop();
     path_.clear();
 }
 
 void Ghost::Update(float dt, GameScene* game_scene) {
-    animation_timer_.Update(dt);
+    if (state_ == EState::STOP) return;
 
+    animation_timer_.Update(dt);
     switch(state_) {
         case EState::HOUSING:    UpdateStateHouse(dt);                break;
         case EState::FRIGHTENED: UpdateStateFrightened(dt);           break;
