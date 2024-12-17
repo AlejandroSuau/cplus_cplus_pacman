@@ -47,6 +47,7 @@ void GameMap::Init() {
 }
 
 void GameMap::Render() {
+    
     renderer_.SetRenderingColor({0, 100, 225, 100});
     for (auto& cell : cells_) {
         if (cell.is_walkable) continue;

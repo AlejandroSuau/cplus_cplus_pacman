@@ -57,11 +57,13 @@ public:
     void Render() override;
     void StepPath(float dt);
 
-    void Die();
+    unsigned int Die(int died_in_same_frightened_count);
 
+    void SetStateChasing();
     void SetStateHousing();
     void SetStateStop();
     void SetStateFrightened();
+
     bool IsInStateEyes() const;
     bool IsInStateFrightened() const;
     bool IsInStateChasing() const;
@@ -69,6 +71,8 @@ public:
     const std::string_view GetName() const;
 
 private:
+    const static unsigned int kScoreBase = 200;
+
     TextureManager& texture_manager_;
     Pathfinder& pathfinder_;
     const Level& level_;
@@ -76,16 +80,16 @@ private:
     EType type_;
     PathfindingPattern patfinder_pattern_;
     EState state_;
+    EState state_previous_;
 
     CountdownTimer timer_mode_house_ {2.f};
     CountdownTimer timer_mode_house_swap_direction_ {.25f};
     
-    int showing_score_index_ {0};
+    int showing_score_index_ {3};
     CountdownTimer timer_showing_score_ {1.5f};
 
     const float intermittent_time_last_seconds_ = 4.f;
     CountdownTimer timer_frightened_intermittent_ {2.f};
-    CountdownTimer timer_mode_frightened_ {6.f};
     int frightened_animation_index_ {0};
     
     bool is_moving_between_tiles_;
@@ -98,13 +102,13 @@ private:
     SDL_Texture* sprite_sheet_;
 
     void Init();
+    void SetState(EState new_state);
 
     void UpdateStateHouse(float dt);
     void UpdateStateChasing(float dt, GameScene& game_scene);
-    void UpdateStateFrightened(float dt);
+    void UpdateStateFrightened(float dt, GameScene& game_scene);
     void UpdateStateEyes(float dt);
 
-    void SetStateChasing();
     EDirection ChooseRandomDirection() const;
     int GetSpriteIndexByDirection() const;
 };

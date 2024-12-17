@@ -1,5 +1,7 @@
 #include "CollisionManager.hpp"
 
+#include "scenes/GameScene.hpp"
+
 #include "utils/Collisions.hpp"
 
 #include "Constants.hpp"
@@ -25,43 +27,43 @@ void CollisionManager::LoadSounds() {
     sounds_collect_[1] = sound_manager_.LoadSoundEffect(kAssetsFolderSounds + "eat_dot_1.wav");
 }
 
-void CollisionManager::CheckCollisions() {
+void CollisionManager::CheckCollisions(GameScene& game_scene) {
     // Player - Collectable
     const auto& player_hitbox = player_.GetHitBox();
     auto& collectables = collectable_manager_.GetCollectableList();
     for (auto& collectable : collectables) {
         if (AreColliding(player_.GetHitBox(), collectable->hitbox)) {
-            OnCollisionWithCollectable(*collectable);
+            OnCollisionWithCollectable(*collectable, game_scene);
         }
     }
 
     // Player - Ghost
     for (auto& ghost : ghosts_) {
         if (AreColliding(player_hitbox, ghost->GetHitBox())) {
-            OnCollisionWithGhost(*ghost);
+            OnCollisionWithGhost(*ghost, game_scene);
         }
     }
 }
 
-void CollisionManager::OnCollisionWithCollectable(Collectable& collectable) {
+void CollisionManager::OnCollisionWithCollectable(Collectable& collectable, GameScene& game_scene) {
     Mix_PlayChannel(-1, sounds_collect_[sound_collect_index_], 0);
     sound_collect_index_ = !sound_collect_index_;
 
     player_.IncreaseScore(collectable.score);
     collectable.is_marked_for_destroy = true;
     if (collectable.type == ECollectableType::BIG) {
-        for (auto& ghost : ghosts_) {
-            ghost->SetStateFrightened();
-        }
+        game_scene.StartGhostFrightenedTimer();
     }
 }
 
-void CollisionManager::OnCollisionWithGhost(Ghost& ghost) {
+void CollisionManager::OnCollisionWithGhost(Ghost& ghost, GameScene& game_scene) {
     if (player_.IsDying() || ghost.IsInStateEyes()) return;
 
     if (ghost.IsInStateFrightened()) {
         Mix_PlayChannel(-1, sound_die_ghost_, 0);
-        ghost.Die();
+        game_scene.IncreaseFrightenedDeadsCount();
+        const auto ghost_score = ghost.Die(game_scene.GetFrightenedDeadsCount());
+        player_.IncreaseScore(ghost_score);
     } else if (ghost.IsInStateChasing()) {
         Mix_PlayChannel(-1, sound_die_player_, 0);
         player_.Die();

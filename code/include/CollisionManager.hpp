@@ -12,6 +12,8 @@
 
 #include <array>
 
+class GameScene;
+
 class CollisionManager {
 public:
     CollisionManager(
@@ -20,7 +22,7 @@ public:
         GhostList& ghosts,
         CollectableManager& collectable_list);
 
-    void CheckCollisions();
+    void CheckCollisions(GameScene& game_scene);
 
 private:
     SoundManager& sound_manager_;
@@ -34,8 +36,8 @@ private:
     std::size_t sound_collect_index_;
     std::array<Mix_Chunk*, 2> sounds_collect_ {nullptr, nullptr};
 
-    void OnCollisionWithCollectable(Collectable& collectable_type);
-    void OnCollisionWithGhost(Ghost& ghost);
+    void OnCollisionWithCollectable(Collectable& collectable_type, GameScene& game_scene);
+    void OnCollisionWithGhost(Ghost& ghost, GameScene& game_scene);
 
     void LoadSounds();
 };

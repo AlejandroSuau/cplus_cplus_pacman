@@ -17,7 +17,11 @@ static const SDL_Rect kSourceAnimationMoving {3, 83, kSourceWidth, kSourceHeight
 static const SDL_Rect kSourceAnimationEyes {3, 202, kSourceWidth, kSourceHeight};
 static const SDL_Rect kSourceAnimationFrightened {3, 163, kSourceWidth, kSourceHeight};
 
-static const SDL_Rect kSourceAnimationScore {3, 226, 16, 7};
+static const std::array<SDL_Rect, 4> kSourceAnimationScore {
+    SDL_Rect{3, 226, 18, 7},
+    SDL_Rect{23, 226, 15, 7},
+    SDL_Rect{43, 226, 15, 7},
+    SDL_Rect{62, 226, 16, 7}};
 
 static const float kSpeedHousing = 125.f;
 static const float kSpeedEyes = 200.f;
@@ -44,6 +48,7 @@ Ghost::Ghost(
     , type_(type)
     , patfinder_pattern_(pathfinding_pattern)
     , state_(EState::HOUSING)
+    , state_previous_(state_)
     , path_index_(0)
     , is_moving_between_tiles_(false)
     , animation_timer_(0.1f)
@@ -62,16 +67,16 @@ void Ghost::Init() {
     timer_mode_house_.SetOnFinishCallback([this]() { SetStateChasing(); });
     timer_mode_house_swap_direction_.SetOnFinishCallback([this]() { ReverseDirection(); });
 
-    timer_mode_frightened_.SetOnFinishCallback([this]() { SetStateChasing(); });
     timer_frightened_intermittent_.SetOnFinishCallback([this]() {
         frightened_animation_index_ = !frightened_animation_index_;
     });
 
-    timer_showing_score_.SetOnFinishCallback([this]() { state_ = EState::EYES; });
+    timer_showing_score_.SetOnFinishCallback([this]() { SetState(EState::EYES); });
 }
 
 void Ghost::Reset() {
     Entity::Reset();
+    direction_ = starting_direction_;
     SetStateStop();
     path_.clear();
 }
@@ -81,11 +86,11 @@ void Ghost::Update(float dt, GameScene* game_scene) {
 
     animation_timer_.Update(dt);
     switch(state_) {
-        case EState::HOUSING:       UpdateStateHouse(dt);                break;
-        case EState::FRIGHTENED:    UpdateStateFrightened(dt);           break;
-        case EState::CHASING:       UpdateStateChasing(dt, *game_scene); break;
-        case EState::SHOWING_SCORE: timer_showing_score_.Update(dt);     break;
-        case EState::EYES:          UpdateStateEyes(dt);                 break;
+        case EState::HOUSING:       UpdateStateHouse(dt);                   break;
+        case EState::FRIGHTENED:    UpdateStateFrightened(dt, *game_scene); break;
+        case EState::CHASING:       UpdateStateChasing(dt, *game_scene);    break;
+        case EState::SHOWING_SCORE: timer_showing_score_.Update(dt);        break;
+        case EState::EYES:          UpdateStateEyes(dt);                    break;
     }
 }
 
@@ -135,9 +140,8 @@ void Ghost::StepPath(float dt) {
     }
 }
 
-void Ghost::UpdateStateFrightened(float dt) {
-    timer_mode_frightened_.Update(dt);
-    if (timer_mode_frightened_.GetSecondsToFinish() <= intermittent_time_last_seconds_) {
+void Ghost::UpdateStateFrightened(float dt, GameScene& game_scene) {
+    if (game_scene.GetSecondsToFinishFrightenedMode() <= intermittent_time_last_seconds_) {
         timer_frightened_intermittent_.Update(dt);
     }
 
@@ -189,7 +193,6 @@ void Ghost::UpdateStateEyes(float dt) {
 }
 
 void Ghost::Render() {
-    
     SDL_Rect src_r;
     SDL_FRect dst_r = GetRendererRect();
     switch(state_) {
@@ -202,8 +205,7 @@ void Ghost::Render() {
             src_r.y += (6 + src_r.h) * static_cast<int>(type_);
         break;
         case EState::SHOWING_SCORE: {
-            src_r = kSourceAnimationScore;
-            src_r.x += (4 + src_r.w) * showing_score_index_;
+            src_r = kSourceAnimationScore[showing_score_index_];
             dst_r.w = 32.f;
             dst_r.h = 14.f;
             const auto center = GetCenterPosition();
@@ -238,8 +240,9 @@ const std::string_view Ghost::GetName() const {
     return name_;
 }
 
-void Ghost::Die() {
-    state_ = EState::SHOWING_SCORE;
+unsigned int Ghost::Die(int died_in_same_frightened_count) {
+    showing_score_index_ = died_in_same_frightened_count - 1;
+    SetState(EState::SHOWING_SCORE);
     velocity_ = kSpeedEyes;
     const auto& hitbox = GetHitBox();
     const auto col_row_from = game_map_.FromCoordsToColRow({hitbox.x, hitbox.y});
@@ -250,15 +253,17 @@ void Ghost::Die() {
     const auto col_row_to = game_map_.FromCoordsToColRow(
         Vec2<float>{starting_renderer_rect_.x, starting_renderer_rect_.y});
     path_ = pathfinder_.FindPath(col_row_from, col_row_to);
+    
+    return (kScoreBase * died_in_same_frightened_count);
 }
 
 void Ghost::SetStateChasing() {
-    state_ = EState::CHASING;
+    SetState(EState::CHASING);
     velocity_ = level_.GetSpeedGhost();
 }
 
 void Ghost::SetStateHousing() {
-    state_ = EState::HOUSING;
+    SetState(EState::HOUSING);
     velocity_ = kSpeedHousing;
     direction_ = starting_direction_;
     timer_mode_house_.Restart();
@@ -267,18 +272,21 @@ void Ghost::SetStateHousing() {
 }
 
 void Ghost::SetStateFrightened() {
-    state_ = EState::FRIGHTENED;
+    SetState(EState::FRIGHTENED);
     velocity_ = level_.GetSpeedGhostFrightened();
-    timer_mode_frightened_.SetIntervalSeconds(level_.GetSecondsDurationGhostFrightened());
-    timer_mode_frightened_.Restart();
     timer_frightened_intermittent_.Restart();
     frightened_animation_index_ = 0;
     is_moving_between_tiles_ = false;
     path_.clear();
 }
 
+void Ghost::SetState(EState new_state) {
+    state_previous_ = state_;
+    state_ = new_state;
+}
+
 void Ghost::SetStateStop() {
-    state_ = EState::STOP;
+    SetState(EState::STOP);
 }
 
 bool Ghost::IsInStateChasing() const {
