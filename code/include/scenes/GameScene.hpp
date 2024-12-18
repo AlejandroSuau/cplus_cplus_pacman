@@ -19,7 +19,7 @@
 #include "Types.hpp"
 #include "CollisionManager.hpp"
 #include "Level.hpp"
-#include "Constants.hpp"
+#include "SoundPlayer.hpp"
 
 #include "scenes/IScene.hpp"
 
@@ -30,39 +30,6 @@
 #include <string_view>
 #include <string>
 
-class BackgroundMusicPlayer {
-public:
-    BackgroundMusicPlayer(SoundManager& sound_manager)
-        : sound_manager_(sound_manager) { LoadMusic(); }
-    
-    void PlayMusicIntro()      { PlayMusic(0, false); }
-    void PlayMusicPlaying()    { PlayMusic(1, true);  }
-    void PlayMusicEyes()       { PlayMusic(2, true);  }
-    void PlayMusicFrightened() { PlayMusic(3, true);  }
-    void PlayMusicWin()        { PlayMusic(4, true);  }
-
-    void StopMusic()           { Mix_HaltChannel(-1); }
-
-private:
-    SoundManager& sound_manager_;
-    std::size_t last_playing_sound_index_ {0};
-
-    static const std::size_t kAvailableSongs = 5;
-    std::array<Mix_Chunk*, kAvailableSongs> songs_{};
-
-    void LoadMusic() {
-        static const std::array<std::string, kAvailableSongs> song_names_ {
-            "start.wav", "siren0_firstloop.wav", "eyes_firstloop.wav", "fright_firstloop.wav", "intermission.wav"};
-        for (std::size_t i = 0; i < kAvailableSongs; ++i) {
-            songs_[i] = sound_manager_.LoadSoundEffect(kAssetsFolderSounds + song_names_[i]);
-        }
-    }
-
-    void PlayMusic(std::size_t index, bool loop = true) {
-        StopMusic();
-        Mix_PlayChannel(-1, songs_[index], loop ? -1 : 0);
-    }
-};
 
 class GameScene : public IScene {
 public:
@@ -98,6 +65,11 @@ public:
  
     OptionalGhostReference GetGhost(std::string_view name) const;
 
+    void OnGhostDie(Ghost& ghost);
+    void OnPlayerDie();
+
+    void GhostInEyesStateArrivedToHouse();
+
     int GetFrightenedDeadsCount() const;
     void ResetFrightenedDeadsCount();
     void IncreaseFrightenedDeadsCount();
@@ -108,18 +80,22 @@ private:
     TextureManager& texture_manager_;
     TextManager& text_manager_;
     
-    BackgroundMusicPlayer music_player_;
+    SoundPlayer sound_player_;
     EGameState state_;
     Level level_;
     
     CountdownTimer timer_to_start_{4.5f};
     CountdownTimer timer_to_restart_{1.f};
+    CountdownTimer timer_after_win_{5.5f};
     CountdownTimer key_spam_prevent_timer_{.5f};
     bool is_key_hack_able_{true};
 
     bool is_timer_mode_frightened_active_;
     CountdownTimer timer_mode_frightened_{0.f};
     int frightened_deads_count_ {0};
+
+    bool is_showing_ghost_score_ {false};
+    CountdownTimer timer_showing_ghost_score_ {1.5f};
 
     // Game Objects
     GameMap map_;

@@ -90,7 +90,7 @@ void Ghost::Update(float dt, GameScene* game_scene) {
         case EState::FRIGHTENED:    UpdateStateFrightened(dt, *game_scene); break;
         case EState::CHASING:       UpdateStateChasing(dt, *game_scene);    break;
         case EState::SHOWING_SCORE: timer_showing_score_.Update(dt);        break;
-        case EState::EYES:          UpdateStateEyes(dt);                    break;
+        case EState::EYES:          UpdateStateEyes(dt, *game_scene);                    break;
     }
 }
 
@@ -177,9 +177,10 @@ EDirection Ghost::ChooseRandomDirection() const {
     return *directions.begin();
 }
 
-void Ghost::UpdateStateEyes(float dt) {
+void Ghost::UpdateStateEyes(float dt, GameScene& game_scene) {
     if (path_index_ >= path_.size()) {
         SetStateHousing();
+        game_scene.GhostInEyesStateArrivedToHouse();    
         return;
     }
 
@@ -285,12 +286,20 @@ void Ghost::SetState(EState new_state) {
     state_ = new_state;
 }
 
+void Ghost::SetStateEyes() {
+    SetState(EState::EYES);
+}
+
 void Ghost::SetStateStop() {
     SetState(EState::STOP);
 }
 
 bool Ghost::IsInStateChasing() const {
     return (state_ == EState::CHASING);
+}
+
+bool Ghost::IsInStateShowingScore() const {
+    return (state_ == EState::SHOWING_SCORE);
 }
 
 bool Ghost::IsInStateFrightened() const {

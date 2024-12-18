@@ -30,9 +30,6 @@ private:
     GhostList& ghosts_;
     CollectableManager& collectable_manager_;
 
-    Mix_Chunk* sound_die_player_ {nullptr};
-    Mix_Chunk* sound_die_ghost_ {nullptr};
-
     std::size_t sound_collect_index_;
     std::array<Mix_Chunk*, 2> sounds_collect_ {nullptr, nullptr};
 

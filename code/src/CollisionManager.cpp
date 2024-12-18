@@ -20,9 +20,6 @@ CollisionManager::CollisionManager(
 }
 
 void CollisionManager::LoadSounds() {
-    sound_die_player_ = sound_manager_.LoadSoundEffect(kAssetsFolderSounds + "death_0.wav");
-    sound_die_ghost_ = sound_manager_.LoadSoundEffect(kAssetsFolderSounds + "eat_ghost.wav");
-
     sounds_collect_[0] = sound_manager_.LoadSoundEffect(kAssetsFolderSounds + "eat_dot_0.wav");
     sounds_collect_[1] = sound_manager_.LoadSoundEffect(kAssetsFolderSounds + "eat_dot_1.wav");
 }
@@ -60,15 +57,8 @@ void CollisionManager::OnCollisionWithGhost(Ghost& ghost, GameScene& game_scene)
     if (player_.IsDying() || ghost.IsInStateEyes()) return;
 
     if (ghost.IsInStateFrightened()) {
-        Mix_PlayChannel(-1, sound_die_ghost_, 0);
-        game_scene.IncreaseFrightenedDeadsCount();
-        const auto ghost_score = ghost.Die(game_scene.GetFrightenedDeadsCount());
-        player_.IncreaseScore(ghost_score);
+        game_scene.OnGhostDie(ghost);
     } else if (ghost.IsInStateChasing()) {
-        Mix_PlayChannel(-1, sound_die_player_, 0);
-        player_.Die();
-        for (auto& ghost : ghosts_) {
-            ghost->SetStateStop();
-        }
+        game_scene.OnPlayerDie();
     }
 }

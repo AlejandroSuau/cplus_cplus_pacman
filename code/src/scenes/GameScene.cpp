@@ -21,7 +21,7 @@ GameScene::GameScene(
     , sound_manager_(sound_manager)
     , texture_manager_(texture_manager)
     , text_manager_(text_manager)
-    , music_player_(sound_manager)
+    , sound_player_(sound_manager)
     , state_(EGameState::READY_TO_PLAY)
     , map_(
         renderer_,
@@ -47,21 +47,40 @@ GameScene::GameScene(
 void GameScene::Init() {
     background_texture_ = texture_manager_.LoadTexture(kAssetsFolderImages + "background.png");
     timer_to_start_.SetOnFinishCallback([this]() {
+        sound_player_.PlayMusicPlaying();
         state_ = EGameState::PLAYING;
         player_.SetStateReady();
         for (auto& ghost : ghosts_) { ghost->SetStateHousing(); }
     });
     key_spam_prevent_timer_.SetOnFinishCallback([this]() { is_key_hack_able_ = true; });
     timer_to_restart_.SetOnFinishCallback([this]() { StartGame();});
+    timer_after_win_.SetOnFinishCallback([this]() { StartGame(); });
+
+    timer_showing_ghost_score_.SetOnFinishCallback([this]() {
+        is_showing_ghost_score_ = false;
+        sound_player_.PlayMusicEyes();
+        auto is_showing_score = [this](const auto& g) { return g->IsInStateShowingScore(); };
+        for (auto& g : ghosts_ | std::views::filter(is_showing_score)) {
+            g->SetStateEyes();
+        }
+    });
 
     timer_mode_frightened_.SetOnFinishCallback([this]() {
-        auto is_in_frightened_state = [this](const auto& g) { return g->IsInStateFrightened(); };
-        for (auto& g : ghosts_ | std::views::filter(is_in_frightened_state)) {
+        auto is_frightened = [this](const auto& g) { return g->IsInStateFrightened(); };
+        for (auto& g : ghosts_ | std::views::filter(is_frightened)) {
             g->SetStateChasing();
         }
         is_timer_mode_frightened_active_ = false;
         frightened_deads_count_ = 0;
-        music_player_.StopMusic();
+        sound_player_.StopMusic();
+        
+        const auto is_any_ghost_in_eyes_state = std::any_of(
+            ghosts_.cbegin(), ghosts_.cend(), [](const auto& g) { return g->IsInStateEyes(); });
+        if (is_any_ghost_in_eyes_state) {
+            sound_player_.PlayMusicEyes();
+        } else {
+            sound_player_.PlayMusicPlaying();
+        }
     });
 
     StartGame();
@@ -82,11 +101,16 @@ void GameScene::StartGame() {
     is_timer_mode_frightened_active_ = false;
     
     state_ = EGameState::READY_TO_PLAY;
-    music_player_.PlayMusicIntro();    
+    sound_player_.PlayMusicIntro();    
 }
 
 void GameScene::Update(float dt) {
     if (!is_key_hack_able_) { key_spam_prevent_timer_.Update(dt); }
+
+    if (is_showing_ghost_score_) {
+        timer_showing_ghost_score_.Update(dt);
+        return;
+    }
 
     player_.Update(dt);
     for (auto& ghost : ghosts_) {
@@ -99,48 +123,11 @@ void GameScene::Update(float dt) {
         case EGameState::ON_PLAYER_DIED: HandleOnPlayerDied(dt);        break;
         case EGameState::GAMEOVER:       HandleStateGameOver(dt);       break;
         case EGameState::ON_PLAYER_WIN:  HandleStateOnPlayerWin();      break;
-        case EGameState::PLAYER_WON:     timer_to_restart_.Update(dt);  break;
+        case EGameState::PLAYER_WON:     timer_after_win_.Update(dt);  break;
     }
 }
 
 void GameScene::HandleStatePlaying(float dt) {
-    /*if (!is_playing_background_music_) {
-        // Set which background music should play.
-        Mix_HaltChannel(-1);
-        Mix_PlayChannel(-1, sound_siren_, -1);
-        is_playing_background_music_ = true;
-    }*/
-    // Check for music. EYES
-    /*auto any_ghost_in_eyes_state = std::any_of(ghosts_.cbegin(), ghosts_.cend(), [](const auto& g) {
-        return (g->IsInStateEyes());
-    });
-    if (is_playing_sound_eyes_) {
-        if (!any_ghost_in_eyes_state) {
-            is_playing_sound_eyes_ = false;
-            Mix_HaltChannel(-1);
-        }
-    } else {
-        if (any_ghost_in_eyes_state) {
-            is_playing_sound_eyes_ = true;
-            Mix_PlayChannel(-1, sound_eyes_, -1);
-        }
-    }
-
-    // Check for music. FRIGHTENED
-    auto any_ghost_in_frightened_state = std::any_of(ghosts_.cbegin(), ghosts_.cend(), [](const auto& g) {
-        return (g->IsInStateFrightened());
-    });
-    if (is_playing_sound_frightened_) {
-        if (!any_ghost_in_frightened_state) {
-            is_playing_sound_frightened_ = false;
-            Mix_HaltChannel(-1);
-        }
-    } else {
-        if (any_ghost_in_frightened_state) {
-            is_playing_sound_frightened_ = true;
-            Mix_PlayChannel(-1, sound_frightened_, -1);
-        }
-    }*/
     if (is_timer_mode_frightened_active_) {
         timer_mode_frightened_.Update(dt);
     }
@@ -160,6 +147,7 @@ void GameScene::HandleStateOnPlayerWin() {
     player_.Stop();
     level_.IncreaseLevel();
     state_ = EGameState::PLAYER_WON;
+    sound_player_.PlayMusicWin();
 }
 
 void GameScene::HandleOnPlayerDied(float dt) {
@@ -182,7 +170,7 @@ void GameScene::OnEvent(const SDL_Event& event, Game* game) {
     if (!is_key_hack_able_) return;
     switch(event.key.keysym.scancode) {
         case SDL_SCANCODE_F:
-            for (auto& g : ghosts_) g->SetStateFrightened();
+            StartGhostFrightenedTimer();
             is_key_hack_able_ = false;
         break;
         case SDL_SCANCODE_D:
@@ -205,6 +193,27 @@ void GameScene::OnEvent(const SDL_Event& event, Game* game) {
     }
 }
 
+void GameScene::GhostInEyesStateArrivedToHouse() {
+    const auto is_any_ghost_in_eyes_state = std::any_of(
+        ghosts_.cbegin(), ghosts_.cend(), [](const auto& g) { return g->IsInStateEyes(); });
+    if (!is_any_ghost_in_eyes_state && !is_timer_mode_frightened_active_) {
+        sound_player_.PlayMusicPlaying();
+    } else if (is_timer_mode_frightened_active_) {
+        sound_player_.PlayMusicFrightened();
+    }
+}
+
+void GameScene::OnGhostDie(Ghost& ghost) {
+    sound_player_.StopMusic();
+    sound_player_.PlaySoundDieGhost();
+
+    timer_showing_ghost_score_.Restart();
+    is_showing_ghost_score_ = true;
+    ++frightened_deads_count_;
+    const auto ghost_score = ghost.Die(frightened_deads_count_);
+    player_.IncreaseScore(ghost_score);
+}
+
 void GameScene::Render() {
     renderer_.RenderTexture(background_texture_, {0, 0, 561, 659}, {kGamePaddingX - 10.f, kGamePaddingY - 10.f, 561.f, 659.f});
 
@@ -223,7 +232,16 @@ void GameScene::StartGhostFrightenedTimer() {
         ghost->SetStateFrightened();
     }
     timer_mode_frightened_.Restart();
-    music_player_.PlayMusicFrightened();
+    sound_player_.PlayMusicFrightened();
+}
+
+void GameScene::OnPlayerDie() {
+    sound_player_.StopMusic();
+    sound_player_.PlaySoundDiePlayer();
+    player_.Die();
+    for (auto& ghost : ghosts_) {
+        ghost->SetStateStop();
+    }
 }
 
 bool GameScene::IsReadyToPlay() const {

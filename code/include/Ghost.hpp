@@ -59,11 +59,13 @@ public:
 
     unsigned int Die(int died_in_same_frightened_count);
 
+    void SetStateEyes();
     void SetStateChasing();
     void SetStateHousing();
     void SetStateStop();
     void SetStateFrightened();
 
+    bool IsInStateShowingScore() const;
     bool IsInStateEyes() const;
     bool IsInStateFrightened() const;
     bool IsInStateChasing() const;
@@ -107,7 +109,7 @@ private:
     void UpdateStateHouse(float dt);
     void UpdateStateChasing(float dt, GameScene& game_scene);
     void UpdateStateFrightened(float dt, GameScene& game_scene);
-    void UpdateStateEyes(float dt);
+    void UpdateStateEyes(float dt,  GameScene& game_scene);
 
     EDirection ChooseRandomDirection() const;
     int GetSpriteIndexByDirection() const;
