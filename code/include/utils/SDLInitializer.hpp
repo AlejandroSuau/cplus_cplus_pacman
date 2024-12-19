@@ -1,17 +1,18 @@
+
 #pragma once
 
-#include <SDL2/SDL_image.h>
+#include <SDL2/SDL.h>
 
 #include <stdexcept>
 
-class SDLImageInitializer {
+class SDLInitializer {
 public:
-    SDLImageInitializer() {
-        if (!(IMG_Init(IMG_INIT_PNG) & IMG_INIT_PNG)) {
+    SDLInitializer() {
+        if (SDL_Init(SDL_INIT_VIDEO) != 0) {
             SDL_Log("Failed to init SDL: %s", SDL_GetError());
-            throw std::runtime_error("Failed to init Image SDL");
+            throw std::runtime_error("Failed to init SDL");
         }
     }
     
-    ~SDLImageInitializer() { IMG_Quit(); }
+    ~SDLInitializer() { SDL_Quit(); }
 };
